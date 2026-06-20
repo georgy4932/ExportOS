@@ -74,4 +74,5 @@ app.use((_req, res) => {
 const PORT = Number(process.env.PORT ?? 3000)
 app.listen(PORT, () => {
   console.log(`ExportOS API listening on http://localhost:${PORT}`)
+  console.warn('[WARN] local_users auth is active (v0.2 dev mode). Not for production use.')
 })

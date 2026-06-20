@@ -4,6 +4,9 @@ import jwt from 'jsonwebtoken'
 import type { DbClient } from '../../db/client'
 import { requireAuth } from '../middleware/require-auth'
 
+// DEV-ONLY AUTH — local_users is a v0.2 local-development mechanism only.
+// It must NOT be used in production. Replace with Supabase Auth or an
+// equivalent identity provider before any deployment beyond local dev.
 export function authRouter(pool: DbClient): Router {
   const router = Router()
 

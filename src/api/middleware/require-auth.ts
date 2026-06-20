@@ -42,11 +42,20 @@ export function requireAuth(pool: DbClient): RequestHandler {
 
     try {
       const { rows } = await pool.query<{ exporter_id: string }>(
-        'SELECT exporter_id FROM exporter_users WHERE user_id = $1 LIMIT 1',
+        'SELECT exporter_id FROM exporter_users WHERE user_id = $1',
         [userId],
       )
       if (!rows.length) {
         res.status(403).json({ error: 'No exporter access for this account' })
+        return
+      }
+      if (rows.length > 1) {
+        // v0.2 supports exactly one exporter per user. Multi-exporter accounts
+        // require an exporter-selection flow that does not exist yet.
+        res.status(403).json({
+          error: 'Multi-exporter accounts are not supported in v0.2',
+          hint:  'This account belongs to more than one exporter. Contact your administrator.',
+        })
         return
       }
       res.locals.userId = userId
