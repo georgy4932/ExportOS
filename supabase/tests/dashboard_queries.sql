@@ -17,33 +17,37 @@ BEGIN;
 DO $$
 DECLARE
   -- -------------------------------------------------------------------------
-  -- IDs for this test run (local to the DO block)
+  -- Auth user for FK columns (allocated_by, generated_by, uploaded_by).
+  -- Rolled back with the rest of the transaction.
   -- -------------------------------------------------------------------------
-  v_user_id        UUID := gen_random_uuid();
-  v_exporter_id    UUID := gen_random_uuid();
-  v_cp_id          UUID := gen_random_uuid();
-  v_contract_id    UUID := gen_random_uuid();
+  v_user_id     UUID := gen_random_uuid();
 
-  -- Shipments: A=will be fully reconciled/SAFE, B=partial/WARNING,
-  --            C=OVERDUE, D=CRITICAL
-  v_ship_a         UUID := gen_random_uuid();
-  v_ship_b         UUID := gen_random_uuid();
-  v_ship_c         UUID := gen_random_uuid();
-  v_ship_d         UUID := gen_random_uuid();
+  -- -------------------------------------------------------------------------
+  -- Core entity IDs
+  -- -------------------------------------------------------------------------
+  v_exporter_id UUID := gen_random_uuid();
+  v_cp_id       UUID := gen_random_uuid();
+  v_contract_id UUID := gen_random_uuid();
 
-  v_bl_a           UUID := gen_random_uuid();
-  v_bl_b           UUID := gen_random_uuid();
-  v_bl_c           UUID := gen_random_uuid();
-  v_bl_d           UUID := gen_random_uuid();
+  -- Shipments: A=SAFE, B=WARNING, C=OVERDUE, D=CRITICAL (deadline band)
+  v_ship_a UUID := gen_random_uuid();
+  v_ship_b UUID := gen_random_uuid();
+  v_ship_c UUID := gen_random_uuid();
+  v_ship_d UUID := gen_random_uuid();
 
-  v_receipt_a      UUID := gen_random_uuid();
-  v_receipt_b      UUID := gen_random_uuid();
+  v_bl_a UUID := gen_random_uuid();
+  v_bl_b UUID := gen_random_uuid();
+  v_bl_c UUID := gen_random_uuid();
+  v_bl_d UUID := gen_random_uuid();
 
-  v_alloc_a        UUID := gen_random_uuid();
-  v_alloc_b        UUID := gen_random_uuid();
+  v_receipt_a UUID := gen_random_uuid();
+  v_receipt_b UUID := gen_random_uuid();
 
-  v_pack_a         UUID := gen_random_uuid();  -- complete checklist → sealable
-  v_pack_b         UUID := gen_random_uuid();  -- incomplete checklist → blocks seal
+  v_alloc_a UUID := gen_random_uuid();
+  v_alloc_b UUID := gen_random_uuid();
+
+  v_pack_a UUID := gen_random_uuid();  -- all 5 checklist items TRUE → sealable
+  v_pack_b UUID := gen_random_uuid();  -- only 3 of 5 TRUE → blocks seal
 
   -- -------------------------------------------------------------------------
   -- Result variables
@@ -61,16 +65,16 @@ DECLARE
   v_critical_count BIGINT;
   v_overdue_count  BIGINT;
 
-  v_rep_status_a   repatriation_status;
-  v_rep_status_b   repatriation_status;
+  v_rep_status_a repatriation_status;
+  v_rep_status_b repatriation_status;
 
-  v_sealed         BOOLEAN;
-  v_raised         BOOLEAN;
+  v_sealed BOOLEAN;
+  v_raised BOOLEAN;
 
 BEGIN
 
   -- ===========================================================================
-  -- SETUP: auth user (rolled back at end)
+  -- SETUP: auth user (rolled back at end of outer transaction)
   -- ===========================================================================
 
   INSERT INTO auth.users (
@@ -94,97 +98,143 @@ BEGIN
 
   -- ===========================================================================
   -- SETUP: exporter + settings + counterparty + contract
+  -- 4 shipments × 10,000 USD each = contract_value 40,000 USD
   -- ===========================================================================
 
   INSERT INTO exporters (id, legal_name, country)
     VALUES (v_exporter_id, '_dashboard_test_exporter_', 'NG');
 
-  -- 180-day non-oil repatriation window; tolerance $10 or 1%
+  -- tolerance: 1% or $10 — tight band so exact-match receipts are clearly CLEAN
   INSERT INTO exporter_settings (
     exporter_id,
+    charges_tolerance_pct,
+    charges_tolerance_max_abs,
     default_repatriation_days_non_oil,
-    default_repatriation_days_oil_gas,
-    discrepancy_tolerance_pct,
-    discrepancy_tolerance_max_abs
+    default_repatriation_days_oil_gas
   ) VALUES (
-    v_exporter_id, 180, 90, 1.00, 10.00
+    v_exporter_id, 0.0100, 10.00, 180, 90
   );
 
-  INSERT INTO counterparties (id, exporter_id, legal_name, country, counterparty_type, registered_address)
-    VALUES (v_cp_id, v_exporter_id, '_test_buyer_', 'DE', 'BUYER', '1 Test Strasse, Berlin, Germany');
+  INSERT INTO counterparties (
+    id, exporter_id, legal_name,
+    country_of_incorporation, counterparty_type,
+    registered_address
+  ) VALUES (
+    v_cp_id, v_exporter_id,
+    '_test_buyer_',
+    'DE', 'COMPANY',
+    '1 Test Strasse, Berlin, Germany'
+  );
 
-  -- Contract value = 4 × 10,000 = 40,000
+  -- contract_value = 4 × 10,000 = 40,000
   INSERT INTO export_contracts (
-    id, exporter_id, counterparty_id,
-    contract_reference, contract_date, commodity_type,
-    commodity_description, quantity_mt, contract_value,
-    contract_currency, payment_terms, status
+    id, contract_reference, exporter_id, counterparty_id,
+    commodity, commodity_type, hs_code,
+    contract_quantity, quantity_unit,
+    contract_value, currency,
+    unit_price, incoterms,
+    destination_country, payment_terms,
+    contract_date, status
   ) VALUES (
-    v_contract_id, v_exporter_id, v_cp_id,
-    '_TEST-CTR-DQ-001_', CURRENT_DATE - 90, 'NON_OIL',
-    'Test Commodity', 40.00, 40000.00,
-    'USD', 'T/T', 'ACTIVE'
+    v_contract_id, '_TEST-CTR-DQ-001_',
+    v_exporter_id, v_cp_id,
+    'Test Commodity', 'NON_OIL', '1207.40',
+    40.0000, 'MT',
+    40000.00, 'USD',
+    1000.0000, 'CFR',
+    'DE', 'T/T',
+    CURRENT_DATE - 90, 'ACTIVE'
   );
 
   -- ===========================================================================
-  -- SETUP: 4 shipments, each 10,000 USD
+  -- SETUP: 4 shipments, each 10,000 USD / 10 MT
+  -- shipment_sequence and nxp_reference are NOT NULL.
+  -- vessel_name and voyage_number live on shipments, not on bills_of_lading.
   -- ===========================================================================
 
-  INSERT INTO shipments (id, exporter_id, contract_id, shipment_reference, shipment_date,
-                         port_of_loading, port_of_discharge, shipment_value, shipment_currency,
-                         quantity_mt, status)
-  VALUES
-    (v_ship_a, v_exporter_id, v_contract_id, 'SHP-DQ-A', CURRENT_DATE - 120, 'APAPA', 'HAMBURG', 10000.00, 'USD', 10.00, 'PENDING'),
-    (v_ship_b, v_exporter_id, v_contract_id, 'SHP-DQ-B', CURRENT_DATE - 110, 'APAPA', 'HAMBURG', 10000.00, 'USD', 10.00, 'PENDING'),
-    (v_ship_c, v_exporter_id, v_contract_id, 'SHP-DQ-C', CURRENT_DATE - 100, 'APAPA', 'HAMBURG', 10000.00, 'USD', 10.00, 'PENDING'),
-    (v_ship_d, v_exporter_id, v_contract_id, 'SHP-DQ-D', CURRENT_DATE -  90, 'APAPA', 'HAMBURG', 10000.00, 'USD', 10.00, 'PENDING');
+  INSERT INTO shipments (
+    id, contract_id, exporter_id,
+    shipment_reference, shipment_sequence, nxp_reference,
+    port_of_loading, port_of_discharge,
+    shipment_quantity, shipment_value, currency,
+    status
+  ) VALUES
+    (v_ship_a, v_contract_id, v_exporter_id, 'SHP-DQ-A', 1, 'NXP-DQ-A', 'APAPA', 'HAMBURG', 10.0000, 10000.00, 'USD', 'PENDING'),
+    (v_ship_b, v_contract_id, v_exporter_id, 'SHP-DQ-B', 2, 'NXP-DQ-B', 'APAPA', 'HAMBURG', 10.0000, 10000.00, 'USD', 'PENDING'),
+    (v_ship_c, v_contract_id, v_exporter_id, 'SHP-DQ-C', 3, 'NXP-DQ-C', 'APAPA', 'HAMBURG', 10.0000, 10000.00, 'USD', 'PENDING'),
+    (v_ship_d, v_contract_id, v_exporter_id, 'SHP-DQ-D', 4, 'NXP-DQ-D', 'APAPA', 'HAMBURG', 10.0000, 10000.00, 'USD', 'PENDING');
 
   -- ===========================================================================
-  -- SETUP: bills of lading — one per shipment, specific dates for deadline bands
+  -- SETUP: bills of lading — one per shipment, bl_date chosen for each band
   --
-  -- With 180-day non-oil window and seed date 2026-06-20:
-  --   SAFE     → deadline > today+30  → bl_date = today - 120 → deadline today+60
-  --   WARNING  → deadline ≤ today+30  → bl_date = today - 160 → deadline today+20
-  --   CRITICAL → deadline ≤ today+7   → bl_date = today - 175 → deadline today+5
-  --   OVERDUE  → deadline < today     → bl_date = today - 181 → deadline today-1
+  -- Repatriation window = 180 days (NON_OIL, default settings).
+  -- deadline = bl_date + 180 (set by trg_bl_compute_deadline on INSERT).
+  --
+  -- With CURRENT_DATE as the reference point:
+  --   SAFE     deadline > TODAY+30 → bl_date = TODAY-120 → deadline = TODAY+60
+  --   WARNING  TODAY+7 < deadline ≤ TODAY+30 → bl_date = TODAY-160 → deadline = TODAY+20
+  --   CRITICAL TODAY   < deadline ≤ TODAY+7  → bl_date = TODAY-175 → deadline = TODAY+5
+  --   OVERDUE  deadline < TODAY              → bl_date = TODAY-181 → deadline = TODAY-1
+  --
+  -- bl_type:     ORIGINAL | TELEX_RELEASE | SEA_WAYBILL | EXPRESS_BL
+  -- freight_terms: PREPAID | COLLECT (nullable)
+  -- shipper_name, consignee_name, description_of_goods: NOT NULL
+  -- nxp_reference: NOT NULL (separate from shipments.nxp_reference)
+  -- No vessel_name / voyage_number on bills_of_lading.
+  --
+  -- trg_bl_auto_compliance_record fires AFTER INSERT → creates compliance_records.
   -- ===========================================================================
 
-  INSERT INTO bills_of_lading (id, exporter_id, shipment_id, bl_number, bl_date, bl_type, vessel_name, voyage_number, freight_terms)
-  VALUES
-    (v_bl_a, v_exporter_id, v_ship_a, 'BL-DQ-A', CURRENT_DATE - 120, 'OCEAN', 'TEST VESSEL', 'TV001', 'CFR'),
-    (v_bl_b, v_exporter_id, v_ship_b, 'BL-DQ-B', CURRENT_DATE - 160, 'OCEAN', 'TEST VESSEL', 'TV002', 'CFR'),
-    (v_bl_c, v_exporter_id, v_ship_c, 'BL-DQ-C', CURRENT_DATE - 181, 'OCEAN', 'TEST VESSEL', 'TV003', 'CFR'),
-    (v_bl_d, v_exporter_id, v_ship_d, 'BL-DQ-D', CURRENT_DATE - 175, 'OCEAN', 'TEST VESSEL', 'TV004', 'CFR');
+  INSERT INTO bills_of_lading (
+    id, shipment_id, exporter_id,
+    bl_number, bl_date, bl_type,
+    shipper_name, consignee_name, description_of_goods,
+    nxp_reference, freight_terms
+  ) VALUES
+    (v_bl_a, v_ship_a, v_exporter_id, 'BL-DQ-A', CURRENT_DATE - 120, 'ORIGINAL',
+     '_test_shipper_', '_test_consignee_', 'Test Commodity 10 MT', 'NXP-DQ-A', 'PREPAID'),
+    (v_bl_b, v_ship_b, v_exporter_id, 'BL-DQ-B', CURRENT_DATE - 160, 'ORIGINAL',
+     '_test_shipper_', '_test_consignee_', 'Test Commodity 10 MT', 'NXP-DQ-B', 'PREPAID'),
+    (v_bl_c, v_ship_c, v_exporter_id, 'BL-DQ-C', CURRENT_DATE - 181, 'ORIGINAL',
+     '_test_shipper_', '_test_consignee_', 'Test Commodity 10 MT', 'NXP-DQ-C', 'PREPAID'),
+    (v_bl_d, v_ship_d, v_exporter_id, 'BL-DQ-D', CURRENT_DATE - 175, 'ORIGINAL',
+     '_test_shipper_', '_test_consignee_', 'Test Commodity 10 MT', 'NXP-DQ-D', 'PREPAID');
 
   -- Compliance records auto-created by trg_bl_auto_compliance_record.
 
-  -- Advance all 4 shipments to DEPARTED so allocations can mirror to shipment status.
+  -- Advance all 4 shipments to DEPARTED so allocation trigger mirrors to shipment status.
   UPDATE shipments
      SET status = 'DEPARTED'
    WHERE id IN (v_ship_a, v_ship_b, v_ship_c, v_ship_d);
 
   -- ===========================================================================
   -- SETUP: receipts and allocations
-  --   Receipt A: instructed=10,000, credited=10,000 — fully covers Ship A
-  --   Receipt B: instructed=5,000,  credited=5,000  — partially covers Ship B
+  --   Receipt A: instructed=10,000  credited=10,000 → diff=0 → CLEAN
+  --   Receipt B: instructed=5,000   credited=5,000  → diff=0 → CLEAN
+  --   Alloc A: 10,000 to Ship A → receipt FULLY_ALLOCATED, compliance COMPLETE
+  --   Alloc B:  5,000 to Ship B → receipt PARTIALLY_ALLOCATED, compliance PARTIAL
   -- ===========================================================================
 
-  INSERT INTO payment_receipts (id, exporter_id, receipt_reference, instructed_amount, credited_amount, currency, credit_date)
-  VALUES
+  INSERT INTO payment_receipts (
+    id, exporter_id, receipt_reference,
+    instructed_amount, credited_amount, currency, credit_date
+  ) VALUES
     (v_receipt_a, v_exporter_id, '_RCPT-DQ-A_', 10000.00, 10000.00, 'USD', CURRENT_DATE - 30),
-    (v_receipt_b, v_exporter_id, '_RCPT-DQ-B_', 5000.00,  5000.00,  'USD', CURRENT_DATE - 20);
+    (v_receipt_b, v_exporter_id, '_RCPT-DQ-B_',  5000.00,  5000.00, 'USD', CURRENT_DATE - 20);
 
-  -- Allocation A: full 10,000 to Ship A → FULLY_ALLOCATED, compliance COMPLETE, ship PROCEEDS_COMPLETE
-  -- Allocation B: 5,000 to Ship B     → PARTIALLY_ALLOCATED, compliance PARTIAL, ship PROCEEDS_PARTIAL
-  INSERT INTO payment_allocations (id, exporter_id, receipt_id, shipment_id, allocated_amount, allocation_method, allocation_date, allocated_by)
-  VALUES
-    (v_alloc_a, v_exporter_id, v_receipt_a, v_ship_a, 10000.00, 'MANUAL', CURRENT_DATE - 29, v_user_id),
-    (v_alloc_b, v_exporter_id, v_receipt_b, v_ship_b,  5000.00, 'MANUAL', CURRENT_DATE - 19, v_user_id);
+  INSERT INTO payment_allocations (
+    id, exporter_id, receipt_id, shipment_id,
+    allocated_amount, allocation_method, allocation_date, allocated_by
+  ) VALUES
+    (v_alloc_a, v_exporter_id, v_receipt_a, v_ship_a,
+     10000.00, 'MANUAL', CURRENT_DATE - 29, v_user_id),
+    (v_alloc_b, v_exporter_id, v_receipt_b, v_ship_b,
+      5000.00, 'MANUAL', CURRENT_DATE - 19, v_user_id);
 
   -- ===========================================================================
-  -- SETUP: compliance checklists for evidence pack sealing tests
-  --   Pack A: all 5 preconditions TRUE → can seal
-  --   Pack B: only 3 of 5 TRUE → cannot seal
+  -- SETUP: compliance checklists for pack sealing tests
+  --   Pack A ship: all 5 preconditions TRUE → sealable
+  --   Pack B ship: only nxp_approved + bl_uploaded + payment_evidence_uploaded TRUE → blocks seal
   -- ===========================================================================
 
   UPDATE compliance_records
@@ -208,34 +258,39 @@ BEGIN
 
   INSERT INTO bank_evidence_packs (
     id, shipment_id, exporter_id, version, generated_by,
-    contract_snapshot, shipment_snapshot, invoice_ids,
-    bl_id, nxp_reference, payment_evidence_ids,
-    receipt_ids, allocation_ids, compliance_status_snapshot,
-    repatriation_status, sealed
+    contract_snapshot, shipment_snapshot,
+    invoice_ids, bl_id, nxp_reference,
+    payment_evidence_ids, receipt_ids, allocation_ids,
+    compliance_status_snapshot, repatriation_status, sealed
   ) VALUES
     (
       v_pack_a, v_ship_a, v_exporter_id, 1, v_user_id,
-      '{"ref":"_TEST-CTR-DQ-001_"}', '{"ref":"SHP-DQ-A"}', '{}',
-      v_bl_a, 'NXP-DQ-A', '{}', '{}', '{}',
+      '{"ref":"_TEST-CTR-DQ-001_"}', '{"ref":"SHP-DQ-A"}',
+      '{}', v_bl_a, 'NXP-DQ-A',
+      '{}', '{}', '{}',
       '{"nxp_approved":true,"cci_obtained":true,"bl_uploaded":true,"payment_evidence_uploaded":true,"credit_advice_confirmed":true}',
       'COMPLETE', FALSE
     ),
     (
       v_pack_b, v_ship_b, v_exporter_id, 1, v_user_id,
-      '{"ref":"_TEST-CTR-DQ-001_"}', '{"ref":"SHP-DQ-B"}', '{}',
-      v_bl_b, 'NXP-DQ-B', '{}', '{}', '{}',
+      '{"ref":"_TEST-CTR-DQ-001_"}', '{"ref":"SHP-DQ-B"}',
+      '{}', v_bl_b, 'NXP-DQ-B',
+      '{}', '{}', '{}',
       '{"nxp_approved":true,"cci_obtained":false,"bl_uploaded":true,"payment_evidence_uploaded":true,"credit_advice_confirmed":false}',
       'PARTIAL', FALSE
     );
 
   -- ===========================================================================
   -- T1: v_export_contracts_summary
-  --     Expected: 4 shipments, total_shipped_value=40,000, total_allocated=15,000,
-  --               unallocated = 40,000 - 15,000 = 25,000
+  --     4 shipments × 10,000 = total_shipped_value 40,000
+  --     alloc_a(10,000) + alloc_b(5,000) = total_allocated_receipts 15,000
+  --     unallocated = 40,000 − 15,000 = 25,000
   -- ===========================================================================
 
-  SELECT shipment_count, total_shipped_value, total_allocated_receipts, unallocated_contract_value
-    INTO v_shipment_count, v_total_shipped_value, v_total_allocated_receipts, v_unallocated_value
+  SELECT shipment_count, total_shipped_value,
+         total_allocated_receipts, unallocated_contract_value
+    INTO v_shipment_count, v_total_shipped_value,
+         v_total_allocated_receipts, v_unallocated_value
     FROM v_export_contracts_summary
    WHERE id = v_contract_id;
 
@@ -252,8 +307,8 @@ BEGIN
 
   -- ===========================================================================
   -- T2: v_shipments_reconciliation
-  --     Ship A: allocated=10,000 = shipment_value → fully_reconciled=TRUE
-  --     Ship B: allocated=5,000  < 10,000         → fully_reconciled=FALSE
+  --     Ship A: allocated 10,000 = shipment_value 10,000 → fully_reconciled TRUE
+  --     Ship B: allocated  5,000 < shipment_value 10,000 → fully_reconciled FALSE
   -- ===========================================================================
 
   SELECT fully_reconciled INTO v_fully_reconciled_a
@@ -270,28 +325,19 @@ BEGIN
 
   -- ===========================================================================
   -- T3: v_bills_of_lading_deadline
-  --     Exactly one B/L in each of the four deadline_status bands.
+  --     Exactly 1 B/L in each of the four deadline_status bands.
+  --     Counts are scoped to this test's exporter_id to avoid interference
+  --     from any persistent seed data present in the same database.
   -- ===========================================================================
 
-  SELECT COUNT(*) FILTER (WHERE deadline_status = 'SAFE')
-    INTO v_safe_count
-    FROM v_bills_of_lading_deadline
-   WHERE exporter_id = v_exporter_id;
-
-  SELECT COUNT(*) FILTER (WHERE deadline_status = 'WARNING')
-    INTO v_warning_count
-    FROM v_bills_of_lading_deadline
-   WHERE exporter_id = v_exporter_id;
-
-  SELECT COUNT(*) FILTER (WHERE deadline_status = 'CRITICAL')
-    INTO v_critical_count
-    FROM v_bills_of_lading_deadline
-   WHERE exporter_id = v_exporter_id;
-
-  SELECT COUNT(*) FILTER (WHERE deadline_status = 'OVERDUE')
-    INTO v_overdue_count
-    FROM v_bills_of_lading_deadline
-   WHERE exporter_id = v_exporter_id;
+  SELECT COUNT(*) FILTER (WHERE deadline_status = 'SAFE')     INTO v_safe_count
+    FROM v_bills_of_lading_deadline WHERE exporter_id = v_exporter_id;
+  SELECT COUNT(*) FILTER (WHERE deadline_status = 'WARNING')   INTO v_warning_count
+    FROM v_bills_of_lading_deadline WHERE exporter_id = v_exporter_id;
+  SELECT COUNT(*) FILTER (WHERE deadline_status = 'CRITICAL')  INTO v_critical_count
+    FROM v_bills_of_lading_deadline WHERE exporter_id = v_exporter_id;
+  SELECT COUNT(*) FILTER (WHERE deadline_status = 'OVERDUE')   INTO v_overdue_count
+    FROM v_bills_of_lading_deadline WHERE exporter_id = v_exporter_id;
 
   ASSERT v_safe_count = 1,
     format('T3 FAIL: expected 1 SAFE B/L, got %s', v_safe_count);
@@ -306,8 +352,8 @@ BEGIN
 
   -- ===========================================================================
   -- T4: Compliance repatriation_status after allocation
-  --     Ship A: allocated 10,000 = proceeds_required=10,000 → COMPLETE
-  --     Ship B: allocated  5,000 < proceeds_required=10,000 → PARTIAL
+  --     Ship A: allocated 10,000 = proceeds_required 10,000 → COMPLETE
+  --     Ship B: allocated  5,000 < proceeds_required 10,000 → PARTIAL
   -- ===========================================================================
 
   SELECT repatriation_status INTO v_rep_status_a
@@ -324,31 +370,29 @@ BEGIN
 
   -- ===========================================================================
   -- T5: Incomplete checklist blocks sealing (Pack B)
-  --     cci_obtained=FALSE and credit_advice_confirmed=FALSE → raise on seal
+  --     cci_obtained=FALSE and credit_advice_confirmed=FALSE → trigger raises.
   -- ===========================================================================
 
   v_raised := FALSE;
   BEGIN
     UPDATE bank_evidence_packs SET sealed = TRUE WHERE id = v_pack_b;
   EXCEPTION
-    WHEN SQLSTATE 'P0004' THEN v_raised := TRUE;   -- assert_failure (check_violation alias)
-    WHEN check_violation  THEN v_raised := TRUE;
-    WHEN OTHERS           THEN v_raised := TRUE;   -- any error from the trigger
+    WHEN check_violation THEN v_raised := TRUE;
+    WHEN OTHERS          THEN v_raised := TRUE;
   END;
 
   ASSERT v_raised = TRUE,
-    'T5 FAIL: Sealing an incomplete evidence pack should have raised an error';
+    'T5 FAIL: sealing an incomplete evidence pack should have raised an error';
 
-  -- Pack B must still be unsealed.
   SELECT sealed INTO v_sealed FROM bank_evidence_packs WHERE id = v_pack_b;
   ASSERT v_sealed = FALSE,
-    format('T5 FAIL: Pack B should still be unsealed, got sealed=%s', v_sealed);
+    format('T5 FAIL: Pack B should still be unsealed after failed attempt, got sealed=%s', v_sealed);
 
   RAISE NOTICE 'PASS [T5]: incomplete checklist blocks pack sealing';
 
   -- ===========================================================================
   -- T6: Complete checklist allows sealing (Pack A)
-  --     All 5 preconditions TRUE → seal succeeds.
+  --     All 5 preconditions TRUE → UPDATE sealed=TRUE succeeds.
   -- ===========================================================================
 
   UPDATE bank_evidence_packs SET sealed = TRUE WHERE id = v_pack_a;
