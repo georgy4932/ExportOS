@@ -1,6 +1,22 @@
 import type { DbClient } from '../client'
 import type { ComplianceRecordRow, RepatriationStatus } from '../types'
 
+export async function getComplianceByShipment(
+  client: DbClient,
+  shipmentId: string,
+  exporterId: string,
+): Promise<{ data: ComplianceRecordRow | null; error: Error | null }> {
+  return client
+    .from('compliance_records')
+    .select('*')
+    .eq('shipment_id', shipmentId)
+    .eq('exporter_id', exporterId)
+    .maybeSingle() as unknown as Promise<{
+      data: ComplianceRecordRow | null
+      error: Error | null
+    }>
+}
+
 export interface ListComplianceRecordsOptions {
   exporterId?: string
   repatriationStatus?: RepatriationStatus

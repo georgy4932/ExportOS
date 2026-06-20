@@ -1,6 +1,22 @@
 import type { DbClient } from '../client'
 import type { BankEvidencePackRow } from '../types'
 
+export async function getEvidencePack(
+  client: DbClient,
+  id: string,
+  exporterId: string,
+): Promise<{ data: BankEvidencePackRow | null; error: Error | null }> {
+  return client
+    .from('bank_evidence_packs')
+    .select('*')
+    .eq('id', id)
+    .eq('exporter_id', exporterId)
+    .maybeSingle() as unknown as Promise<{
+      data: BankEvidencePackRow | null
+      error: Error | null
+    }>
+}
+
 export interface ListEvidencePacksOptions {
   exporterId?: string
   shipmentId?: string

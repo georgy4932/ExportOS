@@ -1,8 +1,8 @@
-export { listContractSummaries } from './contracts'
-export { listShipmentReconciliation } from './shipments'
+export { listContractSummaries, getContractSummary } from './contracts'
+export { listShipmentReconciliation, getShipmentReconciliation } from './shipments'
 export { listBLDeadlines } from './deadlines'
-export { listComplianceRecords } from './compliance'
-export { listEvidencePacks } from './evidence-packs'
+export { listComplianceRecords, getComplianceByShipment } from './compliance'
+export { listEvidencePacks, getEvidencePack } from './evidence-packs'
 
 export type { ListContractSummariesOptions } from './contracts'
 export type { ListShipmentReconciliationOptions } from './shipments'

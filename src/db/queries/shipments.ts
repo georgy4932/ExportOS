@@ -1,6 +1,22 @@
 import type { DbClient } from '../client'
 import type { ShipmentReconciliationRow } from '../types'
 
+export async function getShipmentReconciliation(
+  client: DbClient,
+  id: string,
+  exporterId: string,
+): Promise<{ data: ShipmentReconciliationRow | null; error: Error | null }> {
+  return client
+    .from('v_shipments_reconciliation')
+    .select('*')
+    .eq('id', id)
+    .eq('exporter_id', exporterId)
+    .maybeSingle() as unknown as Promise<{
+      data: ShipmentReconciliationRow | null
+      error: Error | null
+    }>
+}
+
 export interface ListShipmentReconciliationOptions {
   exporterId?: string
   contractId?: string

@@ -22,3 +22,19 @@ export async function listContractSummaries(
     error: Error | null
   }>
 }
+
+export async function getContractSummary(
+  client: DbClient,
+  id: string,
+  exporterId: string,
+): Promise<{ data: ContractSummaryRow | null; error: Error | null }> {
+  return client
+    .from('v_export_contracts_summary')
+    .select('*')
+    .eq('id', id)
+    .eq('exporter_id', exporterId)
+    .maybeSingle() as unknown as Promise<{
+      data: ContractSummaryRow | null
+      error: Error | null
+    }>
+}
