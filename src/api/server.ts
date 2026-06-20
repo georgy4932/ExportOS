@@ -23,6 +23,7 @@ import { config } from 'dotenv'
 config({ path: '.env.local' })
 
 import express from 'express'
+import path from 'path'
 import { createDbClient } from '../db/client'
 import { contractsRouter } from './routes/contracts'
 import { shipmentsRouter } from './routes/shipments'
@@ -41,6 +42,7 @@ const client = createDbClient(dbUrl)
 const app = express()
 app.disable('x-powered-by')
 app.use(express.json())
+app.use(express.static(path.join(process.cwd(), 'public')))
 
 app.use('/contracts',      contractsRouter(client))
 app.use('/shipments',      shipmentsRouter(client))
