@@ -1,5 +1,19 @@
 // Database types for ExportOS v0.2.
-// Hand-written from migrations 0001–0003. Do not add write mutations here.
+//
+// MAINTENANCE: This file is hand-written from migrations 0001–0003.
+// It is NOT auto-generated. Every time a migration adds, removes, or renames a
+// column, enum value, table, or view, the corresponding type(s) here must be
+// updated to match. The recommended workflow:
+//   1. Write the migration SQL.
+//   2. Apply it locally: supabase db reset
+//   3. Update this file to reflect the schema change.
+//   4. Run: npm run typecheck   (must exit 0 before committing)
+//
+// Alternatively, replace this file with Supabase's generated types:
+//   supabase gen types typescript --local > src/db/types.ts
+// and adapt the exported aliases below to match.
+//
+// Do not add write mutations to this file or to src/db/queries/.
 
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[]
 
