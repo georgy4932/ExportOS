@@ -2,14 +2,13 @@ import { Router } from 'express'
 import type { DbClient } from '../../db/client'
 import type { ContractStatus } from '../../db/types'
 import { listContractSummaries, getContractSummary } from '../../db/queries/index'
-import { requireExporterId } from '../middleware/require-exporter'
 import { sendQueryError } from '../middleware/query-error'
 
 export function contractsRouter(client: DbClient): Router {
   const router = Router()
 
   // GET /contracts[?status=ACTIVE]
-  router.get('/', requireExporterId, async (req, res) => {
+  router.get('/', async (req, res) => {
     const exporterId = res.locals.exporterId
     const status = req.query.status as ContractStatus | undefined
 
@@ -23,7 +22,7 @@ export function contractsRouter(client: DbClient): Router {
   })
 
   // GET /contracts/:id
-  router.get('/:id', requireExporterId, async (req, res) => {
+  router.get('/:id', async (req, res) => {
     const exporterId = res.locals.exporterId
     const id = req.params['id'] as string
 

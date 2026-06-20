@@ -15,16 +15,94 @@
       font-size: 14px;
     }
 
+    /* ── Login ──────────────────────────────────────────────────────────────── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 2rem 2.25rem;
+      width: 100%;
+      max-width: 360px;
+    }
+    .login-card h1 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    .login-card p {
+      font-size: 0.8125rem;
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+    }
+    .field { margin-bottom: 1rem; }
+    .field label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.3rem;
+    }
+    .field input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      outline: none;
+    }
+    .field input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px #eef2ff; }
+    .btn-primary {
+      width: 100%;
+      padding: 0.5625rem;
+      background: #1e3a5f;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    .btn-primary:hover { background: #15294a; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    #login-error {
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: #b91c1c;
+      text-align: center;
+      min-height: 1.25rem;
+    }
+
+    /* ── Dashboard ──────────────────────────────────────────────────────────── */
+    #dashboard { display: none; }
+
     header {
       background: #0f172a;
       color: #f8fafc;
-      padding: 1rem 1.5rem;
+      padding: 0.875rem 1.5rem;
       display: flex;
-      align-items: baseline;
-      gap: 1.25rem;
+      align-items: center;
+      justify-content: space-between;
     }
-    header h1 { font-size: 1rem; font-weight: 700; letter-spacing: 0.02em; }
-    header span { font-size: 0.8125rem; opacity: 0.55; }
+    .header-left { display: flex; align-items: baseline; gap: 1rem; }
+    header h1 { font-size: 1rem; font-weight: 700; }
+    header span { font-size: 0.8125rem; opacity: 0.5; }
+    #logout-btn {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      background: none;
+      border: 1px solid #334155;
+      border-radius: 4px;
+      padding: 0.25rem 0.625rem;
+      cursor: pointer;
+    }
+    #logout-btn:hover { color: #f1f5f9; border-color: #475569; }
 
     main { padding: 1.25rem 1.5rem; display: grid; gap: 1.25rem; }
 
@@ -34,7 +112,6 @@
       border-radius: 8px;
       overflow: hidden;
     }
-
     .card-header {
       display: flex;
       align-items: center;
@@ -50,19 +127,10 @@
       letter-spacing: 0.07em;
       color: #6b7280;
     }
-    .card-count {
-      font-size: 0.75rem;
-      color: #9ca3af;
-    }
+    .card-count { font-size: 0.75rem; color: #9ca3af; }
 
     .table-wrap { overflow-x: auto; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      white-space: nowrap;
-    }
-
+    table { width: 100%; border-collapse: collapse; white-space: nowrap; }
     thead tr { background: #f9fafb; }
     th {
       padding: 0.5rem 0.875rem;
@@ -75,7 +143,6 @@
       border-bottom: 1px solid #e5e7eb;
     }
     th.r { text-align: right; }
-
     td {
       padding: 0.625rem 0.875rem;
       border-bottom: 1px solid #f3f4f6;
@@ -84,7 +151,6 @@
     }
     td.r { text-align: right; font-variant-numeric: tabular-nums; color: #111827; }
     td.mono { font-family: ui-monospace, monospace; font-size: 0.8125rem; color: #6b7280; }
-
     tr:last-child td { border-bottom: none; }
     tbody tr:hover td { background: #fafafa; }
 
@@ -104,12 +170,7 @@
     .o  { background: #ffedd5; color: #c2410c; }
 
     .checks { display: flex; gap: 3px; }
-    .ck {
-      font-size: 0.625rem;
-      font-weight: 700;
-      padding: 0.1rem 0.3rem;
-      border-radius: 3px;
-    }
+    .ck { font-size: 0.625rem; font-weight: 700; padding: 0.1rem 0.3rem; border-radius: 3px; }
     .ck-y { background: #dcfce7; color: #15803d; }
     .ck-n { background: #f3f4f6; color: #d1d5db; }
 
@@ -119,256 +180,317 @@
 </head>
 <body>
 
-<header>
-  <h1>ExportOS v0.2</h1>
-  <span>AKOBO AGRI-EXPORT COMPANY LTD &nbsp;·&nbsp; Read-only</span>
-</header>
-
-<main>
-
-  <div class="card" id="c-contracts">
-    <div class="card-header">
-      <h2>Contracts</h2>
-      <span class="card-count" id="cnt-contracts"></span>
-    </div>
-    <div class="table-wrap">
-      <div class="state" id="st-contracts">Loading…</div>
-      <table id="tb-contracts" hidden>
-        <thead><tr>
-          <th>Reference</th>
-          <th>Status</th>
-          <th>Commodity</th>
-          <th>Destination</th>
-          <th>Cur</th>
-          <th class="r">Contract Value</th>
-          <th class="r">Shipped</th>
-          <th class="r">Allocated</th>
-          <th class="r">Unallocated</th>
-          <th class="r">Shipments</th>
-        </tr></thead>
-        <tbody id="body-contracts"></tbody>
-      </table>
-    </div>
+<!-- ── Login screen ────────────────────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>ExportOS v0.2</h1>
+    <p>Sign in to view your export dashboard</p>
+    <form id="login-form" autocomplete="on">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" name="email" autocomplete="email" required placeholder="operator@akoboexports.ng">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" name="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn-primary" type="submit" id="login-btn">Sign in</button>
+      <div id="login-error"></div>
+    </form>
   </div>
+</div>
 
-  <div class="card" id="c-shipments">
-    <div class="card-header">
-      <h2>Shipments</h2>
-      <span class="card-count" id="cnt-shipments"></span>
+<!-- ── Dashboard ──────────────────────────────────────────────────────────── -->
+<div id="dashboard">
+  <header>
+    <div class="header-left">
+      <h1>ExportOS v0.2</h1>
+      <span id="header-exporter">—</span>
     </div>
-    <div class="table-wrap">
-      <div class="state" id="st-shipments">Loading…</div>
-      <table id="tb-shipments" hidden>
-        <thead><tr>
-          <th>Reference</th>
-          <th>Status</th>
-          <th>NXP Ref</th>
-          <th>Loading → Discharge</th>
-          <th>Vessel</th>
-          <th class="r">Value</th>
-          <th class="r">Allocated</th>
-          <th class="r">Outstanding</th>
-          <th>Reconciled</th>
-        </tr></thead>
-        <tbody id="body-shipments"></tbody>
-      </table>
-    </div>
-  </div>
+    <button id="logout-btn">Sign out</button>
+  </header>
 
-  <div class="card" id="c-compliance">
-    <div class="card-header">
-      <h2>Compliance Records</h2>
-      <span class="card-count" id="cnt-compliance"></span>
+  <main>
+    <div class="card">
+      <div class="card-header">
+        <h2>Contracts</h2>
+        <span class="card-count" id="cnt-contracts"></span>
+      </div>
+      <div class="table-wrap">
+        <div class="state" id="st-contracts">Loading…</div>
+        <table id="tb-contracts" hidden>
+          <thead><tr>
+            <th>Reference</th><th>Status</th><th>Commodity</th><th>Destination</th>
+            <th>Cur</th><th class="r">Contract Value</th><th class="r">Shipped</th>
+            <th class="r">Allocated</th><th class="r">Unallocated</th><th class="r">Shipments</th>
+          </tr></thead>
+          <tbody id="body-contracts"></tbody>
+        </table>
+      </div>
     </div>
-    <div class="table-wrap">
-      <div class="state" id="st-compliance">Loading…</div>
-      <table id="tb-compliance" hidden>
-        <thead><tr>
-          <th>Shipment ID</th>
-          <th>Repatriation</th>
-          <th>Deadline</th>
-          <th class="r">Required</th>
-          <th class="r">Received</th>
-          <th class="r">Outstanding</th>
-          <th>Late?</th>
-          <th>Checklist</th>
-        </tr></thead>
-        <tbody id="body-compliance"></tbody>
-      </table>
-    </div>
-  </div>
 
-  <div class="card" id="c-packs">
-    <div class="card-header">
-      <h2>Evidence Packs</h2>
-      <span class="card-count" id="cnt-packs"></span>
+    <div class="card">
+      <div class="card-header">
+        <h2>Shipments</h2>
+        <span class="card-count" id="cnt-shipments"></span>
+      </div>
+      <div class="table-wrap">
+        <div class="state" id="st-shipments">Loading…</div>
+        <table id="tb-shipments" hidden>
+          <thead><tr>
+            <th>Reference</th><th>Status</th><th>NXP Ref</th>
+            <th>Loading → Discharge</th><th>Vessel</th>
+            <th class="r">Value</th><th class="r">Allocated</th>
+            <th class="r">Outstanding</th><th>Reconciled</th>
+          </tr></thead>
+          <tbody id="body-shipments"></tbody>
+        </table>
+      </div>
     </div>
-    <div class="table-wrap">
-      <div class="state" id="st-packs">Loading…</div>
-      <table id="tb-packs" hidden>
-        <thead><tr>
-          <th>Pack</th>
-          <th>Shipment</th>
-          <th>Ver</th>
-          <th>Repatriation</th>
-          <th>Sealed</th>
-          <th>NXP Ref</th>
-          <th>Generated</th>
-        </tr></thead>
-        <tbody id="body-packs"></tbody>
-      </table>
-    </div>
-  </div>
 
-</main>
+    <div class="card">
+      <div class="card-header">
+        <h2>Compliance Records</h2>
+        <span class="card-count" id="cnt-compliance"></span>
+      </div>
+      <div class="table-wrap">
+        <div class="state" id="st-compliance">Loading…</div>
+        <table id="tb-compliance" hidden>
+          <thead><tr>
+            <th>Shipment ID</th><th>Repatriation</th><th>Deadline</th>
+            <th class="r">Required</th><th class="r">Received</th>
+            <th class="r">Outstanding</th><th>Late?</th><th>Checklist</th>
+          </tr></thead>
+          <tbody id="body-compliance"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Evidence Packs</h2>
+        <span class="card-count" id="cnt-packs"></span>
+      </div>
+      <div class="table-wrap">
+        <div class="state" id="st-packs">Loading…</div>
+        <table id="tb-packs" hidden>
+          <thead><tr>
+            <th>Pack</th><th>Shipment</th><th>Ver</th><th>Repatriation</th>
+            <th>Sealed</th><th>NXP Ref</th><th>Generated</th>
+          </tr></thead>
+          <tbody id="body-packs"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
 
 <script>
   'use strict';
 
-  // TEMP v0.2 demo scope: hardcoded AKOBO exporter ID.
-  // Replace with authenticated exporter context when auth is introduced.
-  const EXPORTER_ID = 'b0b00001-0000-0000-0000-000000000001';
-  const H = { 'X-Exporter-Id': EXPORTER_ID };
+  const TOKEN_KEY = 'exportos_token';
 
-  async function load(path) {
-    const res = await fetch(path, { headers: H });
+  // ── Auth helpers ─────────────────────────────────────────────────────────────
+  function getToken() { return sessionStorage.getItem(TOKEN_KEY); }
+  function setToken(t) { sessionStorage.setItem(TOKEN_KEY, t); }
+  function clearToken() { sessionStorage.removeItem(TOKEN_KEY); }
+
+  function authHeaders() {
+    const t = getToken();
+    return t ? { 'Authorization': 'Bearer ' + t } : {};
+  }
+
+  // ── Screen switching ─────────────────────────────────────────────────────────
+  function showLogin() {
+    document.getElementById('login-screen').style.display = '';
+    document.getElementById('dashboard').style.display = 'none';
+  }
+
+  function showDashboard() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = '';
+    loadAll();
+  }
+
+  // ── Login form ───────────────────────────────────────────────────────────────
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('login-btn');
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    try {
+      const res = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const body = await res.json();
+      if (!res.ok) { errEl.textContent = body.error || 'Login failed'; return; }
+      setToken(body.token);
+      showDashboard();
+    } catch {
+      errEl.textContent = 'Could not reach the server.';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+    }
+  });
+
+  // ── Sign out ─────────────────────────────────────────────────────────────────
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    clearToken();
+    showLogin();
+  });
+
+  // ── Fetch helper ─────────────────────────────────────────────────────────────
+  async function apiFetch(path) {
+    const res = await fetch(path, { headers: authHeaders() });
+    if (res.status === 401) { clearToken(); showLogin(); throw new Error('Session expired. Please sign in again.'); }
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new Error(body.error || `HTTP ${res.status}`);
+      throw new Error(body.error || 'HTTP ' + res.status);
     }
     const { data } = await res.json();
     return data ?? [];
   }
 
+  // ── Rendering helpers ─────────────────────────────────────────────────────────
   function num(v) {
     if (v == null) return '—';
     const n = Number(v);
     return isNaN(n) ? String(v) : n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
-
   function date(v) {
     if (!v) return '—';
     return new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   }
-
-  function short(id) {
-    return id ? '…' + id.slice(-8) : '—';
-  }
+  function short(id) { return id ? '…' + id.slice(-8) : '—'; }
 
   function badge(status) {
     const map = {
       ACTIVE: 'g', PARTIALLY_SHIPPED: 'y', FULLY_SHIPPED: 'b',
       COMPLETED: 'b', CLOSED: 'gr', CANCELLED: 'gr', DRAFT: 'gr',
       COMPLETE: 'g', PARTIAL: 'y', OVERDUE: 'r', NOT_DUE: 'gr',
-      DEPARTED: 'b', ARRIVED: 'g', PENDING: 'y', RETURNED: 'gr',
+      DEPARTED: 'b', ARRIVED: 'g', PENDING: 'y',
       PROCEEDS_PARTIAL: 'y', PROCEEDS_COMPLETE: 'g',
       SAFE: 'g', WARNING: 'y', CRITICAL: 'o',
     };
-    const cls = map[status] ?? 'gr';
-    return `<span class="badge ${cls}">${status.replace(/_/g, ' ')}</span>`;
+    return '<span class="badge ' + (map[status] ?? 'gr') + '">' + status.replace(/_/g, ' ') + '</span>';
   }
 
-  function ck(value, label) {
-    return `<span class="ck ${value ? 'ck-y' : 'ck-n'}" title="${label}">${label.slice(0, 3).toUpperCase()}</span>`;
+  function ck(val, label) {
+    return '<span class="ck ' + (val ? 'ck-y' : 'ck-n') + '" title="' + label + '">' + label + '</span>';
   }
 
   function show(stId, tbId, cntId, rows) {
     document.getElementById(stId).hidden = true;
     document.getElementById(tbId).hidden = false;
-    document.getElementById(cntId).textContent = `${rows.length} row${rows.length !== 1 ? 's' : ''}`;
+    document.getElementById(cntId).textContent = rows.length + ' row' + (rows.length !== 1 ? 's' : '');
   }
 
-  function err(stId, msg) {
+  function errState(stId, msg) {
     const el = document.getElementById(stId);
-    el.textContent = `Error: ${msg}`;
+    el.textContent = 'Error: ' + msg;
     el.classList.add('err');
   }
 
-  function empty(stId, label) {
-    document.getElementById(stId).textContent = `No ${label} found.`;
+  // ── Load all sections ────────────────────────────────────────────────────────
+  function loadAll() {
+    // Show exporter id from /auth/me
+    fetch('/auth/me', { headers: authHeaders() })
+      .then(r => r.json())
+      .then(b => { document.getElementById('header-exporter').textContent = b.exporterId ?? ''; })
+      .catch(() => {});
+
+    // Contracts
+    apiFetch('/contracts').then(rows => {
+      if (!rows.length) { document.getElementById('st-contracts').textContent = 'No contracts found.'; return; }
+      document.getElementById('body-contracts').innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.contract_reference}</td>
+          <td>${badge(r.status)}</td>
+          <td>${r.commodity}</td>
+          <td>${r.destination_country}</td>
+          <td>${r.currency}</td>
+          <td class="r">${num(r.contract_value)}</td>
+          <td class="r">${num(r.total_shipped_value)}</td>
+          <td class="r">${num(r.total_allocated_receipts)}</td>
+          <td class="r">${num(r.unallocated_contract_value)}</td>
+          <td class="r">${r.shipment_count}</td>
+        </tr>`).join('');
+      show('st-contracts', 'tb-contracts', 'cnt-contracts', rows);
+    }).catch(e => errState('st-contracts', e.message));
+
+    // Shipments
+    apiFetch('/shipments').then(rows => {
+      if (!rows.length) { document.getElementById('st-shipments').textContent = 'No shipments found.'; return; }
+      document.getElementById('body-shipments').innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.shipment_reference}</td>
+          <td>${badge(r.status)}</td>
+          <td class="mono">${r.nxp_reference}</td>
+          <td>${r.port_of_loading} → ${r.port_of_discharge}</td>
+          <td>${r.vessel_name ?? '—'}</td>
+          <td class="r">${num(r.shipment_value)}</td>
+          <td class="r">${num(r.total_allocated)}</td>
+          <td class="r">${num(r.outstanding_balance)}</td>
+          <td>${r.fully_reconciled ? '<span class="badge g">Yes</span>' : '<span class="badge y">No</span>'}</td>
+        </tr>`).join('');
+      show('st-shipments', 'tb-shipments', 'cnt-shipments', rows);
+    }).catch(e => errState('st-shipments', e.message));
+
+    // Compliance
+    apiFetch('/compliance').then(rows => {
+      if (!rows.length) { document.getElementById('st-compliance').textContent = 'No compliance records found.'; return; }
+      document.getElementById('body-compliance').innerHTML = rows.map(r => `
+        <tr>
+          <td class="mono" title="${r.shipment_id}">${short(r.shipment_id)}</td>
+          <td>${badge(r.repatriation_status)}</td>
+          <td>${date(r.repatriation_deadline)}</td>
+          <td class="r">${num(r.proceeds_required)}</td>
+          <td class="r">${num(r.proceeds_received)}</td>
+          <td class="r">${num(r.proceeds_outstanding)}</td>
+          <td>${r.was_repatriated_late ? '<span class="badge r">Yes</span>' : '<span class="badge gr">No</span>'}</td>
+          <td><div class="checks">
+            ${ck(r.nxp_approved,              'NXP')}
+            ${ck(r.cci_obtained,              'CCI')}
+            ${ck(r.bl_uploaded,               'BL')}
+            ${ck(r.payment_evidence_uploaded, 'EVD')}
+            ${ck(r.credit_advice_confirmed,   'ADV')}
+          </div></td>
+        </tr>`).join('');
+      show('st-compliance', 'tb-compliance', 'cnt-compliance', rows);
+    }).catch(e => errState('st-compliance', e.message));
+
+    // Evidence packs
+    apiFetch('/evidence-packs').then(rows => {
+      if (!rows.length) { document.getElementById('st-packs').textContent = 'No evidence packs found.'; return; }
+      document.getElementById('body-packs').innerHTML = rows.map(r => `
+        <tr>
+          <td class="mono" title="${r.id}">${short(r.id)}</td>
+          <td class="mono" title="${r.shipment_id}">${short(r.shipment_id)}</td>
+          <td class="r">${r.version}</td>
+          <td>${badge(r.repatriation_status)}</td>
+          <td>${r.sealed ? '<span class="badge g">Sealed</span>' : '<span class="badge gr">Draft</span>'}</td>
+          <td class="mono">${r.nxp_reference}</td>
+          <td>${date(r.generated_at)}</td>
+        </tr>`).join('');
+      show('st-packs', 'tb-packs', 'cnt-packs', rows);
+    }).catch(e => errState('st-packs', e.message));
   }
 
-  // ── Contracts ────────────────────────────────────────────────────────────────
-  load('/contracts').then(rows => {
-    if (!rows.length) { empty('st-contracts', 'contracts'); return; }
-    document.getElementById('body-contracts').innerHTML = rows.map(r => `
-      <tr>
-        <td>${r.contract_reference}</td>
-        <td>${badge(r.status)}</td>
-        <td>${r.commodity}</td>
-        <td>${r.destination_country}</td>
-        <td>${r.currency}</td>
-        <td class="r">${num(r.contract_value)}</td>
-        <td class="r">${num(r.total_shipped_value)}</td>
-        <td class="r">${num(r.total_allocated_receipts)}</td>
-        <td class="r">${num(r.unallocated_contract_value)}</td>
-        <td class="r">${r.shipment_count}</td>
-      </tr>`).join('');
-    show('st-contracts', 'tb-contracts', 'cnt-contracts', rows);
-  }).catch(e => err('st-contracts', e.message));
-
-  // ── Shipments ────────────────────────────────────────────────────────────────
-  load('/shipments').then(rows => {
-    if (!rows.length) { empty('st-shipments', 'shipments'); return; }
-    document.getElementById('body-shipments').innerHTML = rows.map(r => `
-      <tr>
-        <td>${r.shipment_reference}</td>
-        <td>${badge(r.status)}</td>
-        <td class="mono">${r.nxp_reference}</td>
-        <td>${r.port_of_loading} → ${r.port_of_discharge}</td>
-        <td>${r.vessel_name ?? '—'}</td>
-        <td class="r">${num(r.shipment_value)}</td>
-        <td class="r">${num(r.total_allocated)}</td>
-        <td class="r">${num(r.outstanding_balance)}</td>
-        <td>${r.fully_reconciled
-          ? '<span class="badge g">Yes</span>'
-          : '<span class="badge y">No</span>'}</td>
-      </tr>`).join('');
-    show('st-shipments', 'tb-shipments', 'cnt-shipments', rows);
-  }).catch(e => err('st-shipments', e.message));
-
-  // ── Compliance ───────────────────────────────────────────────────────────────
-  load('/compliance').then(rows => {
-    if (!rows.length) { empty('st-compliance', 'compliance records'); return; }
-    document.getElementById('body-compliance').innerHTML = rows.map(r => `
-      <tr>
-        <td class="mono" title="${r.shipment_id}">${short(r.shipment_id)}</td>
-        <td>${badge(r.repatriation_status)}</td>
-        <td>${date(r.repatriation_deadline)}</td>
-        <td class="r">${num(r.proceeds_required)}</td>
-        <td class="r">${num(r.proceeds_received)}</td>
-        <td class="r">${num(r.proceeds_outstanding)}</td>
-        <td>${r.was_repatriated_late
-          ? '<span class="badge r">Yes</span>'
-          : '<span class="badge gr">No</span>'}</td>
-        <td><div class="checks">
-          ${ck(r.nxp_approved,              'NXP')}
-          ${ck(r.cci_obtained,              'CCI')}
-          ${ck(r.bl_uploaded,               'BL')}
-          ${ck(r.payment_evidence_uploaded, 'EVD')}
-          ${ck(r.credit_advice_confirmed,   'ADV')}
-        </div></td>
-      </tr>`).join('');
-    show('st-compliance', 'tb-compliance', 'cnt-compliance', rows);
-  }).catch(e => err('st-compliance', e.message));
-
-  // ── Evidence Packs ───────────────────────────────────────────────────────────
-  load('/evidence-packs').then(rows => {
-    if (!rows.length) { empty('st-packs', 'evidence packs'); return; }
-    document.getElementById('body-packs').innerHTML = rows.map(r => `
-      <tr>
-        <td class="mono" title="${r.id}">${short(r.id)}</td>
-        <td class="mono" title="${r.shipment_id}">${short(r.shipment_id)}</td>
-        <td class="r">${r.version}</td>
-        <td>${badge(r.repatriation_status)}</td>
-        <td>${r.sealed
-          ? '<span class="badge g">Sealed</span>'
-          : '<span class="badge gr">Draft</span>'}</td>
-        <td class="mono">${r.nxp_reference}</td>
-        <td>${date(r.generated_at)}</td>
-      </tr>`).join('');
-    show('st-packs', 'tb-packs', 'cnt-packs', rows);
-  }).catch(e => err('st-packs', e.message));
+  // ── Boot ─────────────────────────────────────────────────────────────────────
+  if (getToken()) {
+    showDashboard();
+  } else {
+    showLogin();
+  }
 </script>
 
 </body>

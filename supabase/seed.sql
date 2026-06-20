@@ -282,6 +282,19 @@ ON CONFLICT (id) DO NOTHING;
 -- Compliance records auto-created by trg_bl_auto_compliance_record on each INSERT above.
 
 -- =============================================================================
+-- §9b  LOCAL AUTH USER
+-- Maps the seed operator to local_users for v0.2 JWT auth.
+-- Same UUID as auth.users so exporter_users mapping requires no change.
+-- Credentials: operator@akoboexports.ng / dev-seed-password
+-- =============================================================================
+
+INSERT INTO local_users (id, email, password_hash) VALUES (
+  'a0b00000-0000-0000-0000-000000000001',
+  'operator@akoboexports.ng',
+  '$2b$10$BQXO2rNN8dece6gBJNK.xOyWMCcYzBMzsZofzlq/7RfS8Hm61Q12q'
+) ON CONFLICT (id) DO NOTHING;
+
+-- =============================================================================
 -- §10  INVOICES
 -- invoice_number (not invoice_reference). currency column (not contract_currency).
 -- =============================================================================

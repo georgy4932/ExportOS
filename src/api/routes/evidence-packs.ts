@@ -1,14 +1,13 @@
 import { Router } from 'express'
 import type { DbClient } from '../../db/client'
 import { listEvidencePacks, getEvidencePack } from '../../db/queries/index'
-import { requireExporterId } from '../middleware/require-exporter'
 import { sendQueryError } from '../middleware/query-error'
 
 export function evidencePacksRouter(client: DbClient): Router {
   const router = Router()
 
   // GET /evidence-packs[?shipment_id=&sealed=true|false]
-  router.get('/', requireExporterId, async (req, res) => {
+  router.get('/', async (req, res) => {
     const exporterId = res.locals.exporterId
     const shipmentId = req.query.shipment_id as string | undefined
     const sealedParam = req.query.sealed as string | undefined
@@ -31,7 +30,7 @@ export function evidencePacksRouter(client: DbClient): Router {
   })
 
   // GET /evidence-packs/:id
-  router.get('/:id', requireExporterId, async (req, res) => {
+  router.get('/:id', async (req, res) => {
     const exporterId = res.locals.exporterId
     const id = req.params['id'] as string
 
