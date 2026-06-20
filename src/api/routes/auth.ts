@@ -36,7 +36,8 @@ export function authRouter(pool: DbClient): Router {
       }
       const token = jwt.sign({ sub: rows[0].id, email }, secret, { expiresIn: '24h' })
       res.json({ token })
-    } catch {
+    } catch (err) {
+      console.error('[AUTH] /login error:', err instanceof Error ? err.message : String(err))
       res.status(500).json({ error: 'Internal server error' })
     }
   })

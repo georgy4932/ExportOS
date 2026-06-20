@@ -61,7 +61,8 @@ export function requireAuth(pool: DbClient): RequestHandler {
       res.locals.userId = userId
       res.locals.exporterId = rows[0].exporter_id
       next()
-    } catch {
+    } catch (err) {
+      console.error('[AUTH] requireAuth error:', err instanceof Error ? err.message : String(err))
       res.status(500).json({ error: 'Internal server error' })
     }
   }
