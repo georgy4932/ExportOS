@@ -1,0 +1,58 @@
+# ExportOS v0.2 — local Supabase configuration
+#
+# ExportOS uses a direct pg connection (port 54322). It does NOT use the
+# PostgREST API, Supabase Auth, Storage, Studio, Realtime, or Edge Functions.
+# All services except the database are disabled so that a fresh Codespace
+# starts cleanly without the Storage container (which is unstable in Codespaces).
+#
+# Fresh Codespace setup:
+#   cp .env.example .env.local
+#   npm install
+#   npx supabase start       # starts Postgres on 54322
+#   npx supabase db reset    # applies 4 migrations + seed
+#   npm run api              # terminal 1
+#   npm run verify-auth-api  # terminal 2 — expect 7/7
+
+project_id = "exportos"
+
+# ── Database ──────────────────────────────────────────────────────────────────
+# Postgres on port 54322 (matches DATABASE_URL in .env.example).
+[db]
+port = 54322
+shadow_port = 54320
+health_timeout = "2m"
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+# ── Disabled services ─────────────────────────────────────────────────────────
+# ExportOS v0.2 does not use any of these. Disabling them keeps `supabase start`
+# fast and avoids the unhealthy Storage container in Codespaces.
+
+[api]
+enabled = false
+
+[realtime]
+enabled = false
+
+[studio]
+enabled = false
+
+[inbucket]
+enabled = false
+
+[storage]
+enabled = false
+
+[auth]
+enabled = false
+
+[edge_runtime]
+enabled = false
+
+[analytics]
+enabled = false
+port = 54327
+backend = "postgres"
