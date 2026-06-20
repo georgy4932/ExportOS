@@ -1,15 +1,22 @@
 # ExportOS v0.2 — local Supabase configuration
 #
-# ExportOS uses a direct pg connection (port 54322). It does NOT use the
-# PostgREST API, Supabase Auth, Storage, Studio, Realtime, or Edge Functions.
-# All services except the database are disabled so that a fresh Codespace
-# starts cleanly without the Storage container (which is unstable in Codespaces).
+# ExportOS uses a direct pg connection (port 54322) rather than the PostgREST API.
+# Services disabled: Storage (unstable in Codespaces), Studio, Realtime, PostgREST,
+# Edge Runtime, Analytics, Inbucket.
+#
+# auth (GoTrue) is LEFT ENABLED because the schema uses auth.users(id) as a FK
+# target in exporter_users, payment_evidence, payment_allocations, and
+# bank_evidence_packs. GoTrue must run to create the full auth.users column set;
+# seed.sql inserts GoTrue-specific columns (email_confirmed_at, etc.) that do not
+# exist in the stub schema created when auth is disabled.
+#
+# Storage is separately disabled — it was the unhealthy container, not GoTrue.
 #
 # Fresh Codespace setup:
 #   cp .env.example .env.local
 #   npm install
-#   npx supabase start       # starts Postgres on 54322
-#   npx supabase db reset    # applies 4 migrations + seed
+#   npm run db:start         # starts Postgres + GoTrue only
+#   npm run db:reset         # applies 4 migrations + seed
 #   npm run api              # terminal 1
 #   npm run verify-auth-api  # terminal 2 — expect 7/7
 
@@ -27,9 +34,16 @@ major_version = 17
 enabled = true
 sql_paths = ["./seed.sql"]
 
+# ── Auth (GoTrue) ─────────────────────────────────────────────────────────────
+# Must remain enabled. The schema FKs exporter_users.user_id, uploaded_by,
+# allocated_by, and generated_by all reference auth.users(id). GoTrue owns
+# the auth schema migrations; without it, auth.users is a stub missing the
+# columns that seed.sql inserts (email_confirmed_at, encrypted_password, etc.).
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+
 # ── Disabled services ─────────────────────────────────────────────────────────
-# ExportOS v0.2 does not use any of these. Disabling them keeps `supabase start`
-# fast and avoids the unhealthy Storage container in Codespaces.
 
 [api]
 enabled = false
@@ -43,10 +57,9 @@ enabled = false
 [inbucket]
 enabled = false
 
+# Storage is disabled — it was the unhealthy container blocking Codespace startup.
+# ExportOS v0.2 does not use file storage.
 [storage]
-enabled = false
-
-[auth]
 enabled = false
 
 [edge_runtime]
