@@ -1,14 +1,13 @@
 import { Router } from 'express'
 import type { DbClient } from '../../db/client'
 import { listShipmentReconciliation, getShipmentReconciliation } from '../../db/queries/index'
-import { requireExporterId } from '../middleware/require-exporter'
 import { sendQueryError } from '../middleware/query-error'
 
 export function shipmentsRouter(client: DbClient): Router {
   const router = Router()
 
   // GET /shipments[?contract_id=&fully_reconciled=true|false]
-  router.get('/', requireExporterId, async (req, res) => {
+  router.get('/', async (req, res) => {
     const exporterId = res.locals.exporterId
     const contractId = req.query.contract_id as string | undefined
     const fullyReconciledParam = req.query.fully_reconciled as string | undefined
@@ -31,7 +30,7 @@ export function shipmentsRouter(client: DbClient): Router {
   })
 
   // GET /shipments/:id
-  router.get('/:id', requireExporterId, async (req, res) => {
+  router.get('/:id', async (req, res) => {
     const exporterId = res.locals.exporterId
     const id = req.params['id'] as string
 

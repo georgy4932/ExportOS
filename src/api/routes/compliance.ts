@@ -2,14 +2,13 @@ import { Router } from 'express'
 import type { DbClient } from '../../db/client'
 import type { RepatriationStatus } from '../../db/types'
 import { listComplianceRecords, getComplianceByShipment } from '../../db/queries/index'
-import { requireExporterId } from '../middleware/require-exporter'
 import { sendQueryError } from '../middleware/query-error'
 
 export function complianceRouter(client: DbClient): Router {
   const router = Router()
 
   // GET /compliance[?status=OVERDUE&late_only=true]
-  router.get('/', requireExporterId, async (req, res) => {
+  router.get('/', async (req, res) => {
     const exporterId = res.locals.exporterId
     const repatriationStatus = req.query.status as RepatriationStatus | undefined
     const lateOnly = req.query.late_only === 'true'
@@ -28,7 +27,7 @@ export function complianceRouter(client: DbClient): Router {
   })
 
   // GET /compliance/:shipmentId
-  router.get('/:shipmentId', requireExporterId, async (req, res) => {
+  router.get('/:shipmentId', async (req, res) => {
     const exporterId = res.locals.exporterId
     const shipmentId = req.params['shipmentId'] as string
 

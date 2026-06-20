@@ -6,14 +6,19 @@
     "api": "tsx src/api/server.ts",
     "verify": "tsx scripts/verify-queries.ts",
     "verify-api": "tsx scripts/verify-api.ts",
+    "verify-auth-api": "tsx scripts/verify-auth-api.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "pg": "^8.22.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.0.0",
     "@types/pg": "^8.20.0",
     "dotenv": "^16.4.5",
