@@ -5,6 +5,7 @@
   "scripts": {
     "api": "tsx src/api/server.ts",
     "verify": "tsx scripts/verify-queries.ts",
+    "verify-api": "tsx scripts/verify-api.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
