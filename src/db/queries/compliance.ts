@@ -1,4 +1,4 @@
-import type { DbClient } from '../client'
+import type { Pool } from 'pg'
 import type { ComplianceRecordRow, RepatriationStatus } from '../types'
 
 export interface ListComplianceRecordsOptions {
@@ -8,19 +8,38 @@ export interface ListComplianceRecordsOptions {
 }
 
 export async function listComplianceRecords(
-  client: DbClient,
+  pool: Pool,
   options: ListComplianceRecordsOptions = {},
-): Promise<{ data: ComplianceRecordRow[] | null; error: Error | null }> {
-  let query = client
-    .from('compliance_records')
-    .select('*')
+): Promise<{ data: ComplianceRecordRow[] | null; error: unknown }> {
+  try {
+    const params: unknown[] = []
+    const wheres: string[] = []
+    if (options.exporterId)         { params.push(options.exporterId);          wheres.push(`exporter_id = $${params.length}`) }
+    if (options.repatriationStatus) { params.push(options.repatriationStatus);  wheres.push(`repatriation_status = $${params.length}`) }
+    if (options.lateOnly)           { params.push(true);                         wheres.push(`was_repatriated_late = $${params.length}`) }
+    const where = wheres.length ? ` WHERE ${wheres.join(' AND ')}` : ''
+    const { rows } = await pool.query<ComplianceRecordRow>(
+      `SELECT * FROM compliance_records${where} ORDER BY repatriation_deadline ASC`,
+      params,
+    )
+    return { data: rows, error: null }
+  } catch (err) {
+    return { data: null, error: err }
+  }
+}
 
-  if (options.exporterId)          query = query.eq('exporter_id', options.exporterId)
-  if (options.repatriationStatus)  query = query.eq('repatriation_status', options.repatriationStatus)
-  if (options.lateOnly)            query = query.eq('was_repatriated_late', true)
-
-  return query.order('repatriation_deadline', { ascending: true }) as unknown as Promise<{
-    data: ComplianceRecordRow[] | null
-    error: Error | null
-  }>
+export async function getComplianceByShipment(
+  pool: Pool,
+  shipmentId: string,
+  exporterId: string,
+): Promise<{ data: ComplianceRecordRow | null; error: unknown }> {
+  try {
+    const { rows } = await pool.query<ComplianceRecordRow>(
+      'SELECT * FROM compliance_records WHERE shipment_id = $1 AND exporter_id = $2',
+      [shipmentId, exporterId],
+    )
+    return { data: rows[0] ?? null, error: null }
+  } catch (err) {
+    return { data: null, error: err }
+  }
 }

@@ -3,14 +3,19 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
+    "api": "tsx src/api/server.ts",
     "verify": "tsx scripts/verify-queries.ts",
+    "verify-api": "tsx scripts/verify-api.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.47.0"
+    "express": "^5.2.1",
+    "pg": "^8.22.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^26.0.0",
+    "@types/pg": "^8.20.0",
     "dotenv": "^16.4.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"

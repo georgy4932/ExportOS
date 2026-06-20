@@ -1,8 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from './types'
+import { Pool } from 'pg'
 
-export function createDbClient(url: string, key: string) {
-  return createClient<Database>(url, key)
+export function createDbClient(connectionString: string): Pool {
+  return new Pool({ connectionString })
 }
 
-export type DbClient = ReturnType<typeof createDbClient>
+export type DbClient = Pool

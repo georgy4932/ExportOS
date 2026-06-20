@@ -1,4 +1,4 @@
-import type { DbClient } from '../client'
+import type { Pool } from 'pg'
 import type { BLDeadlineRow, DeadlineStatus } from '../types'
 
 export interface ListBLDeadlinesOptions {
@@ -7,18 +7,21 @@ export interface ListBLDeadlinesOptions {
 }
 
 export async function listBLDeadlines(
-  client: DbClient,
+  pool: Pool,
   options: ListBLDeadlinesOptions = {},
-): Promise<{ data: BLDeadlineRow[] | null; error: Error | null }> {
-  let query = client
-    .from('v_bills_of_lading_deadline')
-    .select('*')
-
-  if (options.exporterId)     query = query.eq('exporter_id', options.exporterId)
-  if (options.deadlineStatus) query = query.eq('deadline_status', options.deadlineStatus)
-
-  return query.order('repatriation_deadline', { ascending: true }) as unknown as Promise<{
-    data: BLDeadlineRow[] | null
-    error: Error | null
-  }>
+): Promise<{ data: BLDeadlineRow[] | null; error: unknown }> {
+  try {
+    const params: unknown[] = []
+    const wheres: string[] = []
+    if (options.exporterId)     { params.push(options.exporterId);     wheres.push(`exporter_id = $${params.length}`) }
+    if (options.deadlineStatus) { params.push(options.deadlineStatus); wheres.push(`deadline_status = $${params.length}`) }
+    const where = wheres.length ? ` WHERE ${wheres.join(' AND ')}` : ''
+    const { rows } = await pool.query<BLDeadlineRow>(
+      `SELECT * FROM v_bills_of_lading_deadline${where} ORDER BY repatriation_deadline ASC`,
+      params,
+    )
+    return { data: rows, error: null }
+  } catch (err) {
+    return { data: null, error: err }
+  }
 }
