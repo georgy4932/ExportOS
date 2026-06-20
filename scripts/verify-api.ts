@@ -61,7 +61,7 @@ async function main() {
     const { status, body } = await get('/contracts', H)
     const data = body?.data
     if (status !== 200) {
-      fail('GET /contracts — status', `expected 200, got ${status}`)
+      fail('GET /contracts — status', `expected 200, got ${status}; body: ${JSON.stringify(body)}`)
     } else if (!Array.isArray(data) || data.length < 1) {
       fail('GET /contracts — count', `expected >= 1 contract, got ${Array.isArray(data) ? data.length : 'non-array'}`)
     } else {
@@ -74,7 +74,7 @@ async function main() {
     const { status, body } = await get('/shipments', H)
     const data = body?.data
     if (status !== 200) {
-      fail('GET /shipments — status', `expected 200, got ${status}`)
+      fail('GET /shipments — status', `expected 200, got ${status}; body: ${JSON.stringify(body)}`)
     } else if (!Array.isArray(data) || data.length < 2) {
       fail('GET /shipments — count', `expected >= 2 shipments, got ${Array.isArray(data) ? data.length : 'non-array'}`)
     } else {
@@ -87,7 +87,7 @@ async function main() {
     const { status, body } = await get('/compliance', H)
     const data = body?.data
     if (status !== 200) {
-      fail('GET /compliance — status', `expected 200, got ${status}`)
+      fail('GET /compliance — status', `expected 200, got ${status}; body: ${JSON.stringify(body)}`)
     } else if (!Array.isArray(data) || data.length < 2) {
       fail('GET /compliance — count', `expected >= 2 records, got ${Array.isArray(data) ? data.length : 'non-array'}`)
     } else {
@@ -100,7 +100,7 @@ async function main() {
     const { status, body } = await get('/evidence-packs', H)
     const data = body?.data
     if (status !== 200) {
-      fail('GET /evidence-packs — status', `expected 200, got ${status}`)
+      fail('GET /evidence-packs — status', `expected 200, got ${status}; body: ${JSON.stringify(body)}`)
     } else if (!Array.isArray(data) || data.length < 2) {
       fail('GET /evidence-packs — count', `expected >= 2 packs, got ${Array.isArray(data) ? data.length : 'non-array'}`)
     } else {

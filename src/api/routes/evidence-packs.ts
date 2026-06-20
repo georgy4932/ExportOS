@@ -2,6 +2,7 @@ import { Router } from 'express'
 import type { DbClient } from '../../db/client'
 import { listEvidencePacks, getEvidencePack } from '../../db/queries/index'
 import { requireExporterId } from '../middleware/require-exporter'
+import { sendQueryError } from '../middleware/query-error'
 
 export function evidencePacksRouter(client: DbClient): Router {
   const router = Router()
@@ -22,7 +23,7 @@ export function evidencePacksRouter(client: DbClient): Router {
         shipmentId,
         sealed,
       })
-      if (error) return res.status(502).json({ error: (error as Error).message })
+      if (error) return sendQueryError(req, res, error)
       res.json({ data: data ?? [], count: data?.length ?? 0 })
     } catch (err) {
       res.status(500).json({ error: 'Internal server error' })
@@ -36,7 +37,7 @@ export function evidencePacksRouter(client: DbClient): Router {
 
     try {
       const { data, error } = await getEvidencePack(client, id, exporterId)
-      if (error) return res.status(502).json({ error: (error as Error).message })
+      if (error) return sendQueryError(req, res, error)
       if (!data) return res.status(404).json({ error: 'Evidence pack not found' })
       res.json({ data })
     } catch (err) {

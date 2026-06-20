@@ -3,6 +3,7 @@ import type { DbClient } from '../../db/client'
 import type { RepatriationStatus } from '../../db/types'
 import { listComplianceRecords, getComplianceByShipment } from '../../db/queries/index'
 import { requireExporterId } from '../middleware/require-exporter'
+import { sendQueryError } from '../middleware/query-error'
 
 export function complianceRouter(client: DbClient): Router {
   const router = Router()
@@ -19,7 +20,7 @@ export function complianceRouter(client: DbClient): Router {
         repatriationStatus,
         lateOnly: lateOnly || undefined,
       })
-      if (error) return res.status(502).json({ error: (error as Error).message })
+      if (error) return sendQueryError(req, res, error)
       res.json({ data: data ?? [], count: data?.length ?? 0 })
     } catch (err) {
       res.status(500).json({ error: 'Internal server error' })
@@ -37,7 +38,7 @@ export function complianceRouter(client: DbClient): Router {
         shipmentId,
         exporterId,
       )
-      if (error) return res.status(502).json({ error: (error as Error).message })
+      if (error) return sendQueryError(req, res, error)
       if (!data) return res.status(404).json({ error: 'Compliance record not found' })
       res.json({ data })
     } catch (err) {
