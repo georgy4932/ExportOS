@@ -23,16 +23,15 @@ import {
 } from '../src/db/queries/index'
 
 async function main() {
-  const url        = process.env.SUPABASE_URL
-  const key        = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const dbUrl      = process.env.DATABASE_URL
   const exporterId = process.env.VERIFY_EXPORTER_ID
 
-  if (!url || !key || !exporterId) {
+  if (!dbUrl || !exporterId) {
     console.error('Missing env vars. Copy .env.example to .env.local and fill in values.')
     process.exit(1)
   }
 
-  const client = createDbClient(url, key)
+  const client = createDbClient(dbUrl)
   let failed = false
 
   function pass(label: string) {
@@ -147,6 +146,7 @@ async function main() {
     }
   }
 
+  await client.end()
   console.log(failed ? '\n✗ One or more queries failed.' : '\n✓ All 5 queries executed successfully.')
   process.exit(failed ? 1 : 0)
 }

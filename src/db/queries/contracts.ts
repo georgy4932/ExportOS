@@ -1,4 +1,4 @@
-import type { DbClient } from '../client'
+import type { Pool } from 'pg'
 import type { ContractStatus, ContractSummaryRow } from '../types'
 
 export interface ListContractSummariesOptions {
@@ -7,34 +7,37 @@ export interface ListContractSummariesOptions {
 }
 
 export async function listContractSummaries(
-  client: DbClient,
+  pool: Pool,
   options: ListContractSummariesOptions = {},
-): Promise<{ data: ContractSummaryRow[] | null; error: Error | null }> {
-  let query = client
-    .from('v_export_contracts_summary')
-    .select('*')
-
-  if (options.exporterId) query = query.eq('exporter_id', options.exporterId)
-  if (options.status)     query = query.eq('status', options.status)
-
-  return query.order('contract_date', { ascending: false }) as unknown as Promise<{
-    data: ContractSummaryRow[] | null
-    error: Error | null
-  }>
+): Promise<{ data: ContractSummaryRow[] | null; error: unknown }> {
+  try {
+    const params: unknown[] = []
+    const wheres: string[] = []
+    if (options.exporterId) { params.push(options.exporterId); wheres.push(`exporter_id = $${params.length}`) }
+    if (options.status)     { params.push(options.status);     wheres.push(`status = $${params.length}`) }
+    const where = wheres.length ? ` WHERE ${wheres.join(' AND ')}` : ''
+    const { rows } = await pool.query<ContractSummaryRow>(
+      `SELECT * FROM v_export_contracts_summary${where} ORDER BY contract_date DESC`,
+      params,
+    )
+    return { data: rows, error: null }
+  } catch (err) {
+    return { data: null, error: err }
+  }
 }
 
 export async function getContractSummary(
-  client: DbClient,
+  pool: Pool,
   id: string,
   exporterId: string,
-): Promise<{ data: ContractSummaryRow | null; error: Error | null }> {
-  return client
-    .from('v_export_contracts_summary')
-    .select('*')
-    .eq('id', id)
-    .eq('exporter_id', exporterId)
-    .maybeSingle() as unknown as Promise<{
-      data: ContractSummaryRow | null
-      error: Error | null
-    }>
+): Promise<{ data: ContractSummaryRow | null; error: unknown }> {
+  try {
+    const { rows } = await pool.query<ContractSummaryRow>(
+      'SELECT * FROM v_export_contracts_summary WHERE id = $1 AND exporter_id = $2',
+      [id, exporterId],
+    )
+    return { data: rows[0] ?? null, error: null }
+  } catch (err) {
+    return { data: null, error: err }
+  }
 }

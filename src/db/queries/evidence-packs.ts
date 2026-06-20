@@ -1,21 +1,5 @@
-import type { DbClient } from '../client'
+import type { Pool } from 'pg'
 import type { BankEvidencePackRow } from '../types'
-
-export async function getEvidencePack(
-  client: DbClient,
-  id: string,
-  exporterId: string,
-): Promise<{ data: BankEvidencePackRow | null; error: Error | null }> {
-  return client
-    .from('bank_evidence_packs')
-    .select('*')
-    .eq('id', id)
-    .eq('exporter_id', exporterId)
-    .maybeSingle() as unknown as Promise<{
-      data: BankEvidencePackRow | null
-      error: Error | null
-    }>
-}
 
 export interface ListEvidencePacksOptions {
   exporterId?: string
@@ -24,19 +8,38 @@ export interface ListEvidencePacksOptions {
 }
 
 export async function listEvidencePacks(
-  client: DbClient,
+  pool: Pool,
   options: ListEvidencePacksOptions = {},
-): Promise<{ data: BankEvidencePackRow[] | null; error: Error | null }> {
-  let query = client
-    .from('bank_evidence_packs')
-    .select('*')
+): Promise<{ data: BankEvidencePackRow[] | null; error: unknown }> {
+  try {
+    const params: unknown[] = []
+    const wheres: string[] = []
+    if (options.exporterId)           { params.push(options.exporterId);  wheres.push(`exporter_id = $${params.length}`) }
+    if (options.shipmentId)           { params.push(options.shipmentId);  wheres.push(`shipment_id = $${params.length}`) }
+    if (options.sealed !== undefined) { params.push(options.sealed);      wheres.push(`sealed = $${params.length}`) }
+    const where = wheres.length ? ` WHERE ${wheres.join(' AND ')}` : ''
+    const { rows } = await pool.query<BankEvidencePackRow>(
+      `SELECT * FROM bank_evidence_packs${where} ORDER BY generated_at DESC`,
+      params,
+    )
+    return { data: rows, error: null }
+  } catch (err) {
+    return { data: null, error: err }
+  }
+}
 
-  if (options.exporterId) query = query.eq('exporter_id', options.exporterId)
-  if (options.shipmentId) query = query.eq('shipment_id', options.shipmentId)
-  if (options.sealed !== undefined) query = query.eq('sealed', options.sealed)
-
-  return query.order('generated_at', { ascending: false }) as unknown as Promise<{
-    data: BankEvidencePackRow[] | null
-    error: Error | null
-  }>
+export async function getEvidencePack(
+  pool: Pool,
+  id: string,
+  exporterId: string,
+): Promise<{ data: BankEvidencePackRow | null; error: unknown }> {
+  try {
+    const { rows } = await pool.query<BankEvidencePackRow>(
+      'SELECT * FROM bank_evidence_packs WHERE id = $1 AND exporter_id = $2',
+      [id, exporterId],
+    )
+    return { data: rows[0] ?? null, error: null }
+  } catch (err) {
+    return { data: null, error: err }
+  }
 }

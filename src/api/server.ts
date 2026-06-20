@@ -5,7 +5,7 @@
  * All routes require X-Exporter-Id header for tenant scoping.
  *
  * Run:
- *   cp .env.example .env.local   (fill in SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)
+ *   cp .env.example .env.local   (fill in DATABASE_URL)
  *   npm run api
  *
  * Routes:
@@ -29,23 +29,22 @@ import { shipmentsRouter } from './routes/shipments'
 import { complianceRouter } from './routes/compliance'
 import { evidencePacksRouter } from './routes/evidence-packs'
 
-const url = process.env.SUPABASE_URL
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+const dbUrl = process.env.DATABASE_URL
 
-if (!url || !key) {
-  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. Copy .env.example to .env.local.')
+if (!dbUrl) {
+  console.error('Missing DATABASE_URL. Copy .env.example to .env.local and fill in values.')
   process.exit(1)
 }
 
-const client = createDbClient(url, key)
+const client = createDbClient(dbUrl)
 
 const app = express()
 app.disable('x-powered-by')
 app.use(express.json())
 
-app.use('/contracts',     contractsRouter(client))
-app.use('/shipments',     shipmentsRouter(client))
-app.use('/compliance',    complianceRouter(client))
+app.use('/contracts',      contractsRouter(client))
+app.use('/shipments',      shipmentsRouter(client))
+app.use('/compliance',     complianceRouter(client))
 app.use('/evidence-packs', evidencePacksRouter(client))
 
 // Health check — no exporter scoping required
