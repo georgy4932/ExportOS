@@ -18,6 +18,9 @@
  *   POST /shipments                        create shipment (+ audit event)
  *   GET  /bills-of-lading[?deadline_status=]
  *   POST /bills-of-lading                  create bill of lading (+ audit event)
+ *   GET  /payment-receipts[?allocation_status=&discrepancy_status=]
+ *   GET  /payment-receipts/:id
+ *   POST /payment-receipts                 create payment receipt (+ audit event)
  *   GET  /compliance[?status=&late_only=]
  *   GET  /compliance/:shipmentId
  *   GET  /evidence-packs[?shipment_id=&sealed=]
@@ -38,6 +41,7 @@ import { counterpartiesRouter } from './routes/counterparties'
 import { auditEventsRouter } from './routes/audit-events'
 import { shipmentsRouter } from './routes/shipments'
 import { billsOfLadingRouter } from './routes/bills-of-lading'
+import { paymentReceiptsRouter } from './routes/payment-receipts'
 import { complianceRouter } from './routes/compliance'
 import { evidencePacksRouter } from './routes/evidence-packs'
 
@@ -70,13 +74,14 @@ app.use('/auth', authRouter(client))
 
 // All data routes require a valid Bearer JWT
 const auth = requireAuth(client)
-app.use('/counterparties',  auth, counterpartiesRouter(client))
-app.use('/contracts',       auth, contractsRouter(client))
-app.use('/audit-events',    auth, auditEventsRouter(client))
+app.use('/counterparties',   auth, counterpartiesRouter(client))
+app.use('/contracts',        auth, contractsRouter(client))
+app.use('/audit-events',     auth, auditEventsRouter(client))
 app.use('/shipments',        auth, shipmentsRouter(client))
-app.use('/bills-of-lading', auth, billsOfLadingRouter(client))
-app.use('/compliance',      auth, complianceRouter(client))
-app.use('/evidence-packs',  auth, evidencePacksRouter(client))
+app.use('/bills-of-lading',  auth, billsOfLadingRouter(client))
+app.use('/payment-receipts', auth, paymentReceiptsRouter(client))
+app.use('/compliance',       auth, complianceRouter(client))
+app.use('/evidence-packs',   auth, evidencePacksRouter(client))
 
 // 404 for anything else
 app.use((_req, res) => {
