@@ -419,7 +419,7 @@
           <thead><tr>
             <th>Shipment ID</th><th>Repatriation</th><th>Deadline</th>
             <th class="r">Required</th><th class="r">Received</th>
-            <th class="r">Outstanding</th><th>Late?</th><th>Checklist</th>
+            <th class="r">Outstanding</th><th>Late?</th><th>Checklist</th><th></th>
           </tr></thead>
           <tbody id="body-compliance"></tbody>
         </table>
@@ -430,14 +430,17 @@
     <div class="card">
       <div class="card-header">
         <h2>Evidence Packs</h2>
-        <span class="card-count" id="cnt-packs"></span>
+        <div style="display:flex;align-items:center;gap:0.75rem">
+          <span class="card-count" id="cnt-packs"></span>
+          <button class="btn-add" id="gen-pack-btn">+ Generate Pack</button>
+        </div>
       </div>
       <div class="table-wrap">
         <div class="state" id="st-packs">Loading…</div>
         <table id="tb-packs" hidden>
           <thead><tr>
             <th>Pack</th><th>Shipment</th><th>Ver</th><th>Repatriation</th>
-            <th>Sealed</th><th>NXP Ref</th><th>Generated</th>
+            <th>Sealed</th><th>NXP Ref</th><th>Generated</th><th></th>
           </tr></thead>
           <tbody id="body-packs"></tbody>
         </table>
@@ -907,6 +910,107 @@
     </form>
   </div>
 
+  <!-- Update Compliance modal -->
+  <div class="modal-card" id="modal-compliance" hidden>
+    <h2>Update Compliance Record</h2>
+    <form id="compliance-form" novalidate>
+      <div class="form-grid">
+
+        <div class="field full">
+          <label>Shipment</label>
+          <div id="comp-shipment-display" style="padding:0.5rem 0.75rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;font-size:0.875rem;color:#374151">—</div>
+          <input type="hidden" id="comp-shipment-id">
+        </div>
+
+        <div class="field" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
+          <input id="comp-nxp-submitted" name="nxp_submitted" type="checkbox" style="width:auto">
+          <label for="comp-nxp-submitted" style="margin:0;font-weight:400">NXP Submitted</label>
+        </div>
+
+        <div class="field" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
+          <input id="comp-nxp-approved" name="nxp_approved" type="checkbox" style="width:auto">
+          <label for="comp-nxp-approved" style="margin:0;font-weight:400">NXP Approved</label>
+        </div>
+
+        <div class="field" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
+          <input id="comp-cci" name="cci_obtained" type="checkbox" style="width:auto">
+          <label for="comp-cci" style="margin:0;font-weight:400">CCI Obtained</label>
+        </div>
+
+        <div class="field" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
+          <input id="comp-bl" name="bl_uploaded" type="checkbox" style="width:auto">
+          <label for="comp-bl" style="margin:0;font-weight:400">BL Uploaded</label>
+        </div>
+
+        <div class="field" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
+          <input id="comp-evd" name="payment_evidence_uploaded" type="checkbox" style="width:auto">
+          <label for="comp-evd" style="margin:0;font-weight:400">Payment Evidence Uploaded</label>
+        </div>
+
+        <div class="field" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
+          <input id="comp-adv" name="credit_advice_confirmed" type="checkbox" style="width:auto">
+          <label for="comp-adv" style="margin:0;font-weight:400">Credit Advice Confirmed</label>
+        </div>
+
+        <div class="field full">
+          <label for="comp-notes">Notes</label>
+          <textarea id="comp-notes" name="notes" placeholder="Optional"></textarea>
+        </div>
+
+        <div class="field full">
+          <label for="comp-flags">Compliance Flags (comma-separated)</label>
+          <input id="comp-flags" name="compliance_flags" type="text" placeholder="e.g. LATE_FILING, AMOUNT_DISCREPANCY">
+        </div>
+
+      </div>
+      <div class="modal-error" id="compliance-error"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="compliance-cancel">Cancel</button>
+        <button type="submit" class="btn-submit" id="compliance-submit">Update</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Generate Evidence Pack modal -->
+  <div class="modal-card" id="modal-gen-pack" hidden>
+    <h2>Generate Evidence Pack</h2>
+    <form id="gen-pack-form" novalidate>
+      <div class="form-grid">
+
+        <div class="field full">
+          <label for="gp-shipment">Shipment *</label>
+          <select id="gp-shipment" name="shipment_id" required>
+            <option value="">Select shipment…</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="gp-notes">Notes</label>
+          <input id="gp-notes" name="notes" type="text" placeholder="Optional">
+        </div>
+
+      </div>
+      <div class="modal-error" id="gen-pack-error"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="gen-pack-cancel">Cancel</button>
+        <button type="submit" class="btn-submit" id="gen-pack-submit">Generate Pack</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Seal Evidence Pack modal -->
+  <div class="modal-card" id="modal-seal" hidden>
+    <h2>Seal Evidence Pack</h2>
+    <p style="font-size:0.875rem;color:#374151;margin-bottom:1rem">This will permanently seal the pack. The action cannot be undone. All compliance checklist items must be complete.</p>
+    <div id="seal-pack-display" style="padding:0.5rem 0.75rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;font-size:0.875rem;color:#374151;margin-bottom:0.75rem">—</div>
+    <input type="hidden" id="seal-pack-id">
+    <div class="modal-error" id="seal-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" id="seal-cancel">Cancel</button>
+      <button type="button" class="btn-submit" id="seal-submit">Seal Pack</button>
+    </div>
+  </div>
+
 </div><!-- /#modal-overlay -->
 
 <script>
@@ -1190,6 +1294,8 @@
   }
 
   // ── Load compliance ───────────────────────────────────────────────────────────
+  let _compliance = [];
+
   function loadCompliance() {
     const st = document.getElementById('st-compliance');
     const tb = document.getElementById('tb-compliance');
@@ -1199,9 +1305,9 @@
     tb.hidden = true;
 
     apiFetch('/compliance').then(body => {
-      const rows = body.data ?? [];
-      if (!rows.length) { st.textContent = 'No compliance records found.'; return; }
-      document.getElementById('body-compliance').innerHTML = rows.map(r => `
+      _compliance = body.data ?? [];
+      if (!_compliance.length) { st.textContent = 'No compliance records found.'; return; }
+      document.getElementById('body-compliance').innerHTML = _compliance.map(r => `
         <tr>
           <td class="mono" title="${r.shipment_id}">${short(r.shipment_id)}</td>
           <td>${badge(r.repatriation_status)}</td>
@@ -1217,12 +1323,16 @@
             ${ck(r.payment_evidence_uploaded, 'EVD')}
             ${ck(r.credit_advice_confirmed,   'ADV')}
           </div></td>
+          <td><button class="btn-comp-update btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem"
+            data-shipment-id="${r.shipment_id}">Update</button></td>
         </tr>`).join('');
-      show('st-compliance', 'tb-compliance', 'cnt-compliance', rows);
+      show('st-compliance', 'tb-compliance', 'cnt-compliance', _compliance);
     }).catch(e => errState('st-compliance', e.message));
   }
 
   // ── Load evidence packs ───────────────────────────────────────────────────────
+  let _packs = [];
+
   function loadPacks() {
     const st = document.getElementById('st-packs');
     const tb = document.getElementById('tb-packs');
@@ -1232,9 +1342,9 @@
     tb.hidden = true;
 
     apiFetch('/evidence-packs').then(body => {
-      const rows = body.data ?? [];
-      if (!rows.length) { st.textContent = 'No evidence packs found.'; return; }
-      document.getElementById('body-packs').innerHTML = rows.map(r => `
+      _packs = body.data ?? [];
+      if (!_packs.length) { st.textContent = 'No evidence packs found.'; return; }
+      document.getElementById('body-packs').innerHTML = _packs.map(r => `
         <tr>
           <td class="mono" title="${r.id}">${short(r.id)}</td>
           <td class="mono" title="${r.shipment_id}">${short(r.shipment_id)}</td>
@@ -1243,8 +1353,9 @@
           <td>${r.sealed ? '<span class="badge g">Sealed</span>' : '<span class="badge gr">Draft</span>'}</td>
           <td class="mono">${r.nxp_reference}</td>
           <td>${date(r.generated_at)}</td>
+          <td>${r.sealed ? '' : '<button class="btn-seal btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem" data-pack-id="' + r.id + '">Seal</button>'}</td>
         </tr>`).join('');
-      show('st-packs', 'tb-packs', 'cnt-packs', rows);
+      show('st-packs', 'tb-packs', 'cnt-packs', _packs);
     }).catch(e => errState('st-packs', e.message));
   }
 
@@ -1695,6 +1806,192 @@
     } finally {
       allocateSubmit.disabled = false;
       allocateSubmit.textContent = 'Allocate';
+    }
+  });
+
+  // ── Update Compliance modal ───────────────────────────────────────────────────
+  const complianceError  = document.getElementById('compliance-error');
+  const complianceSubmit = document.getElementById('compliance-submit');
+
+  function openComplianceModal(crow) {
+    complianceError.textContent = '';
+    complianceSubmit.disabled = false;
+
+    document.getElementById('comp-shipment-id').value        = crow.shipment_id;
+    document.getElementById('comp-shipment-display').textContent = crow.shipment_id;
+    document.getElementById('comp-nxp-submitted').checked    = !!crow.nxp_submitted;
+    document.getElementById('comp-nxp-approved').checked     = !!crow.nxp_approved;
+    document.getElementById('comp-cci').checked              = !!crow.cci_obtained;
+    document.getElementById('comp-bl').checked               = !!crow.bl_uploaded;
+    document.getElementById('comp-evd').checked              = !!crow.payment_evidence_uploaded;
+    document.getElementById('comp-adv').checked              = !!crow.credit_advice_confirmed;
+    document.getElementById('comp-notes').value              = crow.notes ?? '';
+    document.getElementById('comp-flags').value              = (crow.compliance_flags ?? []).join(', ');
+
+    openCard('modal-compliance');
+  }
+
+  document.getElementById('body-compliance').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-comp-update');
+    if (!btn) return;
+    const sid = btn.dataset.shipmentId;
+    const crow = _compliance.find(r => r.shipment_id === sid);
+    if (crow) openComplianceModal(crow);
+  });
+
+  document.getElementById('compliance-cancel').addEventListener('click', closeModal);
+
+  document.getElementById('compliance-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    complianceError.textContent = '';
+    complianceSubmit.disabled = true;
+    complianceSubmit.textContent = 'Updating…';
+
+    const shipmentId = document.getElementById('comp-shipment-id').value;
+    const flagsRaw   = document.getElementById('comp-flags').value.trim();
+    const flags      = flagsRaw ? flagsRaw.split(',').map(s => s.trim()).filter(Boolean) : null;
+
+    const body = {
+      nxp_submitted:             document.getElementById('comp-nxp-submitted').checked,
+      nxp_approved:              document.getElementById('comp-nxp-approved').checked,
+      cci_obtained:              document.getElementById('comp-cci').checked,
+      bl_uploaded:               document.getElementById('comp-bl').checked,
+      payment_evidence_uploaded: document.getElementById('comp-evd').checked,
+      credit_advice_confirmed:   document.getElementById('comp-adv').checked,
+      notes:                     document.getElementById('comp-notes').value.trim() || null,
+      compliance_flags:          flags,
+    };
+
+    try {
+      const res = await fetch(`/compliance/${shipmentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        complianceError.textContent = json.error || 'Update failed';
+        return;
+      }
+      closeModal();
+      loadCompliance();
+    } catch {
+      complianceError.textContent = 'Could not reach the server.';
+    } finally {
+      complianceSubmit.disabled = false;
+      complianceSubmit.textContent = 'Update';
+    }
+  });
+
+  // ── Generate Evidence Pack modal ──────────────────────────────────────────────
+  const genPackError  = document.getElementById('gen-pack-error');
+  const genPackSubmit = document.getElementById('gen-pack-submit');
+
+  function openGenPackModal() {
+    genPackError.textContent = '';
+    genPackSubmit.disabled = false;
+    document.getElementById('gen-pack-form').reset();
+
+    const sel = document.getElementById('gp-shipment');
+    sel.innerHTML = '<option value="">Loading…</option>';
+    apiFetch('/shipments').then(body => {
+      const rows = body.data ?? [];
+      sel.innerHTML = '<option value="">Select shipment…</option>' +
+        rows.map(r => `<option value="${r.id}">${r.shipment_reference} — ${r.nxp_reference}</option>`).join('');
+    }).catch(() => {
+      sel.innerHTML = '<option value="">Could not load shipments</option>';
+    });
+
+    openCard('modal-gen-pack');
+  }
+
+  document.getElementById('gen-pack-btn').addEventListener('click', openGenPackModal);
+  document.getElementById('gen-pack-cancel').addEventListener('click', closeModal);
+
+  document.getElementById('gen-pack-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    genPackError.textContent = '';
+    genPackSubmit.disabled = true;
+    genPackSubmit.textContent = 'Generating…';
+
+    const fd = new FormData(document.getElementById('gen-pack-form'));
+    const body = {
+      shipment_id: fd.get('shipment_id'),
+      notes:       fd.get('notes') || null,
+    };
+
+    try {
+      const res = await fetch('/evidence-packs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        const detail = json.fields ? ` (${json.fields.join(', ')})` : '';
+        genPackError.textContent = (json.error || 'Generation failed') + detail;
+        return;
+      }
+      closeModal();
+      loadPacks();
+    } catch {
+      genPackError.textContent = 'Could not reach the server.';
+    } finally {
+      genPackSubmit.disabled = false;
+      genPackSubmit.textContent = 'Generate Pack';
+    }
+  });
+
+  // ── Seal Evidence Pack modal ──────────────────────────────────────────────────
+  const sealError  = document.getElementById('seal-error');
+  const sealSubmit = document.getElementById('seal-submit');
+
+  function openSealModal(packId) {
+    sealError.textContent = '';
+    sealSubmit.disabled = false;
+
+    document.getElementById('seal-pack-id').value = packId;
+    const pack = _packs.find(p => p.id === packId);
+    document.getElementById('seal-pack-display').textContent =
+      pack ? `Pack ${short(pack.id)} — Shipment ${short(pack.shipment_id)} — v${pack.version}` : packId;
+
+    openCard('modal-seal');
+  }
+
+  document.getElementById('body-packs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-seal');
+    if (!btn) return;
+    openSealModal(btn.dataset.packId);
+  });
+
+  document.getElementById('seal-cancel').addEventListener('click', closeModal);
+
+  sealSubmit.addEventListener('click', async () => {
+    sealError.textContent = '';
+    sealSubmit.disabled = true;
+    sealSubmit.textContent = 'Sealing…';
+
+    const packId = document.getElementById('seal-pack-id').value;
+
+    try {
+      const res = await fetch(`/evidence-packs/${packId}/seal`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({}),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        sealError.textContent = json.error || 'Seal failed';
+        return;
+      }
+      closeModal();
+      loadPacks();
+      loadCompliance();
+    } catch {
+      sealError.textContent = 'Could not reach the server.';
+    } finally {
+      sealSubmit.disabled = false;
+      sealSubmit.textContent = 'Seal Pack';
     }
   });
 
