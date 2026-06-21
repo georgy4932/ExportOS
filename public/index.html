@@ -417,7 +417,7 @@
         <div class="state" id="st-compliance">Loading…</div>
         <table id="tb-compliance" hidden>
           <thead><tr>
-            <th>Shipment ID</th><th>Repatriation</th><th>Deadline</th>
+            <th>Shipment</th><th>Repatriation</th><th>Deadline</th>
             <th class="r">Required</th><th class="r">Received</th>
             <th class="r">Outstanding</th><th>Late?</th><th>Checklist</th><th></th>
           </tr></thead>
@@ -1003,6 +1003,7 @@
     <h2>Seal Evidence Pack</h2>
     <p style="font-size:0.875rem;color:#374151;margin-bottom:1rem">This will permanently seal the pack. The action cannot be undone. All compliance checklist items must be complete.</p>
     <div id="seal-pack-display" style="padding:0.5rem 0.75rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;font-size:0.875rem;color:#374151;margin-bottom:0.75rem">—</div>
+    <div id="seal-compliance-status" style="margin-bottom:0.75rem"></div>
     <input type="hidden" id="seal-pack-id">
     <div class="modal-error" id="seal-error"></div>
     <div class="modal-actions">
@@ -1120,8 +1121,9 @@
     return '<span class="badge ' + (map[status] ?? 'gr') + '">' + status.replace(/_/g, ' ') + '</span>';
   }
 
-  function ck(val, label) {
-    return '<span class="ck ' + (val ? 'ck-y' : 'ck-n') + '" title="' + label + '">' + label + '</span>';
+  function ck(val, label, title) {
+    const t = title ?? label;
+    return '<span class="ck ' + (val ? 'ck-y' : 'ck-n') + '" title="' + t + '">' + label + '</span>';
   }
 
   function show(stId, tbId, cntId, rows) {
@@ -1320,7 +1322,10 @@
       if (!_compliance.length) { st.textContent = 'No compliance records found.'; return; }
       document.getElementById('body-compliance').innerHTML = _compliance.map(r => `
         <tr>
-          <td class="mono" title="${h(r.shipment_id)}">${short(r.shipment_id)}</td>
+          <td title="${h(r.shipment_id)}">
+            <span style="font-weight:600">${h(r.shipment_reference ?? '—')}</span>
+            ${r.nxp_reference ? '<br><small class="mono" style="color:#6b7280">' + h(r.nxp_reference) + '</small>' : ''}
+          </td>
           <td>${badge(r.repatriation_status)}</td>
           <td>${date(r.repatriation_deadline)}</td>
           <td class="r">${num(r.proceeds_required)}</td>
@@ -1328,11 +1333,11 @@
           <td class="r">${num(r.proceeds_outstanding)}</td>
           <td>${r.was_repatriated_late ? '<span class="badge r">Yes</span>' : '<span class="badge gr">No</span>'}</td>
           <td><div class="checks">
-            ${ck(r.nxp_approved,              'NXP')}
-            ${ck(r.cci_obtained,              'CCI')}
-            ${ck(r.bl_uploaded,               'BL')}
-            ${ck(r.payment_evidence_uploaded, 'EVD')}
-            ${ck(r.credit_advice_confirmed,   'ADV')}
+            ${ck(r.nxp_approved,              'NXP', 'NXP Approved by CBN')}
+            ${ck(r.cci_obtained,              'CCI', 'CCI Obtained')}
+            ${ck(r.bl_uploaded,               'BL',  'Bill of Lading Uploaded')}
+            ${ck(r.payment_evidence_uploaded, 'EVD', 'Payment Evidence Uploaded')}
+            ${ck(r.credit_advice_confirmed,   'ADV', 'Credit Advice Confirmed')}
           </div></td>
           <td><button class="btn-comp-update btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem"
             data-shipment-id="${h(r.shipment_id)}">Update</button></td>
@@ -1355,17 +1360,23 @@
     apiFetch('/evidence-packs').then(body => {
       _packs = body.data ?? [];
       if (!_packs.length) { st.textContent = 'No evidence packs found.'; return; }
-      document.getElementById('body-packs').innerHTML = _packs.map(r => `
+      document.getElementById('body-packs').innerHTML = _packs.map(r => {
+        const snap = (r.shipment_snapshot && typeof r.shipment_snapshot === 'object') ? r.shipment_snapshot : {};
+        const shipRef = snap.shipment_reference ?? null;
+        return `
         <tr>
           <td class="mono" title="${h(r.id)}">${short(r.id)}</td>
-          <td class="mono" title="${h(r.shipment_id)}">${short(r.shipment_id)}</td>
+          <td title="${h(r.shipment_id)}">
+            <span style="font-weight:600">${h(shipRef ?? short(r.shipment_id))}</span>
+          </td>
           <td class="r">${r.version}</td>
           <td>${badge(r.repatriation_status)}</td>
           <td>${r.sealed ? '<span class="badge g">Sealed</span>' : '<span class="badge gr">Draft</span>'}</td>
           <td class="mono">${h(r.nxp_reference)}</td>
           <td>${date(r.generated_at)}</td>
           <td>${r.sealed ? '' : '<button class="btn-seal btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem" data-pack-id="' + h(r.id) + '">Seal</button>'}</td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
       show('st-packs', 'tb-packs', 'cnt-packs', _packs);
     }).catch(e => errState('st-packs', e.message));
   }
@@ -1374,7 +1385,7 @@
   function loadAll() {
     fetch('/auth/me', { headers: authHeaders() })
       .then(r => r.json())
-      .then(b => { document.getElementById('header-exporter').textContent = b.exporterId ?? ''; })
+      .then(b => { document.getElementById('header-exporter').textContent = b.exporterName ?? b.exporterId ?? ''; })
       .catch(() => {});
 
     loadContracts();
@@ -1829,7 +1840,8 @@
     complianceSubmit.disabled = false;
 
     document.getElementById('comp-shipment-id').value        = crow.shipment_id;
-    document.getElementById('comp-shipment-display').textContent = crow.shipment_id;
+    document.getElementById('comp-shipment-display').textContent =
+      crow.shipment_reference ? crow.shipment_reference + (crow.nxp_reference ? ' / ' + crow.nxp_reference : '') : crow.shipment_id;
     document.getElementById('comp-nxp-submitted').checked    = !!crow.nxp_submitted;
     document.getElementById('comp-nxp-approved').checked     = !!crow.nxp_approved;
     document.getElementById('comp-cci').checked              = !!crow.cci_obtained;
@@ -1963,8 +1975,28 @@
 
     document.getElementById('seal-pack-id').value = packId;
     const pack = _packs.find(p => p.id === packId);
-    document.getElementById('seal-pack-display').textContent =
-      pack ? `Pack ${short(pack.id)} — Shipment ${short(pack.shipment_id)} — v${pack.version}` : packId;
+
+    if (pack) {
+      const snap = (pack.shipment_snapshot && typeof pack.shipment_snapshot === 'object') ? pack.shipment_snapshot : {};
+      const shipRef = snap.shipment_reference ?? short(pack.shipment_id);
+      const nxpRef  = pack.nxp_reference ?? '';
+      document.getElementById('seal-pack-display').textContent =
+        shipRef + (nxpRef ? ' / ' + nxpRef : '') + ' — v' + pack.version;
+
+      const comp = _compliance.find(r => r.shipment_id === pack.shipment_id);
+      document.getElementById('seal-compliance-status').innerHTML = comp
+        ? '<div class="checks" style="flex-wrap:wrap;gap:0.35rem">'
+          + ck(comp.nxp_approved,              'NXP', 'NXP Approved by CBN')
+          + ck(comp.cci_obtained,              'CCI', 'CCI Obtained')
+          + ck(comp.bl_uploaded,               'BL',  'Bill of Lading Uploaded')
+          + ck(comp.payment_evidence_uploaded, 'EVD', 'Payment Evidence Uploaded')
+          + ck(comp.credit_advice_confirmed,   'ADV', 'Credit Advice Confirmed')
+          + '</div>'
+        : '';
+    } else {
+      document.getElementById('seal-pack-display').textContent = packId;
+      document.getElementById('seal-compliance-status').innerHTML = '';
+    }
 
     openCard('modal-seal');
   }

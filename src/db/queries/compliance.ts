@@ -1,5 +1,5 @@
 import type { Pool } from 'pg'
-import type { ComplianceRecordRow, RepatriationStatus } from '../types'
+import type { ComplianceRecordRow, ComplianceRecordWithShipmentRow, RepatriationStatus } from '../types'
 import { insertAuditEvent } from './audit'
 
 export interface ListComplianceRecordsOptions {
@@ -27,16 +27,19 @@ export interface UpdateComplianceInput {
 export async function listComplianceRecords(
   pool: Pool,
   options: ListComplianceRecordsOptions = {},
-): Promise<{ data: ComplianceRecordRow[] | null; error: unknown }> {
+): Promise<{ data: ComplianceRecordWithShipmentRow[] | null; error: unknown }> {
   try {
     const params: unknown[] = []
     const wheres: string[] = []
-    if (options.exporterId)         { params.push(options.exporterId);          wheres.push(`exporter_id = $${params.length}`) }
-    if (options.repatriationStatus) { params.push(options.repatriationStatus);  wheres.push(`repatriation_status = $${params.length}`) }
-    if (options.lateOnly)           { params.push(true);                         wheres.push(`was_repatriated_late = $${params.length}`) }
+    if (options.exporterId)         { params.push(options.exporterId);          wheres.push(`cr.exporter_id = $${params.length}`) }
+    if (options.repatriationStatus) { params.push(options.repatriationStatus);  wheres.push(`cr.repatriation_status = $${params.length}`) }
+    if (options.lateOnly)           { params.push(true);                         wheres.push(`cr.was_repatriated_late = $${params.length}`) }
     const where = wheres.length ? ` WHERE ${wheres.join(' AND ')}` : ''
-    const { rows } = await pool.query<ComplianceRecordRow>(
-      `SELECT * FROM compliance_records${where} ORDER BY repatriation_deadline ASC`,
+    const { rows } = await pool.query<ComplianceRecordWithShipmentRow>(
+      `SELECT cr.*, s.shipment_reference, s.nxp_reference
+       FROM compliance_records cr
+       LEFT JOIN shipments s ON s.id = cr.shipment_id AND s.exporter_id = cr.exporter_id${where}
+       ORDER BY cr.repatriation_deadline ASC`,
       params,
     )
     return { data: rows, error: null }
