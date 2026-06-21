@@ -18,6 +18,7 @@
     "verify-evidence-api": "tsx scripts/verify-evidence-api.ts",
     "verify-supersede-evidence-api": "tsx scripts/verify-supersede-evidence-api.ts",
     "verify-invoices-api": "tsx scripts/verify-invoices-api.ts",
+    "verify-compliance-api": "tsx scripts/verify-compliance-api.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
