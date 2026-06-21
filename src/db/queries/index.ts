@@ -8,7 +8,7 @@ export { listCounterparties } from './counterparties'
 export { listAuditEvents } from './audit'
 export { createPaymentReceiptWithAudit, getPaymentReceipt, listPaymentReceipts } from './payment-receipts'
 export { createPaymentAllocationWithAudit, getPaymentAllocation, listPaymentAllocations } from './payment-allocations'
-export { createPaymentEvidenceWithAudit, getPaymentEvidence, listPaymentEvidence } from './payment-evidence'
+export { createPaymentEvidenceWithAudit, getPaymentEvidence, listPaymentEvidence, supersedePaymentEvidence } from './payment-evidence'
 
 export type { ListContractSummariesOptions, CreateContractInput } from './contracts'
 export type { ListShipmentReconciliationOptions, CreateShipmentInput } from './shipments'

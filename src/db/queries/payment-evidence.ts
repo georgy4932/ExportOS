@@ -142,3 +142,52 @@ export async function getPaymentEvidence(
     return { data: null, error: err }
   }
 }
+
+// Sets superseded_by on the old evidence row and writes a SUPERSEDE audit event.
+// Both the old row and the replacement row must belong to exporterId.
+// The schema trigger (prevent_payment_evidence_mutation) allows superseded_by to
+// change — it guards every other field except receipt_id and superseded_by.
+// All precondition checks (already-superseded, self-reference, cross-exporter)
+// must be enforced by the caller before invoking this function.
+export async function supersedePaymentEvidence(
+  pool: Pool,
+  id: string,
+  replacementId: string,
+  exporterId: string,
+  actorUserId: string,
+): Promise<{ data: PaymentEvidenceRow | null; error: unknown }> {
+  const pg = await pool.connect()
+  try {
+    await pg.query('BEGIN')
+
+    const { rows } = await pg.query<PaymentEvidenceRow>(
+      `UPDATE payment_evidence
+          SET superseded_by = $1
+        WHERE id = $2 AND exporter_id = $3
+      RETURNING *`,
+      [replacementId, id, exporterId],
+    )
+    const updated = rows[0]
+    if (!updated) {
+      await pg.query('ROLLBACK')
+      return { data: null, error: null }
+    }
+
+    await insertAuditEvent(pg, {
+      exporterId,
+      actorUserId,
+      entityType: 'payment_evidence',
+      entityId:   id,
+      action:     'SUPERSEDE',
+      eventData:  updated,
+    })
+
+    await pg.query('COMMIT')
+    return { data: updated, error: null }
+  } catch (err) {
+    await pg.query('ROLLBACK').catch(() => {})
+    return { data: null, error: err }
+  } finally {
+    pg.release()
+  }
+}

@@ -5,6 +5,7 @@ import {
   createPaymentEvidenceWithAudit,
   getPaymentEvidence,
   listPaymentEvidence,
+  supersedePaymentEvidence,
 } from '../../db/queries/index'
 import { sendQueryError } from '../middleware/query-error'
 
@@ -170,6 +171,65 @@ export function paymentEvidenceRouter(client: DbClient): Router {
 
     if (error) return sendQueryError(req, res, error)
     res.status(201).json({ data })
+  })
+
+  // PATCH /payment-evidence/:id/supersede
+  // Sets superseded_by on the old row and emits a SUPERSEDE audit event.
+  // exporter_id and actor_user_id are server-derived from JWT.
+  // Preconditions enforced here:
+  //   - old row exists and belongs to authenticated exporter
+  //   - replacement row exists and belongs to authenticated exporter (no cross-exporter)
+  //   - replacement_id !== id (no self-reference)
+  //   - old row is not already superseded
+  router.patch('/:id/supersede', async (req, res) => {
+    const exporterId  = res.locals.exporterId
+    const actorUserId = res.locals.userId
+    const id          = req.params['id'] as string
+
+    const { replacement_id } = req.body as Record<string, unknown>
+
+    if (!replacement_id || typeof replacement_id !== 'string') {
+      res.status(400).json({ error: 'Missing required field: replacement_id' })
+      return
+    }
+
+    if (replacement_id === id) {
+      res.status(400).json({ error: 'replacement_id cannot be the same as the evidence being superseded' })
+      return
+    }
+
+    // Verify old evidence exists and belongs to exporter
+    const { data: oldEvidence, error: oldErr } = await getPaymentEvidence(client, id, exporterId)
+    if (oldErr) return sendQueryError(req, res, oldErr)
+    if (!oldEvidence) {
+      res.status(404).json({ error: 'Payment evidence not found' })
+      return
+    }
+
+    // Old evidence must not already be superseded
+    if (oldEvidence.superseded_by !== null) {
+      res.status(409).json({
+        error:        'Payment evidence has already been superseded',
+        superseded_by: oldEvidence.superseded_by,
+      })
+      return
+    }
+
+    // IDOR check: replacement must belong to the same exporter
+    const { data: replEvidence, error: replErr } = await getPaymentEvidence(client, replacement_id, exporterId)
+    if (replErr) return sendQueryError(req, res, replErr)
+    if (!replEvidence) {
+      res.status(400).json({ error: 'replacement_id not found for this exporter' })
+      return
+    }
+
+    const { data, error } = await supersedePaymentEvidence(client, id, replacement_id, exporterId, actorUserId)
+    if (error) return sendQueryError(req, res, error)
+    if (!data) {
+      res.status(404).json({ error: 'Payment evidence not found' })
+      return
+    }
+    res.json({ data })
   })
 
   return router
