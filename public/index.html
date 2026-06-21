@@ -363,6 +363,50 @@
       </div>
     </div>
 
+    <!-- Payment Receipts -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Payment Receipts</h2>
+        <div style="display:flex;align-items:center;gap:0.75rem">
+          <span class="card-count" id="cnt-receipts"></span>
+          <button class="btn-add" id="new-receipt-btn">+ New Receipt</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="state" id="st-receipts">Loading…</div>
+        <table id="tb-receipts" hidden>
+          <thead><tr>
+            <th>Reference</th><th>Cur</th><th class="r">Instructed</th>
+            <th class="r">Credited</th><th>Credit Date</th>
+            <th>Allocation</th><th>Discrepancy</th><th></th>
+          </tr></thead>
+          <tbody id="body-receipts"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Payment Evidence -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Payment Evidence</h2>
+        <div style="display:flex;align-items:center;gap:0.75rem">
+          <span class="card-count" id="cnt-evidence"></span>
+          <button class="btn-add" id="new-evidence-btn">+ New Evidence</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="state" id="st-evidence">Loading…</div>
+        <table id="tb-evidence" hidden>
+          <thead><tr>
+            <th>Type</th><th>Receipt</th><th>Source Ref</th>
+            <th>Sender BIC</th><th class="r">Amount</th><th>Cur</th>
+            <th>Value Date</th><th>Active</th>
+          </tr></thead>
+          <tbody id="body-evidence"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Compliance Records -->
     <div class="card">
       <div class="card-header">
@@ -655,6 +699,214 @@
     </form>
   </div>
 
+  <!-- New Payment Receipt modal -->
+  <div class="modal-card" id="modal-receipt" hidden>
+    <h2>New Payment Receipt</h2>
+    <form id="receipt-form" novalidate>
+      <div class="form-grid">
+
+        <div class="field full">
+          <label for="rc-ref">Receipt Reference *</label>
+          <input id="rc-ref" name="receipt_reference" type="text" required placeholder="e.g. RCT-2026-001">
+        </div>
+
+        <div class="field">
+          <label for="rc-instructed">Instructed Amount *</label>
+          <input id="rc-instructed" name="instructed_amount" type="number" min="0.01" step="any" required>
+        </div>
+
+        <div class="field">
+          <label for="rc-credited">Credited Amount *</label>
+          <input id="rc-credited" name="credited_amount" type="number" min="0.01" step="any" required>
+        </div>
+
+        <div class="field">
+          <label for="rc-currency">Currency *</label>
+          <input id="rc-currency" name="currency" type="text" required placeholder="USD" maxlength="3" style="text-transform:uppercase">
+        </div>
+
+        <div class="field">
+          <label for="rc-credit-date">Credit Date *</label>
+          <input id="rc-credit-date" name="credit_date" type="date" required>
+        </div>
+
+        <div class="field">
+          <label for="rc-value-date">Value Date</label>
+          <input id="rc-value-date" name="value_date" type="date">
+        </div>
+
+        <div class="field">
+          <label for="rc-bank-bic">Ordering Bank BIC</label>
+          <input id="rc-bank-bic" name="ordering_bank_bic" type="text" placeholder="e.g. GTBINGLA">
+        </div>
+
+        <div class="field">
+          <label for="rc-customer">Ordering Customer Name</label>
+          <input id="rc-customer" name="ordering_customer_name" type="text" placeholder="e.g. Buyer Corp Ltd">
+        </div>
+
+        <div class="field full">
+          <label for="rc-remittance">Remittance Info</label>
+          <input id="rc-remittance" name="remittance_info" type="text" placeholder="e.g. Payment for contract AKOBO-2026-001">
+        </div>
+
+      </div>
+      <div class="modal-error" id="receipt-error"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="receipt-cancel">Cancel</button>
+        <button type="submit" class="btn-submit" id="receipt-submit">Create Receipt</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- New Payment Evidence modal -->
+  <div class="modal-card" id="modal-evidence" hidden>
+    <h2>New Payment Evidence</h2>
+    <form id="evidence-form" novalidate>
+      <div class="form-grid">
+
+        <div class="field">
+          <label for="ev-type">Evidence Type *</label>
+          <select id="ev-type" name="evidence_type" required>
+            <option value="">Select type…</option>
+            <option value="MT103">MT103</option>
+            <option value="PACS008">PACS008</option>
+            <option value="MT910">MT910</option>
+            <option value="BANK_CREDIT_ADVICE">BANK_CREDIT_ADVICE</option>
+            <option value="MT940_LINE">MT940_LINE</option>
+            <option value="MT950_LINE">MT950_LINE</option>
+            <option value="MANUAL">MANUAL</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="ev-receipt">Receipt (optional)</label>
+          <select id="ev-receipt" name="receipt_id">
+            <option value="">— none —</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="ev-source-ref">Source Document Ref</label>
+          <input id="ev-source-ref" name="source_document_ref" type="text" placeholder="e.g. MT103/2026-00123">
+        </div>
+
+        <div class="field">
+          <label for="ev-sender-bic">Sender BIC</label>
+          <input id="ev-sender-bic" name="sender_bic" type="text" placeholder="e.g. GTBINGLA">
+        </div>
+
+        <div class="field">
+          <label for="ev-receiver-bic">Receiver BIC</label>
+          <input id="ev-receiver-bic" name="receiver_bic" type="text" placeholder="e.g. DEUTDEDB">
+        </div>
+
+        <div class="field">
+          <label for="ev-instructed">Instructed Amount</label>
+          <input id="ev-instructed" name="instructed_amount" type="number" min="0.01" step="any">
+        </div>
+
+        <div class="field">
+          <label for="ev-instructed-ccy">Instructed Currency</label>
+          <input id="ev-instructed-ccy" name="instructed_currency" type="text" maxlength="3" placeholder="USD">
+        </div>
+
+        <div class="field">
+          <label for="ev-value-date">Value Date</label>
+          <input id="ev-value-date" name="value_date" type="date">
+        </div>
+
+        <div class="field">
+          <label for="ev-charges">Charges Code</label>
+          <select id="ev-charges" name="charges_code">
+            <option value="">— none —</option>
+            <option value="OUR">OUR</option>
+            <option value="SHA">SHA</option>
+            <option value="BEN">BEN</option>
+          </select>
+        </div>
+
+        <!-- BANK_CREDIT_ADVICE conditional fields — shown/required only when type = BANK_CREDIT_ADVICE -->
+        <div class="full" id="bca-fields" hidden>
+          <div class="form-grid" style="margin-top:0.25rem">
+            <div class="field">
+              <label for="ev-credited">Credited Amount *</label>
+              <input id="ev-credited" name="credited_amount" type="number" min="0.01" step="any">
+            </div>
+            <div class="field">
+              <label for="ev-credited-ccy">Credited Currency *</label>
+              <input id="ev-credited-ccy" name="credited_currency" type="text" maxlength="3" placeholder="USD">
+            </div>
+            <div class="field">
+              <label for="ev-credit-date">Credit Date *</label>
+              <input id="ev-credit-date" name="credit_date" type="date">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-error" id="evidence-error"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="evidence-cancel">Cancel</button>
+        <button type="submit" class="btn-submit" id="evidence-submit">Create Evidence</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Allocate Receipt modal -->
+  <div class="modal-card" id="modal-allocate" hidden>
+    <h2>Allocate Receipt</h2>
+    <form id="allocate-form" novalidate>
+      <div class="form-grid">
+
+        <div class="field full">
+          <label>Receipt</label>
+          <div id="alloc-receipt-display" style="padding:0.5rem 0.75rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;font-size:0.875rem;color:#374151">—</div>
+          <input type="hidden" id="alloc-receipt-id" name="receipt_id">
+        </div>
+
+        <div class="field full">
+          <label for="alloc-shipment">Shipment *</label>
+          <select id="alloc-shipment" name="shipment_id" required>
+            <option value="">Select shipment…</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="alloc-amount">Allocated Amount *</label>
+          <input id="alloc-amount" name="allocated_amount" type="number" min="0.01" step="any" required>
+        </div>
+
+        <div class="field">
+          <label for="alloc-date">Allocation Date *</label>
+          <input id="alloc-date" name="allocation_date" type="date" required>
+        </div>
+
+        <div class="field full">
+          <label for="alloc-method">Allocation Method *</label>
+          <select id="alloc-method" name="allocation_method" required>
+            <option value="">Select method…</option>
+            <option value="MANUAL">MANUAL</option>
+            <option value="FIFO">FIFO</option>
+            <option value="PRO_RATA">PRO_RATA</option>
+            <option value="INSTRUCTION_MATCHED">INSTRUCTION_MATCHED</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="alloc-notes">Notes</label>
+          <input id="alloc-notes" name="notes" type="text" placeholder="Optional">
+        </div>
+
+      </div>
+      <div class="modal-error" id="allocate-error"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="allocate-cancel">Cancel</button>
+        <button type="submit" class="btn-submit" id="allocate-submit">Allocate</button>
+      </div>
+    </form>
+  </div>
+
 </div><!-- /#modal-overlay -->
 
 <script>
@@ -755,6 +1007,11 @@
       PROCEEDS_PARTIAL: 'y', PROCEEDS_COMPLETE: 'g',
       SAFE: 'g', WARNING: 'y', CRITICAL: 'o',
       ORIGINAL: 'b', TELEX_RELEASE: 'gr', SEA_WAYBILL: 'gr', EXPRESS_BL: 'gr',
+      UNALLOCATED: 'y', PARTIALLY_ALLOCATED: 'o', FULLY_ALLOCATED: 'g',
+      CLEAN: 'g', AMOUNT_MISMATCH: 'r', DATE_MISMATCH: 'y', COUNTERPARTY_MISMATCH: 'r',
+      UNMATCHED: 'r', MANUALLY_RESOLVED: 'gr',
+      MT103: 'b', PACS008: 'b', MT910: 'b', BANK_CREDIT_ADVICE: 'g',
+      MT940_LINE: 'gr', MT950_LINE: 'gr', MANUAL: 'gr',
     };
     return '<span class="badge ' + (map[status] ?? 'gr') + '">' + status.replace(/_/g, ' ') + '</span>';
   }
@@ -875,6 +1132,63 @@
     }).catch(e => errState('st-bl', e.message));
   }
 
+  // ── Load payment receipts ─────────────────────────────────────────────────────
+  let _receipts = [];
+
+  function loadPaymentReceipts() {
+    const st = document.getElementById('st-receipts');
+    const tb = document.getElementById('tb-receipts');
+    st.textContent = 'Loading…';
+    st.classList.remove('err');
+    st.hidden = false;
+    tb.hidden = true;
+
+    apiFetch('/payment-receipts').then(body => {
+      _receipts = body.data ?? [];
+      if (!_receipts.length) { st.textContent = 'No payment receipts found.'; return; }
+      document.getElementById('body-receipts').innerHTML = _receipts.map(r => `
+        <tr>
+          <td class="mono">${r.receipt_reference}</td>
+          <td>${r.currency}</td>
+          <td class="r">${num(r.instructed_amount)}</td>
+          <td class="r">${num(r.credited_amount)}</td>
+          <td>${date(r.credit_date)}</td>
+          <td>${badge(r.allocation_status)}</td>
+          <td>${badge(r.discrepancy_status)}</td>
+          <td><button class="btn-alloc btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem"
+            data-receipt-id="${r.id}">Allocate</button></td>
+        </tr>`).join('');
+      show('st-receipts', 'tb-receipts', 'cnt-receipts', _receipts);
+    }).catch(e => errState('st-receipts', e.message));
+  }
+
+  // ── Load payment evidence ─────────────────────────────────────────────────────
+  function loadPaymentEvidence() {
+    const st = document.getElementById('st-evidence');
+    const tb = document.getElementById('tb-evidence');
+    st.textContent = 'Loading…';
+    st.classList.remove('err');
+    st.hidden = false;
+    tb.hidden = true;
+
+    apiFetch('/payment-evidence').then(body => {
+      const rows = body.data ?? [];
+      if (!rows.length) { st.textContent = 'No payment evidence found.'; return; }
+      document.getElementById('body-evidence').innerHTML = rows.map(r => `
+        <tr>
+          <td>${badge(r.evidence_type)}</td>
+          <td class="mono" title="${r.receipt_id ?? ''}">${r.receipt_id ? short(r.receipt_id) : '—'}</td>
+          <td class="mono">${r.source_document_ref ?? '—'}</td>
+          <td class="mono">${r.sender_bic ?? '—'}</td>
+          <td class="r">${num(r.instructed_amount)}</td>
+          <td>${r.instructed_currency ?? '—'}</td>
+          <td>${date(r.value_date)}</td>
+          <td>${r.superseded_by ? '<span class="badge r">Superseded</span>' : '<span class="badge g">Active</span>'}</td>
+        </tr>`).join('');
+      show('st-evidence', 'tb-evidence', 'cnt-evidence', rows);
+    }).catch(e => errState('st-evidence', e.message));
+  }
+
   // ── Load compliance ───────────────────────────────────────────────────────────
   function loadCompliance() {
     const st = document.getElementById('st-compliance');
@@ -944,6 +1258,8 @@
     loadContracts();
     loadShipments();
     loadBillsOfLading();
+    loadPaymentReceipts();
+    loadPaymentEvidence();
     loadCompliance();
     loadPacks();
   }
@@ -1160,6 +1476,225 @@
     } finally {
       blSubmit.disabled = false;
       blSubmit.textContent = 'Create BL';
+    }
+  });
+
+  // ── New Payment Receipt modal ─────────────────────────────────────────────────
+  const receiptForm   = document.getElementById('receipt-form');
+  const receiptError  = document.getElementById('receipt-error');
+  const receiptSubmit = document.getElementById('receipt-submit');
+
+  function openReceiptModal() {
+    receiptError.textContent = '';
+    receiptForm.reset();
+    receiptSubmit.disabled = false;
+    openCard('modal-receipt');
+    document.getElementById('rc-ref').focus();
+  }
+
+  document.getElementById('new-receipt-btn').addEventListener('click', openReceiptModal);
+  document.getElementById('receipt-cancel').addEventListener('click', closeModal);
+
+  receiptForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    receiptError.textContent = '';
+    receiptSubmit.disabled = true;
+    receiptSubmit.textContent = 'Creating…';
+
+    const fd = new FormData(receiptForm);
+    const body = {
+      receipt_reference:      fd.get('receipt_reference'),
+      instructed_amount:      Number(fd.get('instructed_amount')),
+      credited_amount:        Number(fd.get('credited_amount')),
+      currency:               fd.get('currency'),
+      credit_date:            fd.get('credit_date'),
+      value_date:             fd.get('value_date')             || null,
+      ordering_bank_bic:      fd.get('ordering_bank_bic')      || null,
+      ordering_customer_name: fd.get('ordering_customer_name') || null,
+      remittance_info:        fd.get('remittance_info')        || null,
+    };
+
+    try {
+      const res = await fetch('/payment-receipts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        const detail = json.fields ? ` (${json.fields.join(', ')})` : '';
+        receiptError.textContent = (json.error || 'Creation failed') + detail;
+        return;
+      }
+      closeModal();
+      loadPaymentReceipts();
+    } catch {
+      receiptError.textContent = 'Could not reach the server.';
+    } finally {
+      receiptSubmit.disabled = false;
+      receiptSubmit.textContent = 'Create Receipt';
+    }
+  });
+
+  // ── New Payment Evidence modal ────────────────────────────────────────────────
+  const evidenceForm   = document.getElementById('evidence-form');
+  const evidenceError  = document.getElementById('evidence-error');
+  const evidenceSubmit = document.getElementById('evidence-submit');
+
+  function openEvidenceModal() {
+    evidenceError.textContent = '';
+    evidenceForm.reset();
+    evidenceSubmit.disabled = false;
+
+    const bcaDiv = document.getElementById('bca-fields');
+    bcaDiv.hidden = true;
+    bcaDiv.querySelectorAll('input').forEach(el => { el.required = false; });
+
+    const sel = document.getElementById('ev-receipt');
+    sel.innerHTML = '<option value="">Loading…</option>';
+    apiFetch('/payment-receipts').then(body => {
+      const rows = body.data ?? [];
+      sel.innerHTML = '<option value="">— none —</option>' +
+        rows.map(r => `<option value="${r.id}">${r.receipt_reference} (${r.currency} ${num(r.credited_amount)})</option>`).join('');
+    }).catch(() => {
+      sel.innerHTML = '<option value="">Could not load receipts</option>';
+    });
+
+    openCard('modal-evidence');
+  }
+
+  document.getElementById('ev-type').addEventListener('change', function() {
+    const isBCA = this.value === 'BANK_CREDIT_ADVICE';
+    const bcaDiv = document.getElementById('bca-fields');
+    bcaDiv.hidden = !isBCA;
+    bcaDiv.querySelectorAll('input').forEach(el => { el.required = isBCA; });
+  });
+
+  document.getElementById('new-evidence-btn').addEventListener('click', openEvidenceModal);
+  document.getElementById('evidence-cancel').addEventListener('click', closeModal);
+
+  evidenceForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    evidenceError.textContent = '';
+    evidenceSubmit.disabled = true;
+    evidenceSubmit.textContent = 'Creating…';
+
+    const fd = new FormData(evidenceForm);
+    const evidenceType = fd.get('evidence_type');
+    const isBCA = evidenceType === 'BANK_CREDIT_ADVICE';
+    const body = {
+      evidence_type:       evidenceType,
+      receipt_id:          fd.get('receipt_id')          || null,
+      source_document_ref: fd.get('source_document_ref') || null,
+      sender_bic:          fd.get('sender_bic')          || null,
+      receiver_bic:        fd.get('receiver_bic')        || null,
+      instructed_amount:   fd.get('instructed_amount')   ? Number(fd.get('instructed_amount')) : null,
+      instructed_currency: fd.get('instructed_currency') || null,
+      value_date:          fd.get('value_date')          || null,
+      charges_code:        fd.get('charges_code')        || null,
+      ...(isBCA ? {
+        credited_amount:   Number(fd.get('credited_amount')),
+        credited_currency: fd.get('credited_currency')   || null,
+        credit_date:       fd.get('credit_date')         || null,
+      } : {}),
+    };
+
+    try {
+      const res = await fetch('/payment-evidence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        const detail = json.fields ? ` (${json.fields.join(', ')})` : '';
+        evidenceError.textContent = (json.error || 'Creation failed') + detail;
+        return;
+      }
+      closeModal();
+      loadPaymentEvidence();
+    } catch {
+      evidenceError.textContent = 'Could not reach the server.';
+    } finally {
+      evidenceSubmit.disabled = false;
+      evidenceSubmit.textContent = 'Create Evidence';
+    }
+  });
+
+  // ── Allocate Receipt modal ────────────────────────────────────────────────────
+  const allocateForm   = document.getElementById('allocate-form');
+  const allocateError  = document.getElementById('allocate-error');
+  const allocateSubmit = document.getElementById('allocate-submit');
+
+  function openAllocateModal(receiptId, receiptRef) {
+    allocateError.textContent = '';
+    allocateForm.reset();
+    allocateSubmit.disabled = false;
+
+    document.getElementById('alloc-receipt-id').value = receiptId;
+    document.getElementById('alloc-receipt-display').textContent = receiptRef;
+
+    const sel = document.getElementById('alloc-shipment');
+    sel.innerHTML = '<option value="">Loading…</option>';
+    apiFetch('/shipments').then(body => {
+      const rows = body.data ?? [];
+      sel.innerHTML = '<option value="">Select shipment…</option>' +
+        rows.map(r => `<option value="${r.id}">${r.shipment_reference} — ${r.nxp_reference}</option>`).join('');
+    }).catch(() => {
+      sel.innerHTML = '<option value="">Could not load shipments</option>';
+    });
+
+    openCard('modal-allocate');
+    document.getElementById('alloc-amount').focus();
+  }
+
+  document.getElementById('body-receipts').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-alloc');
+    if (!btn) return;
+    const rid = btn.dataset.receiptId;
+    const rrow = _receipts.find(r => r.id === rid);
+    openAllocateModal(rid, rrow ? rrow.receipt_reference : rid);
+  });
+
+  document.getElementById('allocate-cancel').addEventListener('click', closeModal);
+
+  allocateForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    allocateError.textContent = '';
+    allocateSubmit.disabled = true;
+    allocateSubmit.textContent = 'Allocating…';
+
+    const fd = new FormData(allocateForm);
+    const body = {
+      receipt_id:        fd.get('receipt_id'),
+      shipment_id:       fd.get('shipment_id'),
+      allocated_amount:  Number(fd.get('allocated_amount')),
+      allocation_method: fd.get('allocation_method'),
+      allocation_date:   fd.get('allocation_date'),
+      notes:             fd.get('notes') || null,
+    };
+
+    try {
+      const res = await fetch('/payment-allocations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        const detail = json.fields ? ` (${json.fields.join(', ')})` : '';
+        allocateError.textContent = (json.error || 'Allocation failed') + detail;
+        return;
+      }
+      closeModal();
+      loadPaymentReceipts();
+      loadShipments();
+      loadCompliance();
+    } catch {
+      allocateError.textContent = 'Could not reach the server.';
+    } finally {
+      allocateSubmit.disabled = false;
+      allocateSubmit.textContent = 'Allocate';
     }
   });
 
