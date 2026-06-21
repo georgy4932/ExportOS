@@ -5,6 +5,7 @@
   "scripts": {
     "db:start": "npx supabase start",
     "db:reset": "npx supabase db reset",
+    "demo:reset": "npx supabase db reset",
     "api": "tsx src/api/server.ts",
     "verify": "tsx scripts/verify-queries.ts",
     "verify-api": "tsx scripts/verify-api.ts",
