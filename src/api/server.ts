@@ -71,8 +71,26 @@ if (!jwtSecret) {
 
 const client = createDbClient(dbUrl)
 
+// ALLOWED_ORIGIN: the deployed Vercel frontend URL, e.g. https://exportos.vercel.app
+// Leave unset (or empty) for local dev — same-origin requests don't need CORS headers.
+const allowedOrigin = process.env.ALLOWED_ORIGIN ?? ''
+
 const app = express()
 app.disable('x-powered-by')
+
+app.use((req, res, next) => {
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin)
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type')
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(204)
+    return
+  }
+  next()
+})
+
 app.use(express.json())
 app.use(express.static(path.join(process.cwd(), 'public')))
 

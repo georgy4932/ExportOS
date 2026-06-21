@@ -263,6 +263,7 @@
       min-height: 1.25rem;
     }
   </style>
+  <script src="/config.js"></script>
 </head>
 <body>
 
@@ -1016,6 +1017,18 @@
 
 <script>
   'use strict';
+
+  // ── API base URL (set by /config.js; empty = same-origin for local dev) ───────
+  const API_BASE = (typeof window.__API_BASE__ !== 'undefined' && window.__API_BASE__) ? window.__API_BASE__ : '';
+  if (API_BASE) {
+    const _nativeFetch = window.fetch.bind(window);
+    window.fetch = (input, init) => {
+      if (typeof input === 'string' && input.startsWith('/')) {
+        return _nativeFetch(API_BASE + input, init);
+      }
+      return _nativeFetch(input, init);
+    };
+  }
 
   const TOKEN_KEY = 'exportos_token';
 
