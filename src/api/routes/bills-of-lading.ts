@@ -120,7 +120,17 @@ export function billsOfLadingRouter(client: DbClient): Router {
       document_url:         document_url         ? String(document_url)            : null,
     })
 
-    if (error) return sendQueryError(req, res, error)
+    if (error) {
+      const pgErr = error as { code?: string; constraint?: string }
+      if (pgErr.code === '23505') {
+        const msg = pgErr.constraint === 'bills_of_lading_shipment_id_key'
+          ? 'A bill of lading already exists for this shipment'
+          : 'A bill of lading with this bl_number already exists for this exporter'
+        res.status(400).json({ error: msg })
+        return
+      }
+      return sendQueryError(req, res, error)
+    }
     res.status(201).json({ data })
   })
 
