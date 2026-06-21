@@ -1,22 +1,29 @@
 import { Router } from 'express'
 import type { DbClient } from '../../db/client'
-import type { BlType, FreightTerms } from '../../db/types'
+import type { BlType, DeadlineStatus, FreightTerms } from '../../db/types'
 import { createBillOfLadingWithAudit, listBLDeadlines } from '../../db/queries/index'
 import { sendQueryError } from '../middleware/query-error'
 
-const BL_TYPES: BlType[] = ['ORIGINAL', 'TELEX_RELEASE', 'SEA_WAYBILL', 'EXPRESS_BL']
-const FREIGHT_TERMS: FreightTerms[] = ['PREPAID', 'COLLECT']
+const BL_TYPES: BlType[]               = ['ORIGINAL', 'TELEX_RELEASE', 'SEA_WAYBILL', 'EXPRESS_BL']
+const FREIGHT_TERMS: FreightTerms[]    = ['PREPAID', 'COLLECT']
+const DEADLINE_STATUSES: DeadlineStatus[] = ['SAFE', 'WARNING', 'CRITICAL', 'OVERDUE']
 
 export function billsOfLadingRouter(client: DbClient): Router {
   const router = Router()
 
   // GET /bills-of-lading[?deadline_status=SAFE|WARNING|CRITICAL|OVERDUE]
   router.get('/', async (req, res) => {
-    const exporterId    = res.locals.exporterId
-    const deadlineStatus = req.query.deadline_status as string | undefined
+    const exporterId         = res.locals.exporterId
+    const deadlineStatusParam = req.query.deadline_status as string | undefined
+
+    if (deadlineStatusParam != null && !DEADLINE_STATUSES.includes(deadlineStatusParam as DeadlineStatus)) {
+      res.status(400).json({ error: 'Invalid deadline_status', valid: DEADLINE_STATUSES })
+      return
+    }
+    const deadlineStatus = deadlineStatusParam as DeadlineStatus | undefined
 
     try {
-      const { data, error } = await listBLDeadlines(client, { exporterId, deadlineStatus: deadlineStatus as never })
+      const { data, error } = await listBLDeadlines(client, { exporterId, deadlineStatus })
       if (error) return sendQueryError(req, res, error)
       res.json({ data: data ?? [], count: data?.length ?? 0 })
     } catch (err) {
