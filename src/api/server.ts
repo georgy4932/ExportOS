@@ -1,15 +1,17 @@
 /**
- * ExportOS v0.2 — Read-Only API Server
+ * ExportOS v0.2 — API Server
  *
  * Run:
  *   cp .env.example .env.local
  *   npm run api
  *
- * Routes (all read-only):
+ * Routes:
  *   POST /auth/login                       { email, password } → { token }
  *   GET  /auth/me                          current user + exporter
+ *   GET  /counterparties
  *   GET  /contracts[?status=]
  *   GET  /contracts/:id
+ *   POST /contracts                        create export contract
  *   GET  /shipments[?contract_id=&fully_reconciled=]
  *   GET  /shipments/:id
  *   GET  /compliance[?status=&late_only=]
@@ -28,6 +30,7 @@ import { createDbClient } from '../db/client'
 import { requireAuth } from './middleware/require-auth'
 import { authRouter } from './routes/auth'
 import { contractsRouter } from './routes/contracts'
+import { counterpartiesRouter } from './routes/counterparties'
 import { shipmentsRouter } from './routes/shipments'
 import { complianceRouter } from './routes/compliance'
 import { evidencePacksRouter } from './routes/evidence-packs'
@@ -61,10 +64,11 @@ app.use('/auth', authRouter(client))
 
 // All data routes require a valid Bearer JWT
 const auth = requireAuth(client)
-app.use('/contracts',      auth, contractsRouter(client))
-app.use('/shipments',      auth, shipmentsRouter(client))
-app.use('/compliance',     auth, complianceRouter(client))
-app.use('/evidence-packs', auth, evidencePacksRouter(client))
+app.use('/counterparties',  auth, counterpartiesRouter(client))
+app.use('/contracts',       auth, contractsRouter(client))
+app.use('/shipments',       auth, shipmentsRouter(client))
+app.use('/compliance',      auth, complianceRouter(client))
+app.use('/evidence-packs',  auth, evidencePacksRouter(client))
 
 // 404 for anything else
 app.use((_req, res) => {

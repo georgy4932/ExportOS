@@ -9,6 +9,7 @@
     "verify": "tsx scripts/verify-queries.ts",
     "verify-api": "tsx scripts/verify-api.ts",
     "verify-auth-api": "tsx scripts/verify-auth-api.ts",
+    "verify-write-api": "tsx scripts/verify-write-api.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
