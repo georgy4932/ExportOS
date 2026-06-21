@@ -11,7 +11,8 @@
  *   GET  /counterparties
  *   GET  /contracts[?status=]
  *   GET  /contracts/:id
- *   POST /contracts                        create export contract
+ *   POST /contracts                        create export contract (+ audit event)
+ *   GET  /audit-events[?entity_type=&entity_id=]
  *   GET  /shipments[?contract_id=&fully_reconciled=]
  *   GET  /shipments/:id
  *   GET  /compliance[?status=&late_only=]
@@ -31,6 +32,7 @@ import { requireAuth } from './middleware/require-auth'
 import { authRouter } from './routes/auth'
 import { contractsRouter } from './routes/contracts'
 import { counterpartiesRouter } from './routes/counterparties'
+import { auditEventsRouter } from './routes/audit-events'
 import { shipmentsRouter } from './routes/shipments'
 import { complianceRouter } from './routes/compliance'
 import { evidencePacksRouter } from './routes/evidence-packs'
@@ -66,6 +68,7 @@ app.use('/auth', authRouter(client))
 const auth = requireAuth(client)
 app.use('/counterparties',  auth, counterpartiesRouter(client))
 app.use('/contracts',       auth, contractsRouter(client))
+app.use('/audit-events',    auth, auditEventsRouter(client))
 app.use('/shipments',       auth, shipmentsRouter(client))
 app.use('/compliance',      auth, complianceRouter(client))
 app.use('/evidence-packs',  auth, evidencePacksRouter(client))

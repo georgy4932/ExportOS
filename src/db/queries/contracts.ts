@@ -1,5 +1,6 @@
 import type { Pool } from 'pg'
 import type { CommodityType, ContractStatus, ContractSummaryRow, ExportContractRow } from '../types'
+import { insertAuditEvent } from './audit'
 
 export interface CreateContractInput {
   contract_reference: string
@@ -63,13 +64,19 @@ export async function getContractSummary(
   }
 }
 
-export async function createContract(
+// Inserts a contract and its audit event in a single transaction.
+// exporter_id and actorUserId must be server-derived by the caller (from JWT / exporter_users).
+export async function createContractWithAudit(
   pool: Pool,
   exporterId: string,
+  actorUserId: string,
   input: CreateContractInput,
 ): Promise<{ data: ExportContractRow | null; error: unknown }> {
+  const pg = await pool.connect()
   try {
-    const { rows } = await pool.query<ExportContractRow>(
+    await pg.query('BEGIN')
+
+    const { rows } = await pg.query<ExportContractRow>(
       `INSERT INTO export_contracts (
         exporter_id, contract_reference, counterparty_id,
         commodity, commodity_type, hs_code,
@@ -102,8 +109,23 @@ export async function createContract(
         input.notes ?? null,
       ],
     )
-    return { data: rows[0] ?? null, error: null }
+    const contract = rows[0]
+
+    await insertAuditEvent(pg, {
+      exporterId,
+      actorUserId,
+      entityType: 'export_contract',
+      entityId:   contract.id,
+      action:     'CREATE',
+      eventData:  contract,
+    })
+
+    await pg.query('COMMIT')
+    return { data: contract, error: null }
   } catch (err) {
+    await pg.query('ROLLBACK').catch(() => {})
     return { data: null, error: err }
+  } finally {
+    pg.release()
   }
 }

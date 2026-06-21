@@ -338,6 +338,17 @@ export interface BankEvidencePackRow {
   notes: string | null
 }
 
+export interface AuditEventRow {
+  id: string
+  exporter_id: string
+  actor_user_id: string
+  entity_type: string
+  entity_id: string
+  action: string
+  event_data: Json
+  created_at: string
+}
+
 // ─── View Row types ──────────────────────────────────────────────────────────
 
 export interface ContractSummaryRow extends ExportContractRow {
@@ -380,6 +391,7 @@ export interface Database {
       payment_evidence:           T<PaymentEvidenceRow>
       payment_allocations:        T<PaymentAllocationRow>
       bank_evidence_packs:        T<BankEvidencePackRow>
+      audit_events:               T<AuditEventRow>
     }
     Views: {
       v_export_contracts_summary: V<ContractSummaryRow>
