@@ -11,6 +11,7 @@
     "verify-auth-api": "tsx scripts/verify-auth-api.ts",
     "verify-write-api": "tsx scripts/verify-write-api.ts",
     "verify-audit-api": "tsx scripts/verify-audit-api.ts",
+    "verify-shipments-api": "tsx scripts/verify-shipments-api.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
