@@ -15,6 +15,9 @@
  *   GET  /audit-events[?entity_type=&entity_id=]
  *   GET  /shipments[?contract_id=&fully_reconciled=]
  *   GET  /shipments/:id
+ *   POST /shipments                        create shipment (+ audit event)
+ *   GET  /bills-of-lading[?deadline_status=]
+ *   POST /bills-of-lading                  create bill of lading (+ audit event)
  *   GET  /compliance[?status=&late_only=]
  *   GET  /compliance/:shipmentId
  *   GET  /evidence-packs[?shipment_id=&sealed=]
@@ -34,6 +37,7 @@ import { contractsRouter } from './routes/contracts'
 import { counterpartiesRouter } from './routes/counterparties'
 import { auditEventsRouter } from './routes/audit-events'
 import { shipmentsRouter } from './routes/shipments'
+import { billsOfLadingRouter } from './routes/bills-of-lading'
 import { complianceRouter } from './routes/compliance'
 import { evidencePacksRouter } from './routes/evidence-packs'
 
@@ -69,7 +73,8 @@ const auth = requireAuth(client)
 app.use('/counterparties',  auth, counterpartiesRouter(client))
 app.use('/contracts',       auth, contractsRouter(client))
 app.use('/audit-events',    auth, auditEventsRouter(client))
-app.use('/shipments',       auth, shipmentsRouter(client))
+app.use('/shipments',        auth, shipmentsRouter(client))
+app.use('/bills-of-lading', auth, billsOfLadingRouter(client))
 app.use('/compliance',      auth, complianceRouter(client))
 app.use('/evidence-packs',  auth, evidencePacksRouter(client))
 
