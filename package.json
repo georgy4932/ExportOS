@@ -15,6 +15,7 @@
     "verify-bl-api": "tsx scripts/verify-bl-api.ts",
     "verify-receipts-api": "tsx scripts/verify-receipts-api.ts",
     "verify-allocations-api": "tsx scripts/verify-allocations-api.ts",
+    "verify-evidence-api": "tsx scripts/verify-evidence-api.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -22,6 +22,9 @@
  *   GET  /payment-allocations[?receipt_id=&shipment_id=]
  *   GET  /payment-allocations/:id
  *   POST /payment-allocations                create payment allocation (+ audit event)
+ *   GET  /payment-evidence[?receipt_id=&evidence_type=]
+ *   GET  /payment-evidence/:id
+ *   POST /payment-evidence                  create payment evidence (+ audit event)
  *   GET  /payment-receipts/:id
  *   POST /payment-receipts                 create payment receipt (+ audit event)
  *   GET  /compliance[?status=&late_only=]
@@ -46,6 +49,7 @@ import { shipmentsRouter } from './routes/shipments'
 import { billsOfLadingRouter } from './routes/bills-of-lading'
 import { paymentReceiptsRouter } from './routes/payment-receipts'
 import { paymentAllocationsRouter } from './routes/payment-allocations'
+import { paymentEvidenceRouter } from './routes/payment-evidence'
 import { complianceRouter } from './routes/compliance'
 import { evidencePacksRouter } from './routes/evidence-packs'
 
@@ -85,6 +89,7 @@ app.use('/shipments',        auth, shipmentsRouter(client))
 app.use('/bills-of-lading',  auth, billsOfLadingRouter(client))
 app.use('/payment-receipts', auth, paymentReceiptsRouter(client))
 app.use('/payment-allocations', auth, paymentAllocationsRouter(client))
+app.use('/payment-evidence',   auth, paymentEvidenceRouter(client))
 app.use('/compliance',       auth, complianceRouter(client))
 app.use('/evidence-packs',   auth, evidencePacksRouter(client))
 
