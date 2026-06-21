@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import type { DbClient } from '../../db/client'
 import type { CommodityType, ContractStatus } from '../../db/types'
-import { listContractSummaries, getContractSummary, createContract } from '../../db/queries/index'
+import { listContractSummaries, getContractSummary, createContractWithAudit } from '../../db/queries/index'
 import { sendQueryError } from '../middleware/query-error'
 
 const COMMODITY_TYPES: CommodityType[] = ['NON_OIL', 'OIL_GAS']
@@ -41,9 +41,10 @@ export function contractsRouter(client: DbClient): Router {
   })
 
   // POST /contracts
-  // exporter_id is derived from the authenticated user — any client-supplied value is discarded.
+  // exporter_id and actorUserId are derived from the JWT — any client-supplied exporter_id is discarded.
   router.post('/', async (req, res) => {
-    const exporterId = res.locals.exporterId
+    const exporterId  = res.locals.exporterId
+    const actorUserId = res.locals.userId
 
     const {
       exporter_id: _ignored,  // strip: never accepted from client
@@ -106,7 +107,7 @@ export function contractsRouter(client: DbClient): Router {
       return
     }
 
-    const { data, error } = await createContract(client, exporterId, {
+    const { data, error } = await createContractWithAudit(client, exporterId, actorUserId, {
       contract_reference: String(contract_reference),
       counterparty_id:    String(counterparty_id),
       commodity:          String(commodity),
