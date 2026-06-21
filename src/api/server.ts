@@ -19,6 +19,9 @@
  *   GET  /bills-of-lading[?deadline_status=]
  *   POST /bills-of-lading                  create bill of lading (+ audit event)
  *   GET  /payment-receipts[?allocation_status=&discrepancy_status=]
+ *   GET  /payment-allocations[?receipt_id=&shipment_id=]
+ *   GET  /payment-allocations/:id
+ *   POST /payment-allocations                create payment allocation (+ audit event)
  *   GET  /payment-receipts/:id
  *   POST /payment-receipts                 create payment receipt (+ audit event)
  *   GET  /compliance[?status=&late_only=]
@@ -42,6 +45,7 @@ import { auditEventsRouter } from './routes/audit-events'
 import { shipmentsRouter } from './routes/shipments'
 import { billsOfLadingRouter } from './routes/bills-of-lading'
 import { paymentReceiptsRouter } from './routes/payment-receipts'
+import { paymentAllocationsRouter } from './routes/payment-allocations'
 import { complianceRouter } from './routes/compliance'
 import { evidencePacksRouter } from './routes/evidence-packs'
 
@@ -80,6 +84,7 @@ app.use('/audit-events',     auth, auditEventsRouter(client))
 app.use('/shipments',        auth, shipmentsRouter(client))
 app.use('/bills-of-lading',  auth, billsOfLadingRouter(client))
 app.use('/payment-receipts', auth, paymentReceiptsRouter(client))
+app.use('/payment-allocations', auth, paymentAllocationsRouter(client))
 app.use('/compliance',       auth, complianceRouter(client))
 app.use('/evidence-packs',   auth, evidencePacksRouter(client))
 
