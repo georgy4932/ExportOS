@@ -31,6 +31,9 @@
  *   GET  /compliance/:shipmentId
  *   GET  /evidence-packs[?shipment_id=&sealed=]
  *   GET  /evidence-packs/:id
+ *   GET  /invoices[?contract_id=&shipment_id=&invoice_type=]
+ *   GET  /invoices/:id
+ *   POST /invoices                        create invoice (+ audit event)
  *   GET  /health
  */
 
@@ -52,6 +55,7 @@ import { paymentAllocationsRouter } from './routes/payment-allocations'
 import { paymentEvidenceRouter } from './routes/payment-evidence'
 import { complianceRouter } from './routes/compliance'
 import { evidencePacksRouter } from './routes/evidence-packs'
+import { invoicesRouter } from './routes/invoices'
 
 const dbUrl     = process.env.DATABASE_URL
 const jwtSecret = process.env.JWT_SECRET
@@ -92,6 +96,7 @@ app.use('/payment-allocations', auth, paymentAllocationsRouter(client))
 app.use('/payment-evidence',   auth, paymentEvidenceRouter(client))
 app.use('/compliance',       auth, complianceRouter(client))
 app.use('/evidence-packs',   auth, evidencePacksRouter(client))
+app.use('/invoices',         auth, invoicesRouter(client))
 
 // 404 for anything else
 app.use((_req, res) => {
