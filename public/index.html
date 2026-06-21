@@ -1137,6 +1137,17 @@
     el.classList.add('err');
   }
 
+  // Escape a value for safe use in HTML content and double-quoted attributes.
+  function h(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // ── Modal helpers ─────────────────────────────────────────────────────────────
   const overlay = document.getElementById('modal-overlay');
 
@@ -1167,11 +1178,11 @@
       if (!rows.length) { st.textContent = 'No contracts found.'; return; }
       document.getElementById('body-contracts').innerHTML = rows.map(r => `
         <tr>
-          <td>${r.contract_reference}</td>
+          <td>${h(r.contract_reference)}</td>
           <td>${badge(r.status)}</td>
-          <td>${r.commodity}</td>
-          <td>${r.destination_country}</td>
-          <td>${r.currency}</td>
+          <td>${h(r.commodity)}</td>
+          <td>${h(r.destination_country)}</td>
+          <td>${h(r.currency)}</td>
           <td class="r">${num(r.contract_value)}</td>
           <td class="r">${num(r.total_shipped_value)}</td>
           <td class="r">${num(r.total_allocated_receipts)}</td>
@@ -1196,11 +1207,11 @@
       if (!rows.length) { st.textContent = 'No shipments found.'; return; }
       document.getElementById('body-shipments').innerHTML = rows.map(r => `
         <tr>
-          <td>${r.shipment_reference}</td>
+          <td>${h(r.shipment_reference)}</td>
           <td>${badge(r.status)}</td>
-          <td class="mono">${r.nxp_reference}</td>
-          <td>${r.port_of_loading} → ${r.port_of_discharge}</td>
-          <td>${r.vessel_name ?? '—'}</td>
+          <td class="mono">${h(r.nxp_reference)}</td>
+          <td>${h(r.port_of_loading)} → ${h(r.port_of_discharge)}</td>
+          <td>${r.vessel_name != null ? h(r.vessel_name) : '—'}</td>
           <td class="r">${num(r.shipment_value)}</td>
           <td class="r">${num(r.total_allocated)}</td>
           <td class="r">${num(r.outstanding_balance)}</td>
@@ -1224,11 +1235,11 @@
       if (!rows.length) { st.textContent = 'No bills of lading found.'; return; }
       document.getElementById('body-bl').innerHTML = rows.map(r => `
         <tr>
-          <td class="mono">${r.bl_number}</td>
-          <td class="mono" title="${r.shipment_id}">${short(r.shipment_id)}</td>
+          <td class="mono">${h(r.bl_number)}</td>
+          <td class="mono" title="${h(r.shipment_id)}">${short(r.shipment_id)}</td>
           <td>${date(r.bl_date)}</td>
           <td>${badge(r.bl_type)}</td>
-          <td class="mono">${r.nxp_reference}</td>
+          <td class="mono">${h(r.nxp_reference)}</td>
           <td>${date(r.repatriation_deadline)}</td>
           <td>${badge(r.deadline_status)}</td>
         </tr>`).join('');
@@ -1252,15 +1263,15 @@
       if (!_receipts.length) { st.textContent = 'No payment receipts found.'; return; }
       document.getElementById('body-receipts').innerHTML = _receipts.map(r => `
         <tr>
-          <td class="mono">${r.receipt_reference}</td>
-          <td>${r.currency}</td>
+          <td class="mono">${h(r.receipt_reference)}</td>
+          <td>${h(r.currency)}</td>
           <td class="r">${num(r.instructed_amount)}</td>
           <td class="r">${num(r.credited_amount)}</td>
           <td>${date(r.credit_date)}</td>
           <td>${badge(r.allocation_status)}</td>
           <td>${badge(r.discrepancy_status)}</td>
           <td><button class="btn-alloc btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem"
-            data-receipt-id="${r.id}">Allocate</button></td>
+            data-receipt-id="${h(r.id)}">Allocate</button></td>
         </tr>`).join('');
       show('st-receipts', 'tb-receipts', 'cnt-receipts', _receipts);
     }).catch(e => errState('st-receipts', e.message));
@@ -1281,11 +1292,11 @@
       document.getElementById('body-evidence').innerHTML = rows.map(r => `
         <tr>
           <td>${badge(r.evidence_type)}</td>
-          <td class="mono" title="${r.receipt_id ?? ''}">${r.receipt_id ? short(r.receipt_id) : '—'}</td>
-          <td class="mono">${r.source_document_ref ?? '—'}</td>
-          <td class="mono">${r.sender_bic ?? '—'}</td>
+          <td class="mono" title="${h(r.receipt_id ?? '')}">${r.receipt_id ? short(r.receipt_id) : '—'}</td>
+          <td class="mono">${r.source_document_ref != null ? h(r.source_document_ref) : '—'}</td>
+          <td class="mono">${r.sender_bic != null ? h(r.sender_bic) : '—'}</td>
           <td class="r">${num(r.instructed_amount)}</td>
-          <td>${r.instructed_currency ?? '—'}</td>
+          <td>${r.instructed_currency != null ? h(r.instructed_currency) : '—'}</td>
           <td>${date(r.value_date)}</td>
           <td>${r.superseded_by ? '<span class="badge r">Superseded</span>' : '<span class="badge g">Active</span>'}</td>
         </tr>`).join('');
@@ -1309,7 +1320,7 @@
       if (!_compliance.length) { st.textContent = 'No compliance records found.'; return; }
       document.getElementById('body-compliance').innerHTML = _compliance.map(r => `
         <tr>
-          <td class="mono" title="${r.shipment_id}">${short(r.shipment_id)}</td>
+          <td class="mono" title="${h(r.shipment_id)}">${short(r.shipment_id)}</td>
           <td>${badge(r.repatriation_status)}</td>
           <td>${date(r.repatriation_deadline)}</td>
           <td class="r">${num(r.proceeds_required)}</td>
@@ -1324,7 +1335,7 @@
             ${ck(r.credit_advice_confirmed,   'ADV')}
           </div></td>
           <td><button class="btn-comp-update btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem"
-            data-shipment-id="${r.shipment_id}">Update</button></td>
+            data-shipment-id="${h(r.shipment_id)}">Update</button></td>
         </tr>`).join('');
       show('st-compliance', 'tb-compliance', 'cnt-compliance', _compliance);
     }).catch(e => errState('st-compliance', e.message));
@@ -1346,14 +1357,14 @@
       if (!_packs.length) { st.textContent = 'No evidence packs found.'; return; }
       document.getElementById('body-packs').innerHTML = _packs.map(r => `
         <tr>
-          <td class="mono" title="${r.id}">${short(r.id)}</td>
-          <td class="mono" title="${r.shipment_id}">${short(r.shipment_id)}</td>
+          <td class="mono" title="${h(r.id)}">${short(r.id)}</td>
+          <td class="mono" title="${h(r.shipment_id)}">${short(r.shipment_id)}</td>
           <td class="r">${r.version}</td>
           <td>${badge(r.repatriation_status)}</td>
           <td>${r.sealed ? '<span class="badge g">Sealed</span>' : '<span class="badge gr">Draft</span>'}</td>
-          <td class="mono">${r.nxp_reference}</td>
+          <td class="mono">${h(r.nxp_reference)}</td>
           <td>${date(r.generated_at)}</td>
-          <td>${r.sealed ? '' : '<button class="btn-seal btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem" data-pack-id="' + r.id + '">Seal</button>'}</td>
+          <td>${r.sealed ? '' : '<button class="btn-seal btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem" data-pack-id="' + h(r.id) + '">Seal</button>'}</td>
         </tr>`).join('');
       show('st-packs', 'tb-packs', 'cnt-packs', _packs);
     }).catch(e => errState('st-packs', e.message));
@@ -1390,7 +1401,7 @@
     apiFetch('/counterparties').then(body => {
       const rows = body.data ?? [];
       sel.innerHTML = '<option value="">Select counterparty…</option>' +
-        rows.map(r => `<option value="${r.id}">${r.legal_name} (${r.country_of_incorporation})</option>`).join('');
+        rows.map(r => `<option value="${h(r.id)}">${h(r.legal_name)} (${h(r.country_of_incorporation)})</option>`).join('');
     }).catch(() => {
       sel.innerHTML = '<option value="">Could not load counterparties</option>';
     });
@@ -1467,7 +1478,7 @@
     apiFetch('/contracts').then(body => {
       const rows = body.data ?? [];
       sel.innerHTML = '<option value="">Select contract…</option>' +
-        rows.map(r => `<option value="${r.id}">${r.contract_reference} — ${r.commodity}</option>`).join('');
+        rows.map(r => `<option value="${h(r.id)}">${h(r.contract_reference)} — ${h(r.commodity)}</option>`).join('');
     }).catch(() => {
       sel.innerHTML = '<option value="">Could not load contracts</option>';
     });
@@ -1536,7 +1547,7 @@
     apiFetch('/shipments').then(body => {
       const rows = body.data ?? [];
       sel.innerHTML = '<option value="">Select shipment…</option>' +
-        rows.map(r => `<option value="${r.id}">${r.shipment_reference} — ${r.nxp_reference}</option>`).join('');
+        rows.map(r => `<option value="${h(r.id)}">${h(r.shipment_reference)} — ${h(r.nxp_reference)}</option>`).join('');
     }).catch(() => {
       sel.innerHTML = '<option value="">Could not load shipments</option>';
     });
@@ -1666,7 +1677,7 @@
     apiFetch('/payment-receipts').then(body => {
       const rows = body.data ?? [];
       sel.innerHTML = '<option value="">— none —</option>' +
-        rows.map(r => `<option value="${r.id}">${r.receipt_reference} (${r.currency} ${num(r.credited_amount)})</option>`).join('');
+        rows.map(r => `<option value="${h(r.id)}">${h(r.receipt_reference)} (${h(r.currency)} ${num(r.credited_amount)})</option>`).join('');
     }).catch(() => {
       sel.innerHTML = '<option value="">Could not load receipts</option>';
     });
@@ -1750,7 +1761,7 @@
     apiFetch('/shipments').then(body => {
       const rows = body.data ?? [];
       sel.innerHTML = '<option value="">Select shipment…</option>' +
-        rows.map(r => `<option value="${r.id}">${r.shipment_reference} — ${r.nxp_reference}</option>`).join('');
+        rows.map(r => `<option value="${h(r.id)}">${h(r.shipment_reference)} — ${h(r.nxp_reference)}</option>`).join('');
     }).catch(() => {
       sel.innerHTML = '<option value="">Could not load shipments</option>';
     });
@@ -1897,7 +1908,7 @@
     apiFetch('/shipments').then(body => {
       const rows = body.data ?? [];
       sel.innerHTML = '<option value="">Select shipment…</option>' +
-        rows.map(r => `<option value="${r.id}">${r.shipment_reference} — ${r.nxp_reference}</option>`).join('');
+        rows.map(r => `<option value="${h(r.id)}">${h(r.shipment_reference)} — ${h(r.nxp_reference)}</option>`).join('');
     }).catch(() => {
       sel.innerHTML = '<option value="">Could not load shipments</option>';
     });
