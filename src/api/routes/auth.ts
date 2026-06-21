@@ -42,9 +42,18 @@ export function authRouter(pool: DbClient): Router {
     }
   })
 
-  // GET /auth/me  → { userId, exporterId }
-  router.get('/me', requireAuth(pool), (_req, res) => {
-    res.json({ userId: res.locals.userId, exporterId: res.locals.exporterId })
+  // GET /auth/me  → { userId, exporterId, exporterName }
+  router.get('/me', requireAuth(pool), async (_req, res) => {
+    const { userId, exporterId } = res.locals
+    try {
+      const { rows } = await pool.query<{ legal_name: string }>(
+        'SELECT legal_name FROM exporters WHERE id = $1',
+        [exporterId],
+      )
+      res.json({ userId, exporterId, exporterName: rows[0]?.legal_name ?? null })
+    } catch {
+      res.json({ userId, exporterId, exporterName: null })
+    }
   })
 
   return router

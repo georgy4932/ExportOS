@@ -364,6 +364,11 @@ export interface ShipmentReconciliationRow extends ShipmentRow {
   fully_reconciled: boolean
 }
 
+export interface ComplianceRecordWithShipmentRow extends ComplianceRecordRow {
+  shipment_reference: string | null
+  nxp_reference: string | null
+}
+
 export interface BLDeadlineRow extends BillOfLadingRow {
   days_to_deadline: number | null
   deadline_status: DeadlineStatus
