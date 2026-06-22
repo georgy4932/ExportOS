@@ -262,6 +262,125 @@
       color: #b91c1c;
       min-height: 1.25rem;
     }
+
+    /* ── Overview widgets ──────────────────────────────────────────────────── */
+    #ov-section { display: none; }
+    .ov-section-label {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: #374151;
+      letter-spacing: 0.01em;
+      margin-bottom: 0.875rem;
+      padding: 0 0.125rem;
+    }
+    .ov-metric-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.875rem;
+    }
+    .ov-metric-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 1.25rem 1.375rem 1.125rem;
+    }
+    .ov-metric-card .mv {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ov-metric-card .ml {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #6b7280;
+      margin-top: 0.4rem;
+    }
+    .ov-row2 {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 0.875rem;
+    }
+    .ov-ring-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.75rem 1rem;
+      gap: 0.5rem;
+    }
+    .ov-ring-sub {
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .ov-ring-count {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #374151;
+    }
+    #ov-deadlines-body { overflow-x: auto; }
+    .ov-dl-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 480px;
+    }
+    .ov-dl-table th {
+      padding: 0.5rem 0.875rem;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b7280;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+    .ov-dl-table td {
+      padding: 0.5rem 0.875rem;
+      font-size: 0.8125rem;
+      border-bottom: 1px solid #f3f4f6;
+      vertical-align: middle;
+    }
+    .ov-dl-table tr:last-child td { border-bottom: none; }
+    .ov-att-list { padding: 0 0.25rem; }
+    .ov-att-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.625rem;
+      padding: 0.5625rem 0.875rem;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.8125rem;
+      color: #374151;
+    }
+    .ov-att-item:last-child { border-bottom: none; }
+    .ov-att-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 0.3125rem;
+      flex-shrink: 0;
+    }
+    .ov-att-dot.red    { background: #ef4444; }
+    .ov-att-dot.yellow { background: #f59e0b; }
+    .ov-empty-msg {
+      padding: 0.75rem 1rem;
+      font-size: 0.8125rem;
+      color: #6b7280;
+    }
+    @media (max-width: 900px) {
+      .ov-metric-row { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .ov-metric-row { grid-template-columns: repeat(2, 1fr); }
+      .ov-row2       { grid-template-columns: 1fr; }
+    }
   </style>
   <script src="/config.js"></script>
 </head>
@@ -298,6 +417,42 @@
   </header>
 
   <main>
+    <!-- ── Overview ──────────────────────────────────────────────────────────── -->
+    <section id="ov-section">
+      <!-- Section heading -->
+      <div class="ov-section-label">Operations Overview</div>
+
+      <!-- Row 1: Summary metric cards -->
+      <div class="ov-metric-row" id="ov-metrics"></div>
+
+      <!-- Row 2: Compliance progress ring + Upcoming deadlines -->
+      <div class="ov-row2" style="margin-top:1rem">
+        <div class="card">
+          <div class="card-header"><h2>Compliance Progress</h2></div>
+          <div class="ov-ring-body" id="ov-ring-body">
+            <div class="state">Loading…</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h2>Upcoming Deadlines</h2></div>
+          <div id="ov-deadlines-body">
+            <div class="state">Loading…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Attention Required -->
+      <div class="card" style="margin-top:1rem">
+        <div class="card-header"><h2>Attention Required</h2></div>
+        <div id="ov-attention-body">
+          <div class="state">Loading…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Operational Records section label -->
+    <div class="ov-section-label" style="margin-top:0.5rem">Operational Records</div>
+
     <!-- Contracts -->
     <div class="card">
       <div class="card-header">
@@ -1394,6 +1549,133 @@
     }).catch(e => errState('st-packs', e.message));
   }
 
+  // ── Load overview ─────────────────────────────────────────────────────────────
+  function loadOverview() {
+    const section    = document.getElementById('ov-section');
+    const metricsEl  = document.getElementById('ov-metrics');
+    const ringEl     = document.getElementById('ov-ring-body');
+    const deadlinesEl = document.getElementById('ov-deadlines-body');
+    const attEl      = document.getElementById('ov-attention-body');
+
+    Promise.all([
+      apiFetch('/contracts').then(b => b.data ?? []).catch(() => []),
+      apiFetch('/shipments').then(b => b.data ?? []).catch(() => []),
+      apiFetch('/compliance').then(b => b.data ?? []).catch(() => []),
+    ]).then(([contracts, shipments, compliance]) => {
+      const now = new Date();
+
+      // ── Summary metric cards ────────────────────────────────────────────────
+      const activeContracts  = contracts.filter(c => c.status === 'ACTIVE').length;
+      const shipmentCount    = shipments.length;
+      const allocatedTotal   = contracts.reduce((s, c) => s + (Number(c.total_allocated_receipts) || 0), 0);
+      const nxpSet           = new Set(shipments.map(s => s.nxp_reference).filter(Boolean));
+      const deadlineCount    = compliance.filter(c => {
+        if (!c.repatriation_deadline) return false;
+        const diff = (new Date(c.repatriation_deadline) - now) / 86400000;
+        return diff >= 0 && diff <= 60;
+      }).length;
+
+      metricsEl.innerHTML = [
+        { v: activeContracts,                 l: 'Active Contracts'    },
+        { v: shipmentCount,                   l: 'Total Shipments'     },
+        { v: 'USD ' + num(allocatedTotal), l: 'Allocated Proceeds' },
+        { v: nxpSet.size,                     l: 'NXP References'      },
+        { v: deadlineCount,                   l: 'Upcoming Deadlines'  },
+      ].map(m => `<div class="ov-metric-card"><div class="mv">${h(String(m.v))}</div><div class="ml">${h(m.l)}</div></div>`).join('');
+
+      // ── Compliance progress ring ────────────────────────────────────────────
+      const total    = compliance.length;
+      const complete = compliance.filter(c =>
+        c.nxp_approved && c.cci_obtained && c.bl_uploaded &&
+        c.payment_evidence_uploaded && c.credit_advice_confirmed
+      ).length;
+      const pct  = total > 0 ? Math.round((complete / total) * 100) : 0;
+      const R    = 40;
+      const circ = 2 * Math.PI * R;
+      const off  = circ * (1 - pct / 100);
+      ringEl.innerHTML = `
+        <svg width="104" height="104" viewBox="0 0 100 100" aria-label="${pct}% compliance">
+          <circle cx="50" cy="50" r="${R}" fill="none" stroke="#e5e7eb" stroke-width="10"/>
+          <circle cx="50" cy="50" r="${R}" fill="none" stroke="#16a34a" stroke-width="10"
+            stroke-dasharray="${circ.toFixed(2)} ${circ.toFixed(2)}"
+            stroke-dashoffset="${off.toFixed(2)}"
+            stroke-linecap="round"
+            transform="rotate(-90 50 50)"/>
+          <text x="50" y="55" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">${pct}%</text>
+        </svg>
+        <div class="ov-ring-count">${complete} of ${total}</div>
+        <div class="ov-ring-sub">Shipments fully<br>compliant</div>`;
+
+      // ── Upcoming deadlines ──────────────────────────────────────────────────
+      const deadlineRows = compliance
+        .filter(c => c.repatriation_deadline)
+        .map(c => ({ ...c, daysLeft: Math.ceil((new Date(c.repatriation_deadline) - now) / 86400000) }))
+        .filter(c => c.daysLeft >= -30)
+        .sort((a, b) => a.daysLeft - b.daysLeft)
+        .slice(0, 6);
+
+      if (!deadlineRows.length) {
+        deadlinesEl.innerHTML = '<p class="ov-empty-msg">No upcoming deadlines.</p>';
+      } else {
+        deadlinesEl.innerHTML = `<table class="ov-dl-table">
+          <thead><tr>
+            <th>NXP Reference</th><th>Deadline</th><th>Days</th><th>Status</th>
+          </tr></thead>
+          <tbody>${deadlineRows.map(c => {
+            const cls   = c.daysLeft < 0 ? 'r' : c.daysLeft <= 30 ? 'y' : 'g';
+            const label = c.daysLeft < 0 ? Math.abs(c.daysLeft) + 'd overdue' : c.daysLeft + 'd';
+            return `<tr>
+              <td class="mono">${h(c.nxp_reference ?? '—')}</td>
+              <td>${date(c.repatriation_deadline)}</td>
+              <td><span class="badge ${cls}">${h(label)}</span></td>
+              <td>${badge(c.repatriation_status)}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>`;
+      }
+
+      // ── Attention Required ──────────────────────────────────────────────────
+      const items = [];
+
+      const overdue = compliance.filter(c =>
+        c.repatriation_deadline &&
+        new Date(c.repatriation_deadline) < now &&
+        c.repatriation_status !== 'PROCEEDS_COMPLETE'
+      );
+      if (overdue.length)
+        items.push({ dot: 'red', text: `${overdue.length} deadline${overdue.length !== 1 ? 's' : ''} passed — proceeds not fully repatriated` });
+
+      const imminent = compliance.filter(c => {
+        if (!c.repatriation_deadline) return false;
+        const diff = (new Date(c.repatriation_deadline) - now) / 86400000;
+        return diff >= 0 && diff <= 30 && c.repatriation_status !== 'PROCEEDS_COMPLETE';
+      });
+      if (imminent.length)
+        items.push({ dot: 'yellow', text: `${imminent.length} deadline${imminent.length !== 1 ? 's' : ''} within 30 days — repatriation incomplete` });
+
+      const unreconciled = shipments.filter(s => !s.fully_reconciled);
+      if (unreconciled.length)
+        items.push({ dot: 'yellow', text: `${unreconciled.length} shipment${unreconciled.length !== 1 ? 's' : ''} not fully reconciled` });
+
+      const missingChecks = compliance.filter(c =>
+        !(c.nxp_approved && c.cci_obtained && c.bl_uploaded &&
+          c.payment_evidence_uploaded && c.credit_advice_confirmed)
+      );
+      if (missingChecks.length)
+        items.push({ dot: 'yellow', text: `${missingChecks.length} shipment${missingChecks.length !== 1 ? 's' : ''} with incomplete compliance checklist` });
+
+      attEl.innerHTML = items.length
+        ? `<div class="ov-att-list">${items.map(it =>
+            `<div class="ov-att-item"><div class="ov-att-dot ${h(it.dot)}"></div><div>${h(it.text)}</div></div>`
+          ).join('')}</div>`
+        : '<p class="ov-empty-msg">No exceptions — all items in order.</p>';
+
+      section.style.display = '';
+    }).catch(() => {
+      // Overview load failed silently — existing tables are unaffected
+    });
+  }
+
   // ── Load all ──────────────────────────────────────────────────────────────────
   function loadAll() {
     fetch('/auth/me', { headers: authHeaders() })
@@ -1401,6 +1683,7 @@
       .then(b => { document.getElementById('header-exporter').textContent = b.exporterName ?? b.exporterId ?? ''; })
       .catch(() => {});
 
+    loadOverview();
     loadContracts();
     loadShipments();
     loadBillsOfLading();
