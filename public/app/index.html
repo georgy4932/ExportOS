@@ -1580,27 +1580,37 @@
       const now = new Date();
 
       // ── Summary metric cards ────────────────────────────────────────────────
-      const activeContracts  = contracts.filter(c => c.status === 'ACTIVE').length;
-      const shipmentCount    = shipments.length;
-      const allocatedTotal   = contracts.reduce((s, c) => s + (Number(c.total_allocated_receipts) || 0), 0);
-      const nxpSet           = new Set(shipments.map(s => s.nxp_reference).filter(Boolean));
-      const deadlineCount    = compliance.filter(c => {
+      const activeContracts      = contracts.filter(c => c.status === 'ACTIVE').length;
+      const allocatedTotal       = contracts.reduce((s, c) => s + (Number(c.total_allocated_receipts) || 0), 0);
+      const outstandingTotal     = compliance.reduce((s, c) => s + (Number(c.proceeds_outstanding) || 0), 0);
+      const compliantCount       = compliance.filter(c =>
+        c.repatriation_status === 'PROCEEDS_COMPLETE' &&
+        (Number(c.proceeds_outstanding) || 0) <= 0 &&
+        c.nxp_approved && c.cci_obtained && c.bl_uploaded &&
+        c.payment_evidence_uploaded && c.credit_advice_confirmed
+      ).length;
+      const complianceRate       = compliance.length > 0
+        ? Math.round((compliantCount / compliance.length) * 100) + '%'
+        : '—';
+      const deadlineCount        = compliance.filter(c => {
         if (!c.repatriation_deadline) return false;
         const diff = (new Date(c.repatriation_deadline) - now) / 86400000;
         return diff >= 0 && diff <= 60;
       }).length;
 
       metricsEl.innerHTML = [
-        { v: activeContracts,                 l: 'Active Contracts'    },
-        { v: shipmentCount,                   l: 'Total Shipments'     },
-        { v: 'USD ' + num(allocatedTotal), l: 'Allocated Proceeds' },
-        { v: nxpSet.size,                     l: 'NXP References'      },
-        { v: deadlineCount,                   l: 'Upcoming Deadlines'  },
+        { v: activeContracts,                    l: 'Active Contracts'      },
+        { v: complianceRate,                     l: 'Compliance Rate'       },
+        { v: 'USD ' + num(allocatedTotal),  l: 'Allocated Proceeds'    },
+        { v: 'USD ' + num(outstandingTotal), l: 'Outstanding Proceeds'  },
+        { v: deadlineCount,                      l: 'Upcoming Deadlines'    },
       ].map(m => `<div class="ov-metric-card"><div class="mv">${h(String(m.v))}</div><div class="ml">${h(m.l)}</div></div>`).join('');
 
       // ── Compliance progress ring ────────────────────────────────────────────
       const total    = compliance.length;
       const complete = compliance.filter(c =>
+        c.repatriation_status === 'PROCEEDS_COMPLETE' &&
+        (Number(c.proceeds_outstanding) || 0) <= 0 &&
         c.nxp_approved && c.cci_obtained && c.bl_uploaded &&
         c.payment_evidence_uploaded && c.credit_advice_confirmed
       ).length;
