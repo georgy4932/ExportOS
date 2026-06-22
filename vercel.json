@@ -2,5 +2,8 @@
   "framework": null,
   "outputDirectory": "public",
   "buildCommand": "npm run build:config",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "rewrites": [
+    { "source": "/app", "destination": "/app/index.html" }
+  ]
 }
