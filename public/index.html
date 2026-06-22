@@ -1,2063 +1,574 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ExportOS Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ExportOS — Export compliance workspace for Nigerian non-oil exporters</title>
+  <meta name="description" content="Track contracts, NXP references, shipments, payment evidence, repatriation deadlines, and compliance packs in one secure workspace." />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --navy:   #0f172a;
+      --navy2:  #1e3a5f;
+      --navy2h: #15294a;
+      --bg:     #f3f4f6;
+      --border: #e5e7eb;
+      --text:   #111827;
+      --mid:    #374151;
+      --muted:  #6b7280;
+      --white:  #ffffff;
+    }
+
     body {
-      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-      background: #f3f4f6;
-      color: #111827;
-      line-height: 1.5;
-      font-size: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
     }
 
-    /* ── Login ──────────────────────────────────────────────────────────────── */
-    #login-screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .login-card {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      padding: 2rem 2.25rem;
-      width: 100%;
-      max-width: 360px;
-    }
-    .login-card h1 {
-      font-size: 1.125rem;
-      font-weight: 700;
-      margin-bottom: 0.25rem;
-    }
-    .login-card p {
-      font-size: 0.8125rem;
-      color: #6b7280;
-      margin-bottom: 1.5rem;
-    }
-    .field { margin-bottom: 1rem; }
-    .field label {
-      display: block;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 0.3rem;
-    }
-    .field input, .field select, .field textarea {
-      width: 100%;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      outline: none;
-      background: #fff;
-      font-family: inherit;
-    }
-    .field input:focus, .field select:focus, .field textarea:focus {
-      border-color: #6366f1;
-      box-shadow: 0 0 0 2px #eef2ff;
-    }
-    .field textarea { resize: vertical; min-height: 4rem; }
-    .btn-primary {
-      width: 100%;
-      padding: 0.5625rem;
-      background: #1e3a5f;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 0.5rem;
-    }
-    .btn-primary:hover { background: #15294a; }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    #login-error {
-      margin-top: 0.75rem;
-      font-size: 0.8125rem;
-      color: #b91c1c;
-      text-align: center;
-      min-height: 1.25rem;
-    }
-
-    /* ── Dashboard ──────────────────────────────────────────────────────────── */
-    #dashboard { display: none; }
-
-    header {
-      background: #0f172a;
-      color: #f8fafc;
-      padding: 0.875rem 1.5rem;
+    /* ── NAV ── */
+    nav {
+      background: var(--navy);
+      padding: 0 24px;
+      height: 56px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-    }
-    .header-left { display: flex; align-items: baseline; gap: 1rem; }
-    header h1 { font-size: 1rem; font-weight: 700; }
-    header span { font-size: 0.8125rem; opacity: 0.5; }
-    #logout-btn {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      background: none;
-      border: 1px solid #334155;
-      border-radius: 4px;
-      padding: 0.25rem 0.625rem;
-      cursor: pointer;
-    }
-    #logout-btn:hover { color: #f1f5f9; border-color: #475569; }
-
-    main { padding: 1.25rem 1.5rem; display: grid; gap: 1.25rem; }
-
-    .card {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.625rem 1rem;
-      border-bottom: 1px solid #e5e7eb;
-      background: #f9fafb;
-    }
-    .card-header h2 {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: #6b7280;
-    }
-    .card-count { font-size: 0.75rem; color: #9ca3af; }
-
-    .btn-add {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #fff;
-      background: #1e3a5f;
-      border: none;
-      border-radius: 4px;
-      padding: 0.25rem 0.625rem;
-      cursor: pointer;
-    }
-    .btn-add:hover { background: #15294a; }
-
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-    thead tr { background: #f9fafb; }
-    th {
-      padding: 0.5rem 0.875rem;
-      text-align: left;
-      font-size: 0.6875rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #9ca3af;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    th.r { text-align: right; }
-    td {
-      padding: 0.625rem 0.875rem;
-      border-bottom: 1px solid #f3f4f6;
-      color: #374151;
-      vertical-align: middle;
-    }
-    td.r { text-align: right; font-variant-numeric: tabular-nums; color: #111827; }
-    td.mono { font-family: ui-monospace, monospace; font-size: 0.8125rem; color: #6b7280; }
-    tr:last-child td { border-bottom: none; }
-    tbody tr:hover td { background: #fafafa; }
-
-    .badge {
-      display: inline-block;
-      padding: 0.1875rem 0.5rem;
-      border-radius: 9999px;
-      font-size: 0.6875rem;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-    }
-    .g  { background: #dcfce7; color: #15803d; }
-    .y  { background: #fef9c3; color: #a16207; }
-    .r  { background: #fee2e2; color: #b91c1c; }
-    .b  { background: #dbeafe; color: #1d4ed8; }
-    .gr { background: #f3f4f6; color: #6b7280; }
-    .o  { background: #ffedd5; color: #c2410c; }
-
-    .checks { display: flex; gap: 3px; }
-    .ck { font-size: 0.625rem; font-weight: 700; padding: 0.1rem 0.3rem; border-radius: 3px; }
-    .ck-y { background: #dcfce7; color: #15803d; }
-    .ck-n { background: #f3f4f6; color: #d1d5db; }
-
-    .state { padding: 1.5rem; text-align: center; color: #9ca3af; font-size: 0.875rem; }
-    .state.err { color: #ef4444; }
-
-    /* ── Modal overlay (shared) ─────────────────────────────────────────────── */
-    #modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.45);
+      position: sticky;
+      top: 0;
       z-index: 100;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 2rem 1rem;
-      overflow-y: auto;
     }
-    #modal-overlay.open { display: flex; }
-    .modal-card {
-      background: #fff;
-      border-radius: 10px;
-      width: 100%;
-      max-width: 640px;
-      padding: 1.75rem 2rem;
-      flex-shrink: 0;
-    }
-    .modal-card h2 {
-      font-size: 1rem;
+    .nav-brand {
+      color: var(--white);
+      font-size: 18px;
       font-weight: 700;
-      margin-bottom: 1.25rem;
-      color: #0f172a;
+      letter-spacing: -0.3px;
+      text-decoration: none;
     }
-    .form-grid {
+    .nav-brand span { color: #93c5fd; }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn-nav-ghost {
+      color: #cbd5e1;
+      font-size: 13px;
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      transition: background 0.15s;
+    }
+    .btn-nav-ghost:hover { background: #1e293b; }
+    .btn-nav-primary {
+      background: var(--navy2);
+      color: var(--white);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 6px 16px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .btn-nav-primary:hover { background: var(--navy2h); }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--navy);
+      color: var(--white);
+      padding: 80px 24px 88px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: #1e293b;
+      color: #93c5fd;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid #334155;
+      margin-bottom: 28px;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 800;
+      line-height: 1.15;
+      max-width: 720px;
+      margin: 0 auto 20px;
+      letter-spacing: -0.5px;
+    }
+    .hero h1 em { font-style: normal; color: #93c5fd; }
+    .hero-sub {
+      font-size: clamp(15px, 2.2vw, 18px);
+      color: #94a3b8;
+      max-width: 580px;
+      margin: 0 auto 40px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: var(--navy2);
+      color: var(--white);
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 13px 28px;
+      border-radius: 8px;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-primary:hover { background: var(--navy2h); transform: translateY(-1px); }
+    .btn-secondary {
+      background: transparent;
+      color: #cbd5e1;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 13px 28px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-secondary:hover { background: #1e293b; border-color: #475569; }
+
+    /* ── LIFECYCLE STRIP ── */
+    .lifecycle {
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      border-bottom: 1px solid #334155;
+      padding: 20px 24px;
+      overflow-x: auto;
+    }
+    .lifecycle-inner {
+      display: flex;
+      align-items: center;
+      max-width: 860px;
+      margin: 0 auto;
+      white-space: nowrap;
+    }
+    .lc-step {
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      padding: 0 16px;
+    }
+    .lc-arrow { color: #475569; font-size: 16px; flex-shrink: 0; }
+
+    /* ── SECTIONS ── */
+    section { padding: 72px 24px; }
+    .section-inner { max-width: 960px; margin: 0 auto; }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--navy2);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(22px, 4vw, 32px);
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.3px;
+      margin-bottom: 16px;
+    }
+    .section-body {
+      font-size: 16px;
+      color: var(--mid);
+      max-width: 620px;
+      margin-bottom: 48px;
+    }
+
+    /* ── CAPABILITY CARDS ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 24px;
+    }
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      background: #eff6ff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      font-size: 18px;
+    }
+    .card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .card p { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+    /* ── WHO IT'S FOR ── */
+    .roles-bg {
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .roles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .role-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 20px;
+    }
+    .role-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+    .role-card p { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+    /* ── WHY SECTION ── */
+    .why-bg { background: var(--bg); }
+    .why-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0.75rem 1rem;
+      gap: 32px;
+      align-items: start;
     }
-    .form-grid .full { grid-column: 1 / -1; }
-    .modal-actions {
+    @media (max-width: 640px) { .why-grid { grid-template-columns: 1fr; } }
+    .why-side h3 {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 16px;
+    }
+    .why-side.before h3 { color: #dc2626; }
+    .why-side.after  h3 { color: #16a34a; }
+    .why-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .why-list li {
       display: flex;
-      gap: 0.75rem;
-      margin-top: 1.25rem;
-      justify-content: flex-end;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--mid);
+      line-height: 1.5;
     }
-    .btn-cancel {
-      padding: 0.5rem 1rem;
-      background: none;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      cursor: pointer;
-      color: #374151;
+    .why-list li .icon { width: 20px; flex-shrink: 0; margin-top: 2px; }
+    .why-side.before .icon { color: #dc2626; }
+    .why-side.after  .icon { color: #16a34a; }
+
+    /* ── DEMO TABLE ── */
+    .records-bg {
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
     }
-    .btn-cancel:hover { background: #f9fafb; }
-    .btn-submit {
-      padding: 0.5rem 1.25rem;
-      background: #1e3a5f;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.875rem;
+    .record-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .record-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--muted);
+      padding: 10px 16px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .record-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--mid);
+      vertical-align: top;
+    }
+    .record-table tr:last-child td { border-bottom: none; }
+    .record-table td:first-child { font-weight: 600; color: var(--text); }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
       font-weight: 600;
-      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 4px;
     }
-    .btn-submit:hover { background: #15294a; }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-    .modal-error {
-      margin-top: 0.75rem;
-      font-size: 0.8125rem;
-      color: #b91c1c;
-      min-height: 1.25rem;
+    .badge-green  { background: #dcfce7; color: #15803d; }
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+    .badge-yellow { background: #fef9c3; color: #a16207; }
+    .badge-gray   { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+
+    /* ── CTA BAND ── */
+    .cta-band {
+      background: var(--navy);
+      color: var(--white);
+      padding: 72px 24px;
+      text-align: center;
     }
+    .cta-band h2 {
+      font-size: clamp(22px, 4vw, 34px);
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      margin-bottom: 16px;
+    }
+    .cta-band p {
+      color: #94a3b8;
+      font-size: 16px;
+      max-width: 480px;
+      margin: 0 auto 36px;
+    }
+    .cta-band-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--navy);
+      border-top: 1px solid #1e293b;
+      padding: 28px 24px;
+      text-align: center;
+    }
+    footer p { font-size: 13px; color: #475569; }
+    footer a { color: #64748b; text-decoration: none; }
+    footer a:hover { color: #94a3b8; }
+
+    /* ── OVERFLOW TABLE ON SMALL SCREENS ── */
+    .table-scroll { overflow-x: auto; }
   </style>
-  <script src="/config.js"></script>
 </head>
 <body>
 
-<!-- ── Login screen ────────────────────────────────────────────────────────── -->
-<div id="login-screen">
-  <div class="login-card">
-    <h1>ExportOS v0.2</h1>
-    <p>Sign in to view your export dashboard</p>
-    <form id="login-form" autocomplete="on">
-      <div class="field">
-        <label for="email">Email</label>
-        <input id="email" type="email" name="email" autocomplete="email" required placeholder="operator@akoboexports.ng">
-      </div>
-      <div class="field">
-        <label for="password">Password</label>
-        <input id="password" type="password" name="password" autocomplete="current-password" required>
-      </div>
-      <button class="btn-primary" type="submit" id="login-btn">Sign in</button>
-      <div id="login-error"></div>
-    </form>
-  </div>
-</div>
-
-<!-- ── Dashboard ──────────────────────────────────────────────────────────── -->
-<div id="dashboard">
-  <header>
-    <div class="header-left">
-      <h1>ExportOS v0.2</h1>
-      <span id="header-exporter">—</span>
+  <!-- NAV -->
+  <nav>
+    <a class="nav-brand" href="/">Export<span>OS</span></a>
+    <div class="nav-cta">
+      <a class="btn-nav-ghost" href="mailto:admin@exportos.ng">Request Pilot Access</a>
+      <a class="btn-nav-primary" href="/app">Open Demo</a>
     </div>
-    <button id="logout-btn">Sign out</button>
-  </header>
+  </nav>
 
-  <main>
-    <!-- Contracts -->
-    <div class="card">
-      <div class="card-header">
-        <h2>Contracts</h2>
-        <div style="display:flex;align-items:center;gap:0.75rem">
-          <span class="card-count" id="cnt-contracts"></span>
-          <button class="btn-add" id="new-contract-btn">+ New Contract</button>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">Nigerian Non-Oil Export &nbsp;&middot;&nbsp; System of Record</div>
+    <h1>Export compliance workspace for <em>Nigerian non-oil exporters</em></h1>
+    <p class="hero-sub">
+      Track contracts, NXP references, shipments, payment evidence, repatriation deadlines, and compliance packs in one secure workspace.
+    </p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="/app">Open Demo</a>
+      <a class="btn-secondary" href="mailto:admin@exportos.ng">Request Pilot Access</a>
+    </div>
+  </section>
+
+  <!-- LIFECYCLE STRIP -->
+  <div class="lifecycle">
+    <div class="lifecycle-inner">
+      <span class="lc-step">Contract</span>
+      <span class="lc-arrow">&#8250;</span>
+      <span class="lc-step">NXP / Form&nbsp;M</span>
+      <span class="lc-arrow">&#8250;</span>
+      <span class="lc-step">Shipment</span>
+      <span class="lc-arrow">&#8250;</span>
+      <span class="lc-step">Bill of Lading</span>
+      <span class="lc-arrow">&#8250;</span>
+      <span class="lc-step">Payment Receipt</span>
+      <span class="lc-arrow">&#8250;</span>
+      <span class="lc-step">Reconciliation</span>
+      <span class="lc-arrow">&#8250;</span>
+      <span class="lc-step">Evidence Pack</span>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section>
+    <div class="section-inner">
+      <div class="section-label">Capabilities</div>
+      <h2 class="section-title">Everything from contract to sealed evidence pack</h2>
+      <p class="section-body">
+        ExportOS is a system of record &mdash; not a payments or trading platform. It stores the documents and statuses that prove compliance with CBN non-oil export regulations.
+      </p>
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-icon">&#128196;</div>
+          <h3>Contracts</h3>
+          <p>Record export contracts with commodity, quantity, value, buyer, and Incoterms. Status tracks from active through completed.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128674;</div>
+          <h3>Shipments</h3>
+          <p>Log individual shipments under a contract. Track NXP reference, vessel details, and proceeds reconciliation status.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128203;</div>
+          <h3>Bills of Lading</h3>
+          <p>Upload original B/L references. Repatriation deadline (BL date + 180 days) is computed automatically per CBN rules.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128179;</div>
+          <h3>Payment Evidence</h3>
+          <p>Record SWIFT receipts and credit advice. Discrepancy status (CLEAN / DISCREPANT) is computed against your tolerance settings.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#9878;</div>
+          <h3>Reconciliation</h3>
+          <p>Allocate payment receipts to shipments. Partial and full proceeds status is tracked automatically as receipts are allocated.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#9989;</div>
+          <h3>Compliance Checklist</h3>
+          <p>Per-shipment checklist: NXP approved, CCI obtained, B/L uploaded, payment evidence uploaded, credit advice confirmed.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128274;</div>
+          <h3>Bank Evidence Packs</h3>
+          <p>Generate and seal evidence packs for submission to your commercial bank. Sealing is blocked until the full checklist is complete.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128193;</div>
+          <h3>Audit Trail</h3>
+          <p>Every data change is recorded with timestamp and user. Audit events are immutable &mdash; they cannot be edited or deleted.</p>
         </div>
       </div>
-      <div class="table-wrap">
-        <div class="state" id="st-contracts">Loading…</div>
-        <table id="tb-contracts" hidden>
-          <thead><tr>
-            <th>Reference</th><th>Status</th><th>Commodity</th><th>Destination</th>
-            <th>Cur</th><th class="r">Contract Value</th><th class="r">Shipped</th>
-            <th class="r">Allocated</th><th class="r">Unallocated</th><th class="r">Shipments</th>
-          </tr></thead>
-          <tbody id="body-contracts"></tbody>
+    </div>
+  </section>
+
+  <!-- WHO IT'S FOR -->
+  <section class="roles-bg">
+    <div class="section-inner">
+      <div class="section-label">Who it&rsquo;s for</div>
+      <h2 class="section-title">Built for the people who manage non-oil exports</h2>
+      <p class="section-body">
+        ExportOS is designed for the teams responsible for documenting and evidencing compliance &mdash; not trading desks or payment processors.
+      </p>
+      <div class="roles-grid">
+        <div class="role-card">
+          <h3>Export Operators</h3>
+          <p>Record contracts and shipments as they happen. Keep repatriation deadlines visible before they become a problem.</p>
+        </div>
+        <div class="role-card">
+          <h3>Compliance Officers</h3>
+          <p>Maintain the compliance checklist for each shipment. Confirm NXP approval, CCI, and credit advice in one place.</p>
+        </div>
+        <div class="role-card">
+          <h3>Freight &amp; Logistics Teams</h3>
+          <p>Upload Bill of Lading references and track shipment status from vessel booking through final allocation.</p>
+        </div>
+        <div class="role-card">
+          <h3>Trade Finance Teams</h3>
+          <p>Generate sealed bank evidence packs for submission. The system enforces completeness before sealing is allowed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY EXPORTOS -->
+  <section class="why-bg">
+    <div class="section-inner">
+      <div class="section-label">Why ExportOS</div>
+      <h2 class="section-title">Replace spreadsheets and email threads with a structured record</h2>
+      <p class="section-body">
+        Most Nigerian non-oil exporters manage compliance across a mix of spreadsheets, WhatsApp groups, and email attachments. That works until it doesn&rsquo;t.
+      </p>
+      <div class="why-grid">
+        <div class="why-side before">
+          <h3>Without ExportOS</h3>
+          <ul class="why-list">
+            <li><span class="icon">&#10007;</span>Repatriation deadlines tracked in a shared spreadsheet that isn&rsquo;t always current</li>
+            <li><span class="icon">&#10007;</span>SWIFT receipts arrive by email; someone manually matches them to the right shipment</li>
+            <li><span class="icon">&#10007;</span>Compliance checklist is a PDF form that gets emailed back and forth</li>
+            <li><span class="icon">&#10007;</span>Evidence packs assembled manually from folders of scanned documents</li>
+            <li><span class="icon">&#10007;</span>No audit trail &mdash; who updated the NXP status and when?</li>
+          </ul>
+        </div>
+        <div class="why-side after">
+          <h3>With ExportOS</h3>
+          <ul class="why-list">
+            <li><span class="icon">&#10003;</span>Repatriation deadline computed from BL date and shown against every shipment</li>
+            <li><span class="icon">&#10003;</span>Each receipt is allocated to a shipment; discrepancy status computed automatically</li>
+            <li><span class="icon">&#10003;</span>Compliance checklist is live on each shipment record, updated in the dashboard</li>
+            <li><span class="icon">&#10003;</span>Evidence packs sealed only when the full checklist is complete &mdash; enforced in the database</li>
+            <li><span class="icon">&#10003;</span>Immutable audit events on every change &mdash; timestamp and user recorded automatically</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO DATA -->
+  <section class="records-bg">
+    <div class="section-inner">
+      <div class="section-label">Demo data</div>
+      <h2 class="section-title">See a real export lifecycle in the demo</h2>
+      <p class="section-body">
+        The demo is seeded with a complete sesame seed export from AKOBO AGRI-EXPORT COMPANY &mdash; two shipments, two B/Ls, two SWIFT receipts, and one sealed evidence pack.
+      </p>
+      <div class="table-scroll">
+        <table class="record-table">
+          <thead>
+            <tr>
+              <th>Record</th>
+              <th>Reference</th>
+              <th>Details</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Contract</td>
+              <td>CTR-2026-SES-001</td>
+              <td>100&nbsp;MT sesame seeds &middot; $80,000&nbsp;USD &middot; Buyer: EUROGRAIN HAMBURG GMBH</td>
+              <td><span class="badge badge-green">ACTIVE</span></td>
+            </tr>
+            <tr>
+              <td>Shipment 1</td>
+              <td>SHP-2026-01</td>
+              <td>50&nbsp;MT &middot; MSC AURORA &middot; NXP-2026-SES-001</td>
+              <td><span class="badge badge-green">PROCEEDS COMPLETE</span></td>
+            </tr>
+            <tr>
+              <td>Shipment 2</td>
+              <td>SHP-2026-02</td>
+              <td>50&nbsp;MT &middot; MSC AURORA &middot; NXP-2026-SES-002</td>
+              <td><span class="badge badge-yellow">PROCEEDS PARTIAL</span></td>
+            </tr>
+            <tr>
+              <td>Bill of Lading 1</td>
+              <td>MSC-APAPA-2601</td>
+              <td>BL date: 2026-01-20 &middot; Repatriation deadline: 2026-07-19</td>
+              <td><span class="badge badge-blue">ON TIME</span></td>
+            </tr>
+            <tr>
+              <td>Receipt 1</td>
+              <td>RCPT-2026-001</td>
+              <td>Instructed $40,200 &middot; Credited $40,000 &middot; Difference within 2% tolerance</td>
+              <td><span class="badge badge-green">CLEAN</span></td>
+            </tr>
+            <tr>
+              <td>Evidence Pack 1</td>
+              <td>NXP-2026-SES-001</td>
+              <td>All 5 compliance items complete &middot; Submitted to bank</td>
+              <td><span class="badge badge-gray">SEALED</span></td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
+  </section>
 
-    <!-- Shipments -->
-    <div class="card">
-      <div class="card-header">
-        <h2>Shipments</h2>
-        <div style="display:flex;align-items:center;gap:0.75rem">
-          <span class="card-count" id="cnt-shipments"></span>
-          <button class="btn-add" id="new-shipment-btn">+ New Shipment</button>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <div class="state" id="st-shipments">Loading…</div>
-        <table id="tb-shipments" hidden>
-          <thead><tr>
-            <th>Reference</th><th>Status</th><th>NXP Ref</th>
-            <th>Loading → Discharge</th><th>Vessel</th>
-            <th class="r">Value</th><th class="r">Allocated</th>
-            <th class="r">Outstanding</th><th>Reconciled</th>
-          </tr></thead>
-          <tbody id="body-shipments"></tbody>
-        </table>
-      </div>
+  <!-- CTA BAND -->
+  <section class="cta-band">
+    <h2>Ready to see it in action?</h2>
+    <p>Open the live demo with seeded export data, or contact us to onboard your company as a pilot exporter.</p>
+    <div class="cta-band-actions">
+      <a class="btn-primary" href="/app">Open Demo</a>
+      <a class="btn-secondary" href="mailto:admin@exportos.ng">Request Pilot Access</a>
     </div>
-
-    <!-- Bills of Lading -->
-    <div class="card">
-      <div class="card-header">
-        <h2>Bills of Lading</h2>
-        <div style="display:flex;align-items:center;gap:0.75rem">
-          <span class="card-count" id="cnt-bl"></span>
-          <button class="btn-add" id="new-bl-btn">+ New BL</button>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <div class="state" id="st-bl">Loading…</div>
-        <table id="tb-bl" hidden>
-          <thead><tr>
-            <th>BL Number</th><th>Shipment</th><th>Date</th><th>Type</th>
-            <th>NXP Ref</th><th>Deadline</th><th>Status</th>
-          </tr></thead>
-          <tbody id="body-bl"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Payment Receipts -->
-    <div class="card">
-      <div class="card-header">
-        <h2>Payment Receipts</h2>
-        <div style="display:flex;align-items:center;gap:0.75rem">
-          <span class="card-count" id="cnt-receipts"></span>
-          <button class="btn-add" id="new-receipt-btn">+ New Receipt</button>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <div class="state" id="st-receipts">Loading…</div>
-        <table id="tb-receipts" hidden>
-          <thead><tr>
-            <th>Reference</th><th>Cur</th><th class="r">Instructed</th>
-            <th class="r">Credited</th><th>Credit Date</th>
-            <th>Allocation</th><th>Discrepancy</th><th></th>
-          </tr></thead>
-          <tbody id="body-receipts"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Payment Evidence -->
-    <div class="card">
-      <div class="card-header">
-        <h2>Payment Evidence</h2>
-        <div style="display:flex;align-items:center;gap:0.75rem">
-          <span class="card-count" id="cnt-evidence"></span>
-          <button class="btn-add" id="new-evidence-btn">+ New Evidence</button>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <div class="state" id="st-evidence">Loading…</div>
-        <table id="tb-evidence" hidden>
-          <thead><tr>
-            <th>Type</th><th>Receipt</th><th>Source Ref</th>
-            <th>Sender BIC</th><th class="r">Amount</th><th>Cur</th>
-            <th>Value Date</th><th>Active</th>
-          </tr></thead>
-          <tbody id="body-evidence"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Compliance Records -->
-    <div class="card">
-      <div class="card-header">
-        <h2>Compliance Records</h2>
-        <span class="card-count" id="cnt-compliance"></span>
-      </div>
-      <div class="table-wrap">
-        <div class="state" id="st-compliance">Loading…</div>
-        <table id="tb-compliance" hidden>
-          <thead><tr>
-            <th>Shipment</th><th>Repatriation</th><th>Deadline</th>
-            <th class="r">Required</th><th class="r">Received</th>
-            <th class="r">Outstanding</th><th>Late?</th><th>Checklist</th><th></th>
-          </tr></thead>
-          <tbody id="body-compliance"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Evidence Packs -->
-    <div class="card">
-      <div class="card-header">
-        <h2>Evidence Packs</h2>
-        <div style="display:flex;align-items:center;gap:0.75rem">
-          <span class="card-count" id="cnt-packs"></span>
-          <button class="btn-add" id="gen-pack-btn">+ Generate Pack</button>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <div class="state" id="st-packs">Loading…</div>
-        <table id="tb-packs" hidden>
-          <thead><tr>
-            <th>Pack</th><th>Shipment</th><th>Ver</th><th>Repatriation</th>
-            <th>Sealed</th><th>NXP Ref</th><th>Generated</th><th></th>
-          </tr></thead>
-          <tbody id="body-packs"></tbody>
-        </table>
-      </div>
-    </div>
-  </main>
-</div>
-
-<!-- ── Modal overlay (shared by all forms) ───────────────────────────────── -->
-<div id="modal-overlay">
-
-  <!-- New Contract modal -->
-  <div class="modal-card" id="modal-contract">
-    <h2>New Export Contract</h2>
-    <form id="contract-form" novalidate>
-      <div class="form-grid">
-
-        <div class="field">
-          <label for="f-ref">Contract Reference *</label>
-          <input id="f-ref" name="contract_reference" type="text" required placeholder="e.g. AKOBO-2026-001">
-        </div>
-
-        <div class="field">
-          <label for="f-counterparty">Counterparty *</label>
-          <select id="f-counterparty" name="counterparty_id" required>
-            <option value="">Select counterparty…</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="f-commodity">Commodity *</label>
-          <input id="f-commodity" name="commodity" type="text" required placeholder="e.g. Sesame Seeds">
-        </div>
-
-        <div class="field">
-          <label for="f-commodity-type">Commodity Type *</label>
-          <select id="f-commodity-type" name="commodity_type" required>
-            <option value="">Select type…</option>
-            <option value="NON_OIL">NON_OIL</option>
-            <option value="OIL_GAS">OIL_GAS</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="f-hs">HS Code *</label>
-          <input id="f-hs" name="hs_code" type="text" required placeholder="e.g. 1207.40">
-        </div>
-
-        <div class="field">
-          <label for="f-incoterms">Incoterms *</label>
-          <input id="f-incoterms" name="incoterms" type="text" required placeholder="e.g. FOB">
-        </div>
-
-        <div class="field">
-          <label for="f-qty">Contract Quantity *</label>
-          <input id="f-qty" name="contract_quantity" type="number" min="0.0001" step="any" required>
-        </div>
-
-        <div class="field">
-          <label for="f-qty-unit">Quantity Unit *</label>
-          <input id="f-qty-unit" name="quantity_unit" type="text" required placeholder="e.g. MT, KG, BAGS">
-        </div>
-
-        <div class="field">
-          <label for="f-value">Contract Value *</label>
-          <input id="f-value" name="contract_value" type="number" min="0.01" step="any" required>
-        </div>
-
-        <div class="field">
-          <label for="f-currency">Currency *</label>
-          <input id="f-currency" name="currency" type="text" required placeholder="USD" maxlength="3" style="text-transform:uppercase">
-        </div>
-
-        <div class="field">
-          <label for="f-unit-price">Unit Price *</label>
-          <input id="f-unit-price" name="unit_price" type="number" min="0.0001" step="any" required>
-        </div>
-
-        <div class="field">
-          <label for="f-dest-country">Destination Country *</label>
-          <input id="f-dest-country" name="destination_country" type="text" required placeholder="DE" maxlength="2" style="text-transform:uppercase">
-        </div>
-
-        <div class="field">
-          <label for="f-payment">Payment Terms *</label>
-          <input id="f-payment" name="payment_terms" type="text" required placeholder="e.g. LC AT SIGHT">
-        </div>
-
-        <div class="field">
-          <label for="f-contract-date">Contract Date *</label>
-          <input id="f-contract-date" name="contract_date" type="date" required>
-        </div>
-
-        <div class="field">
-          <label for="f-dest-port">Destination Port</label>
-          <input id="f-dest-port" name="destination_port" type="text" placeholder="e.g. Hamburg">
-        </div>
-
-        <div class="field">
-          <label for="f-expiry">Expiry Date</label>
-          <input id="f-expiry" name="expiry_date" type="date">
-        </div>
-
-        <div class="field full" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
-          <input id="f-partial" name="partial_shipment_allowed" type="checkbox" style="width:auto">
-          <label for="f-partial" style="margin:0;font-weight:400">Allow partial shipments</label>
-        </div>
-
-        <div class="field full">
-          <label for="f-notes">Notes</label>
-          <textarea id="f-notes" name="notes" placeholder="Optional"></textarea>
-        </div>
-
-      </div>
-      <div class="modal-error" id="contract-error"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" id="contract-cancel">Cancel</button>
-        <button type="submit" class="btn-submit" id="contract-submit">Create Contract</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- New Shipment modal -->
-  <div class="modal-card" id="modal-shipment" hidden>
-    <h2>New Shipment</h2>
-    <form id="shipment-form" novalidate>
-      <div class="form-grid">
-
-        <div class="field full">
-          <label for="s-contract">Contract *</label>
-          <select id="s-contract" name="contract_id" required>
-            <option value="">Select contract…</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="s-ref">Shipment Reference *</label>
-          <input id="s-ref" name="shipment_reference" type="text" required placeholder="e.g. SHP-2026-03">
-        </div>
-
-        <div class="field">
-          <label for="s-nxp">NXP Reference *</label>
-          <input id="s-nxp" name="nxp_reference" type="text" required placeholder="e.g. NXP-2026-SES-003">
-        </div>
-
-        <div class="field">
-          <label for="s-loading">Port of Loading *</label>
-          <input id="s-loading" name="port_of_loading" type="text" required placeholder="e.g. APAPA, LAGOS">
-        </div>
-
-        <div class="field">
-          <label for="s-discharge">Port of Discharge *</label>
-          <input id="s-discharge" name="port_of_discharge" type="text" required placeholder="e.g. HAMBURG, GERMANY">
-        </div>
-
-        <div class="field">
-          <label for="s-qty">Shipment Quantity *</label>
-          <input id="s-qty" name="shipment_quantity" type="number" min="0.0001" step="any" required>
-        </div>
-
-        <div class="field">
-          <label for="s-value">Shipment Value *</label>
-          <input id="s-value" name="shipment_value" type="number" min="0.01" step="any" required>
-        </div>
-
-        <div class="field">
-          <label for="s-currency">Currency *</label>
-          <input id="s-currency" name="currency" type="text" required placeholder="USD" maxlength="3" style="text-transform:uppercase">
-        </div>
-
-        <div class="field">
-          <label for="s-vessel">Vessel Name</label>
-          <input id="s-vessel" name="vessel_name" type="text" placeholder="e.g. MSC AURORA">
-        </div>
-
-        <div class="field">
-          <label for="s-voyage">Voyage Number</label>
-          <input id="s-voyage" name="voyage_number" type="text" placeholder="e.g. AU2603W">
-        </div>
-
-      </div>
-      <div class="modal-error" id="shipment-error"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" id="shipment-cancel">Cancel</button>
-        <button type="submit" class="btn-submit" id="shipment-submit">Create Shipment</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- New Bill of Lading modal -->
-  <div class="modal-card" id="modal-bl" hidden>
-    <h2>New Bill of Lading</h2>
-    <form id="bl-form" novalidate>
-      <div class="form-grid">
-
-        <div class="field full">
-          <label for="b-shipment">Shipment *</label>
-          <select id="b-shipment" name="shipment_id" required>
-            <option value="">Select shipment…</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="b-number">BL Number *</label>
-          <input id="b-number" name="bl_number" type="text" required placeholder="e.g. MSC-APAPA-2603">
-        </div>
-
-        <div class="field">
-          <label for="b-date">BL Date *</label>
-          <input id="b-date" name="bl_date" type="date" required>
-        </div>
-
-        <div class="field">
-          <label for="b-type">BL Type *</label>
-          <select id="b-type" name="bl_type" required>
-            <option value="">Select type…</option>
-            <option value="ORIGINAL">ORIGINAL</option>
-            <option value="TELEX_RELEASE">TELEX_RELEASE</option>
-            <option value="SEA_WAYBILL">SEA_WAYBILL</option>
-            <option value="EXPRESS_BL">EXPRESS_BL</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="b-freight">Freight Terms</label>
-          <select id="b-freight" name="freight_terms">
-            <option value="">— none —</option>
-            <option value="PREPAID">PREPAID</option>
-            <option value="COLLECT">COLLECT</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="b-nxp">NXP Reference *</label>
-          <input id="b-nxp" name="nxp_reference" type="text" required placeholder="e.g. NXP-2026-SES-003">
-        </div>
-
-        <div class="field full">
-          <label for="b-shipper">Shipper Name *</label>
-          <input id="b-shipper" name="shipper_name" type="text" required placeholder="e.g. AKOBO AGRI-EXPORT COMPANY LTD">
-        </div>
-
-        <div class="field full">
-          <label for="b-consignee">Consignee Name *</label>
-          <input id="b-consignee" name="consignee_name" type="text" required placeholder="e.g. EUROGRAIN HAMBURG GMBH">
-        </div>
-
-        <div class="field full">
-          <label for="b-goods">Description of Goods *</label>
-          <textarea id="b-goods" name="description_of_goods" required placeholder="e.g. Sesame Seeds, hulled, natural, food grade, 50 MT"></textarea>
-        </div>
-
-      </div>
-      <div class="modal-error" id="bl-error"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" id="bl-cancel">Cancel</button>
-        <button type="submit" class="btn-submit" id="bl-submit">Create BL</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- New Payment Receipt modal -->
-  <div class="modal-card" id="modal-receipt" hidden>
-    <h2>New Payment Receipt</h2>
-    <form id="receipt-form" novalidate>
-      <div class="form-grid">
-
-        <div class="field full">
-          <label for="rc-ref">Receipt Reference *</label>
-          <input id="rc-ref" name="receipt_reference" type="text" required placeholder="e.g. RCT-2026-001">
-        </div>
-
-        <div class="field">
-          <label for="rc-instructed">Instructed Amount *</label>
-          <input id="rc-instructed" name="instructed_amount" type="number" min="0.01" step="any" required>
-        </div>
-
-        <div class="field">
-          <label for="rc-credited">Credited Amount *</label>
-          <input id="rc-credited" name="credited_amount" type="number" min="0.01" step="any" required>
-        </div>
-
-        <div class="field">
-          <label for="rc-currency">Currency *</label>
-          <input id="rc-currency" name="currency" type="text" required placeholder="USD" maxlength="3" style="text-transform:uppercase">
-        </div>
-
-        <div class="field">
-          <label for="rc-credit-date">Credit Date *</label>
-          <input id="rc-credit-date" name="credit_date" type="date" required>
-        </div>
-
-        <div class="field">
-          <label for="rc-value-date">Value Date</label>
-          <input id="rc-value-date" name="value_date" type="date">
-        </div>
-
-        <div class="field">
-          <label for="rc-bank-bic">Ordering Bank BIC</label>
-          <input id="rc-bank-bic" name="ordering_bank_bic" type="text" placeholder="e.g. GTBINGLA">
-        </div>
-
-        <div class="field">
-          <label for="rc-customer">Ordering Customer Name</label>
-          <input id="rc-customer" name="ordering_customer_name" type="text" placeholder="e.g. Buyer Corp Ltd">
-        </div>
-
-        <div class="field full">
-          <label for="rc-remittance">Remittance Info</label>
-          <input id="rc-remittance" name="remittance_info" type="text" placeholder="e.g. Payment for contract AKOBO-2026-001">
-        </div>
-
-      </div>
-      <div class="modal-error" id="receipt-error"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" id="receipt-cancel">Cancel</button>
-        <button type="submit" class="btn-submit" id="receipt-submit">Create Receipt</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- New Payment Evidence modal -->
-  <div class="modal-card" id="modal-evidence" hidden>
-    <h2>New Payment Evidence</h2>
-    <form id="evidence-form" novalidate>
-      <div class="form-grid">
-
-        <div class="field">
-          <label for="ev-type">Evidence Type *</label>
-          <select id="ev-type" name="evidence_type" required>
-            <option value="">Select type…</option>
-            <option value="MT103">MT103</option>
-            <option value="PACS008">PACS008</option>
-            <option value="MT910">MT910</option>
-            <option value="BANK_CREDIT_ADVICE">BANK_CREDIT_ADVICE</option>
-            <option value="MT940_LINE">MT940_LINE</option>
-            <option value="MT950_LINE">MT950_LINE</option>
-            <option value="MANUAL">MANUAL</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="ev-receipt">Receipt (optional)</label>
-          <select id="ev-receipt" name="receipt_id">
-            <option value="">— none —</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="ev-source-ref">Source Document Ref</label>
-          <input id="ev-source-ref" name="source_document_ref" type="text" placeholder="e.g. MT103/2026-00123">
-        </div>
-
-        <div class="field">
-          <label for="ev-sender-bic">Sender BIC</label>
-          <input id="ev-sender-bic" name="sender_bic" type="text" placeholder="e.g. GTBINGLA">
-        </div>
-
-        <div class="field">
-          <label for="ev-receiver-bic">Receiver BIC</label>
-          <input id="ev-receiver-bic" name="receiver_bic" type="text" placeholder="e.g. DEUTDEDB">
-        </div>
-
-        <div class="field">
-          <label for="ev-instructed">Instructed Amount</label>
-          <input id="ev-instructed" name="instructed_amount" type="number" min="0.01" step="any">
-        </div>
-
-        <div class="field">
-          <label for="ev-instructed-ccy">Instructed Currency</label>
-          <input id="ev-instructed-ccy" name="instructed_currency" type="text" maxlength="3" placeholder="USD">
-        </div>
-
-        <div class="field">
-          <label for="ev-value-date">Value Date</label>
-          <input id="ev-value-date" name="value_date" type="date">
-        </div>
-
-        <div class="field">
-          <label for="ev-charges">Charges Code</label>
-          <select id="ev-charges" name="charges_code">
-            <option value="">— none —</option>
-            <option value="OUR">OUR</option>
-            <option value="SHA">SHA</option>
-            <option value="BEN">BEN</option>
-          </select>
-        </div>
-
-        <!-- BANK_CREDIT_ADVICE conditional fields — shown/required only when type = BANK_CREDIT_ADVICE -->
-        <div class="full" id="bca-fields" hidden>
-          <div class="form-grid" style="margin-top:0.25rem">
-            <div class="field">
-              <label for="ev-credited">Credited Amount *</label>
-              <input id="ev-credited" name="credited_amount" type="number" min="0.01" step="any">
-            </div>
-            <div class="field">
-              <label for="ev-credited-ccy">Credited Currency *</label>
-              <input id="ev-credited-ccy" name="credited_currency" type="text" maxlength="3" placeholder="USD">
-            </div>
-            <div class="field">
-              <label for="ev-credit-date">Credit Date *</label>
-              <input id="ev-credit-date" name="credit_date" type="date">
-            </div>
-          </div>
-        </div>
-
-      </div>
-      <div class="modal-error" id="evidence-error"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" id="evidence-cancel">Cancel</button>
-        <button type="submit" class="btn-submit" id="evidence-submit">Create Evidence</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Allocate Receipt modal -->
-  <div class="modal-card" id="modal-allocate" hidden>
-    <h2>Allocate Receipt</h2>
-    <form id="allocate-form" novalidate>
-      <div class="form-grid">
-
-        <div class="field full">
-          <label>Receipt</label>
-          <div id="alloc-receipt-display" style="padding:0.5rem 0.75rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;font-size:0.875rem;color:#374151">—</div>
-          <input type="hidden" id="alloc-receipt-id" name="receipt_id">
-        </div>
-
-        <div class="field full">
-          <label for="alloc-shipment">Shipment *</label>
-          <select id="alloc-shipment" name="shipment_id" required>
-            <option value="">Select shipment…</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="alloc-amount">Allocated Amount *</label>
-          <input id="alloc-amount" name="allocated_amount" type="number" min="0.01" step="any" required>
-        </div>
-
-        <div class="field">
-          <label for="alloc-date">Allocation Date *</label>
-          <input id="alloc-date" name="allocation_date" type="date" required>
-        </div>
-
-        <div class="field full">
-          <label for="alloc-method">Allocation Method *</label>
-          <select id="alloc-method" name="allocation_method" required>
-            <option value="">Select method…</option>
-            <option value="MANUAL">MANUAL</option>
-            <option value="FIFO">FIFO</option>
-            <option value="PRO_RATA">PRO_RATA</option>
-            <option value="INSTRUCTION_MATCHED">INSTRUCTION_MATCHED</option>
-          </select>
-        </div>
-
-        <div class="field full">
-          <label for="alloc-notes">Notes</label>
-          <input id="alloc-notes" name="notes" type="text" placeholder="Optional">
-        </div>
-
-      </div>
-      <div class="modal-error" id="allocate-error"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" id="allocate-cancel">Cancel</button>
-        <button type="submit" class="btn-submit" id="allocate-submit">Allocate</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Update Compliance modal -->
-  <div class="modal-card" id="modal-compliance" hidden>
-    <h2>Update Compliance Record</h2>
-    <form id="compliance-form" novalidate>
-      <div class="form-grid">
-
-        <div class="field full">
-          <label>Shipment</label>
-          <div id="comp-shipment-display" style="padding:0.5rem 0.75rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;font-size:0.875rem;color:#374151">—</div>
-          <input type="hidden" id="comp-shipment-id">
-        </div>
-
-        <div class="field" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
-          <input id="comp-nxp-submitted" name="nxp_submitted" type="checkbox" style="width:auto">
-          <label for="comp-nxp-submitted" style="margin:0;font-weight:400">NXP Submitted</label>
-        </div>
-
-        <div class="field" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
-          <input id="comp-nxp-approved" name="nxp_approved" type="checkbox" style="width:auto">
-          <label for="comp-nxp-approved" style="margin:0;font-weight:400">NXP Approved</label>
-        </div>
-
-        <div class="field" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
-          <input id="comp-cci" name="cci_obtained" type="checkbox" style="width:auto">
-          <label for="comp-cci" style="margin:0;font-weight:400">CCI Obtained</label>
-        </div>
-
-        <div class="field" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
-          <input id="comp-bl" name="bl_uploaded" type="checkbox" style="width:auto">
-          <label for="comp-bl" style="margin:0;font-weight:400">BL Uploaded</label>
-        </div>
-
-        <div class="field" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
-          <input id="comp-evd" name="payment_evidence_uploaded" type="checkbox" style="width:auto">
-          <label for="comp-evd" style="margin:0;font-weight:400">Payment Evidence Uploaded</label>
-        </div>
-
-        <div class="field" style="display:flex;align-items:center;gap:0.5rem;padding-top:0.25rem">
-          <input id="comp-adv" name="credit_advice_confirmed" type="checkbox" style="width:auto">
-          <label for="comp-adv" style="margin:0;font-weight:400">Credit Advice Confirmed</label>
-        </div>
-
-        <div class="field full">
-          <label for="comp-notes">Notes</label>
-          <textarea id="comp-notes" name="notes" placeholder="Optional"></textarea>
-        </div>
-
-        <div class="field full">
-          <label for="comp-flags">Compliance Flags (comma-separated)</label>
-          <input id="comp-flags" name="compliance_flags" type="text" placeholder="e.g. LATE_FILING, AMOUNT_DISCREPANCY">
-        </div>
-
-      </div>
-      <div class="modal-error" id="compliance-error"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" id="compliance-cancel">Cancel</button>
-        <button type="submit" class="btn-submit" id="compliance-submit">Update</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Generate Evidence Pack modal -->
-  <div class="modal-card" id="modal-gen-pack" hidden>
-    <h2>Generate Evidence Pack</h2>
-    <form id="gen-pack-form" novalidate>
-      <div class="form-grid">
-
-        <div class="field full">
-          <label for="gp-shipment">Shipment *</label>
-          <select id="gp-shipment" name="shipment_id" required>
-            <option value="">Select shipment…</option>
-          </select>
-        </div>
-
-        <div class="field full">
-          <label for="gp-notes">Notes</label>
-          <input id="gp-notes" name="notes" type="text" placeholder="Optional">
-        </div>
-
-      </div>
-      <div class="modal-error" id="gen-pack-error"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" id="gen-pack-cancel">Cancel</button>
-        <button type="submit" class="btn-submit" id="gen-pack-submit">Generate Pack</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Seal Evidence Pack modal -->
-  <div class="modal-card" id="modal-seal" hidden>
-    <h2>Seal Evidence Pack</h2>
-    <p style="font-size:0.875rem;color:#374151;margin-bottom:1rem">This will permanently seal the pack. The action cannot be undone. All compliance checklist items must be complete.</p>
-    <div id="seal-pack-display" style="padding:0.5rem 0.75rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;font-size:0.875rem;color:#374151;margin-bottom:0.75rem">—</div>
-    <div id="seal-compliance-status" style="margin-bottom:0.75rem"></div>
-    <input type="hidden" id="seal-pack-id">
-    <div class="modal-error" id="seal-error"></div>
-    <div class="modal-actions">
-      <button type="button" class="btn-cancel" id="seal-cancel">Cancel</button>
-      <button type="button" class="btn-submit" id="seal-submit">Seal Pack</button>
-    </div>
-  </div>
-
-</div><!-- /#modal-overlay -->
-
-<script>
-  'use strict';
-
-  // ── API base URL (set by /config.js; empty = same-origin for local dev) ───────
-  const API_BASE = (typeof window.__API_BASE__ !== 'undefined' && window.__API_BASE__) ? window.__API_BASE__ : '';
-  if (API_BASE) {
-    const _nativeFetch = window.fetch.bind(window);
-    window.fetch = (input, init) => {
-      if (typeof input === 'string' && input.startsWith('/')) {
-        return _nativeFetch(API_BASE + input, init);
-      }
-      return _nativeFetch(input, init);
-    };
-  }
-
-  const TOKEN_KEY = 'exportos_token';
-
-  // ── Auth helpers ─────────────────────────────────────────────────────────────
-  function getToken() { return sessionStorage.getItem(TOKEN_KEY); }
-  function setToken(t) { sessionStorage.setItem(TOKEN_KEY, t); }
-  function clearToken() { sessionStorage.removeItem(TOKEN_KEY); }
-
-  function authHeaders() {
-    const t = getToken();
-    return t ? { 'Authorization': 'Bearer ' + t } : {};
-  }
-
-  // ── Screen switching ─────────────────────────────────────────────────────────
-  function showLogin() {
-    document.getElementById('login-screen').style.display = '';
-    document.getElementById('dashboard').style.display = 'none';
-  }
-
-  function showDashboard() {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    loadAll();
-  }
-
-  // ── Login form ───────────────────────────────────────────────────────────────
-  document.getElementById('login-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('login-btn');
-    const errEl = document.getElementById('login-error');
-    errEl.textContent = '';
-    btn.disabled = true;
-    btn.textContent = 'Signing in…';
-
-    const email    = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-
-    try {
-      const res = await fetch(API_BASE + '/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const body = await res.json();
-      if (!res.ok) { errEl.textContent = body.error || 'Login failed'; return; }
-      setToken(body.token);
-      showDashboard();
-    } catch {
-      errEl.textContent = 'Could not reach the server.';
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Sign in';
-    }
-  });
-
-  // ── Sign out ─────────────────────────────────────────────────────────────────
-  document.getElementById('logout-btn').addEventListener('click', () => {
-    clearToken();
-    showLogin();
-  });
-
-  // ── Fetch helper ─────────────────────────────────────────────────────────────
-  async function apiFetch(path, options) {
-    const res = await fetch(path, {
-      headers: { ...authHeaders(), ...(options?.headers ?? {}) },
-      ...options,
-    });
-    if (res.status === 401) { clearToken(); showLogin(); throw new Error('Session expired. Please sign in again.'); }
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(body.error || 'HTTP ' + res.status);
-    }
-    return res.json();
-  }
-
-  // ── Rendering helpers ─────────────────────────────────────────────────────────
-  function num(v) {
-    if (v == null) return '—';
-    const n = Number(v);
-    return isNaN(n) ? String(v) : n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-  function date(v) {
-    if (!v) return '—';
-    return new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-  }
-  function short(id) { return id ? '…' + id.slice(-8) : '—'; }
-
-  function badge(status) {
-    const map = {
-      ACTIVE: 'g', PARTIALLY_SHIPPED: 'y', FULLY_SHIPPED: 'b',
-      COMPLETED: 'b', CLOSED: 'gr', CANCELLED: 'gr', DRAFT: 'gr',
-      COMPLETE: 'g', PARTIAL: 'y', OVERDUE: 'r', NOT_DUE: 'gr',
-      DEPARTED: 'b', ARRIVED: 'g', PENDING: 'y',
-      PROCEEDS_PARTIAL: 'y', PROCEEDS_COMPLETE: 'g',
-      SAFE: 'g', WARNING: 'y', CRITICAL: 'o',
-      ORIGINAL: 'b', TELEX_RELEASE: 'gr', SEA_WAYBILL: 'gr', EXPRESS_BL: 'gr',
-      UNALLOCATED: 'y', PARTIALLY_ALLOCATED: 'o', FULLY_ALLOCATED: 'g',
-      CLEAN: 'g', AMOUNT_MISMATCH: 'r', DATE_MISMATCH: 'y', COUNTERPARTY_MISMATCH: 'r',
-      UNMATCHED: 'r', MANUALLY_RESOLVED: 'gr',
-      MT103: 'b', PACS008: 'b', MT910: 'b', BANK_CREDIT_ADVICE: 'g',
-      MT940_LINE: 'gr', MT950_LINE: 'gr', MANUAL: 'gr',
-    };
-    return '<span class="badge ' + (map[status] ?? 'gr') + '">' + status.replace(/_/g, ' ') + '</span>';
-  }
-
-  function ck(val, label, title) {
-    const t = title ?? label;
-    return '<span class="ck ' + (val ? 'ck-y' : 'ck-n') + '" title="' + t + '">' + label + '</span>';
-  }
-
-  function show(stId, tbId, cntId, rows) {
-    document.getElementById(stId).hidden = true;
-    document.getElementById(tbId).hidden = false;
-    document.getElementById(cntId).textContent = rows.length + ' row' + (rows.length !== 1 ? 's' : '');
-  }
-
-  function errState(stId, msg) {
-    const el = document.getElementById(stId);
-    el.hidden = false;
-    el.textContent = 'Error: ' + msg;
-    el.classList.add('err');
-  }
-
-  // Escape a value for safe use in HTML content and double-quoted attributes.
-  function h(s) {
-    if (s == null) return '';
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
-  // ── Modal helpers ─────────────────────────────────────────────────────────────
-  const overlay = document.getElementById('modal-overlay');
-
-  function closeModal() {
-    overlay.classList.remove('open');
-    overlay.querySelectorAll('.modal-card').forEach(c => { c.hidden = true; });
-  }
-
-  function openCard(cardId) {
-    overlay.querySelectorAll('.modal-card').forEach(c => { c.hidden = true; });
-    document.getElementById(cardId).hidden = false;
-    overlay.classList.add('open');
-  }
-
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-
-  // ── Load contracts ────────────────────────────────────────────────────────────
-  function loadContracts() {
-    const st = document.getElementById('st-contracts');
-    const tb = document.getElementById('tb-contracts');
-    st.textContent = 'Loading…';
-    st.classList.remove('err');
-    st.hidden = false;
-    tb.hidden = true;
-
-    apiFetch('/contracts').then(body => {
-      const rows = body.data ?? [];
-      if (!rows.length) { st.textContent = 'No contracts found.'; return; }
-      document.getElementById('body-contracts').innerHTML = rows.map(r => `
-        <tr>
-          <td>${h(r.contract_reference)}</td>
-          <td>${badge(r.status)}</td>
-          <td>${h(r.commodity)}</td>
-          <td>${h(r.destination_country)}</td>
-          <td>${h(r.currency)}</td>
-          <td class="r">${num(r.contract_value)}</td>
-          <td class="r">${num(r.total_shipped_value)}</td>
-          <td class="r">${num(r.total_allocated_receipts)}</td>
-          <td class="r">${num(r.unallocated_contract_value)}</td>
-          <td class="r">${r.shipment_count}</td>
-        </tr>`).join('');
-      show('st-contracts', 'tb-contracts', 'cnt-contracts', rows);
-    }).catch(e => errState('st-contracts', e.message));
-  }
-
-  // ── Load shipments ────────────────────────────────────────────────────────────
-  function loadShipments() {
-    const st = document.getElementById('st-shipments');
-    const tb = document.getElementById('tb-shipments');
-    st.textContent = 'Loading…';
-    st.classList.remove('err');
-    st.hidden = false;
-    tb.hidden = true;
-
-    apiFetch('/shipments').then(body => {
-      const rows = body.data ?? [];
-      if (!rows.length) { st.textContent = 'No shipments found.'; return; }
-      document.getElementById('body-shipments').innerHTML = rows.map(r => `
-        <tr>
-          <td>${h(r.shipment_reference)}</td>
-          <td>${badge(r.status)}</td>
-          <td class="mono">${h(r.nxp_reference)}</td>
-          <td>${h(r.port_of_loading)} → ${h(r.port_of_discharge)}</td>
-          <td>${r.vessel_name != null ? h(r.vessel_name) : '—'}</td>
-          <td class="r">${num(r.shipment_value)}</td>
-          <td class="r">${num(r.total_allocated)}</td>
-          <td class="r">${num(r.outstanding_balance)}</td>
-          <td>${r.fully_reconciled ? '<span class="badge g">Yes</span>' : '<span class="badge y">No</span>'}</td>
-        </tr>`).join('');
-      show('st-shipments', 'tb-shipments', 'cnt-shipments', rows);
-    }).catch(e => errState('st-shipments', e.message));
-  }
-
-  // ── Load bills of lading ──────────────────────────────────────────────────────
-  function loadBillsOfLading() {
-    const st = document.getElementById('st-bl');
-    const tb = document.getElementById('tb-bl');
-    st.textContent = 'Loading…';
-    st.classList.remove('err');
-    st.hidden = false;
-    tb.hidden = true;
-
-    apiFetch('/bills-of-lading').then(body => {
-      const rows = body.data ?? [];
-      if (!rows.length) { st.textContent = 'No bills of lading found.'; return; }
-      document.getElementById('body-bl').innerHTML = rows.map(r => `
-        <tr>
-          <td class="mono">${h(r.bl_number)}</td>
-          <td class="mono" title="${h(r.shipment_id)}">${short(r.shipment_id)}</td>
-          <td>${date(r.bl_date)}</td>
-          <td>${badge(r.bl_type)}</td>
-          <td class="mono">${h(r.nxp_reference)}</td>
-          <td>${date(r.repatriation_deadline)}</td>
-          <td>${badge(r.deadline_status)}</td>
-        </tr>`).join('');
-      show('st-bl', 'tb-bl', 'cnt-bl', rows);
-    }).catch(e => errState('st-bl', e.message));
-  }
-
-  // ── Load payment receipts ─────────────────────────────────────────────────────
-  let _receipts = [];
-
-  function loadPaymentReceipts() {
-    const st = document.getElementById('st-receipts');
-    const tb = document.getElementById('tb-receipts');
-    st.textContent = 'Loading…';
-    st.classList.remove('err');
-    st.hidden = false;
-    tb.hidden = true;
-
-    apiFetch('/payment-receipts').then(body => {
-      _receipts = body.data ?? [];
-      if (!_receipts.length) { st.textContent = 'No payment receipts found.'; return; }
-      document.getElementById('body-receipts').innerHTML = _receipts.map(r => `
-        <tr>
-          <td class="mono">${h(r.receipt_reference)}</td>
-          <td>${h(r.currency)}</td>
-          <td class="r">${num(r.instructed_amount)}</td>
-          <td class="r">${num(r.credited_amount)}</td>
-          <td>${date(r.credit_date)}</td>
-          <td>${badge(r.allocation_status)}</td>
-          <td>${badge(r.discrepancy_status)}</td>
-          <td><button class="btn-alloc btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem"
-            data-receipt-id="${h(r.id)}">Allocate</button></td>
-        </tr>`).join('');
-      show('st-receipts', 'tb-receipts', 'cnt-receipts', _receipts);
-    }).catch(e => errState('st-receipts', e.message));
-  }
-
-  // ── Load payment evidence ─────────────────────────────────────────────────────
-  function loadPaymentEvidence() {
-    const st = document.getElementById('st-evidence');
-    const tb = document.getElementById('tb-evidence');
-    st.textContent = 'Loading…';
-    st.classList.remove('err');
-    st.hidden = false;
-    tb.hidden = true;
-
-    apiFetch('/payment-evidence').then(body => {
-      const rows = body.data ?? [];
-      if (!rows.length) { st.textContent = 'No payment evidence found.'; return; }
-      document.getElementById('body-evidence').innerHTML = rows.map(r => `
-        <tr>
-          <td>${badge(r.evidence_type)}</td>
-          <td class="mono" title="${h(r.receipt_id ?? '')}">${r.receipt_id ? short(r.receipt_id) : '—'}</td>
-          <td class="mono">${r.source_document_ref != null ? h(r.source_document_ref) : '—'}</td>
-          <td class="mono">${r.sender_bic != null ? h(r.sender_bic) : '—'}</td>
-          <td class="r">${num(r.instructed_amount)}</td>
-          <td>${r.instructed_currency != null ? h(r.instructed_currency) : '—'}</td>
-          <td>${date(r.value_date)}</td>
-          <td>${r.superseded_by ? '<span class="badge r">Superseded</span>' : '<span class="badge g">Active</span>'}</td>
-        </tr>`).join('');
-      show('st-evidence', 'tb-evidence', 'cnt-evidence', rows);
-    }).catch(e => errState('st-evidence', e.message));
-  }
-
-  // ── Load compliance ───────────────────────────────────────────────────────────
-  let _compliance = [];
-
-  function loadCompliance() {
-    const st = document.getElementById('st-compliance');
-    const tb = document.getElementById('tb-compliance');
-    st.textContent = 'Loading…';
-    st.classList.remove('err');
-    st.hidden = false;
-    tb.hidden = true;
-
-    apiFetch('/compliance').then(body => {
-      _compliance = body.data ?? [];
-      if (!_compliance.length) { st.textContent = 'No compliance records found.'; return; }
-      document.getElementById('body-compliance').innerHTML = _compliance.map(r => `
-        <tr>
-          <td title="${h(r.shipment_id)}">
-            <span style="font-weight:600">${h(r.shipment_reference ?? '—')}</span>
-            ${r.nxp_reference ? '<br><small class="mono" style="color:#6b7280">' + h(r.nxp_reference) + '</small>' : ''}
-          </td>
-          <td>${badge(r.repatriation_status)}</td>
-          <td>${date(r.repatriation_deadline)}</td>
-          <td class="r">${num(r.proceeds_required)}</td>
-          <td class="r">${num(r.proceeds_received)}</td>
-          <td class="r">${num(r.proceeds_outstanding)}</td>
-          <td>${r.was_repatriated_late ? '<span class="badge r">Yes</span>' : '<span class="badge gr">No</span>'}</td>
-          <td><div class="checks">
-            ${ck(r.nxp_approved,              'NXP', 'NXP Approved by CBN')}
-            ${ck(r.cci_obtained,              'CCI', 'CCI Obtained')}
-            ${ck(r.bl_uploaded,               'BL',  'Bill of Lading Uploaded')}
-            ${ck(r.payment_evidence_uploaded, 'EVD', 'Payment Evidence Uploaded')}
-            ${ck(r.credit_advice_confirmed,   'ADV', 'Credit Advice Confirmed')}
-          </div></td>
-          <td><button class="btn-comp-update btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem"
-            data-shipment-id="${h(r.shipment_id)}">Update</button></td>
-        </tr>`).join('');
-      show('st-compliance', 'tb-compliance', 'cnt-compliance', _compliance);
-    }).catch(e => errState('st-compliance', e.message));
-  }
-
-  // ── Load evidence packs ───────────────────────────────────────────────────────
-  let _packs = [];
-
-  function loadPacks() {
-    const st = document.getElementById('st-packs');
-    const tb = document.getElementById('tb-packs');
-    st.textContent = 'Loading…';
-    st.classList.remove('err');
-    st.hidden = false;
-    tb.hidden = true;
-
-    apiFetch('/evidence-packs').then(body => {
-      _packs = body.data ?? [];
-      if (!_packs.length) { st.textContent = 'No evidence packs found.'; return; }
-      document.getElementById('body-packs').innerHTML = _packs.map(r => {
-        const snap = (r.shipment_snapshot && typeof r.shipment_snapshot === 'object') ? r.shipment_snapshot : {};
-        const shipRef = snap.shipment_reference ?? null;
-        return `
-        <tr>
-          <td class="mono" title="${h(r.id)}">${short(r.id)}</td>
-          <td title="${h(r.shipment_id)}">
-            <span style="font-weight:600">${h(shipRef ?? short(r.shipment_id))}</span>
-          </td>
-          <td class="r">${r.version}</td>
-          <td>${badge(r.repatriation_status)}</td>
-          <td>${r.sealed ? '<span class="badge g">Sealed</span>' : '<span class="badge gr">Draft</span>'}</td>
-          <td class="mono">${h(r.nxp_reference)}</td>
-          <td>${date(r.generated_at)}</td>
-          <td>${r.sealed ? '' : '<button class="btn-seal btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem" data-pack-id="' + h(r.id) + '">Seal</button>'}</td>
-        </tr>`;
-      }).join('');
-      show('st-packs', 'tb-packs', 'cnt-packs', _packs);
-    }).catch(e => errState('st-packs', e.message));
-  }
-
-  // ── Load all ──────────────────────────────────────────────────────────────────
-  function loadAll() {
-    fetch('/auth/me', { headers: authHeaders() })
-      .then(r => r.json())
-      .then(b => { document.getElementById('header-exporter').textContent = b.exporterName ?? b.exporterId ?? ''; })
-      .catch(() => {});
-
-    loadContracts();
-    loadShipments();
-    loadBillsOfLading();
-    loadPaymentReceipts();
-    loadPaymentEvidence();
-    loadCompliance();
-    loadPacks();
-  }
-
-  // ── New Contract modal ────────────────────────────────────────────────────────
-  const contractForm   = document.getElementById('contract-form');
-  const contractError  = document.getElementById('contract-error');
-  const contractSubmit = document.getElementById('contract-submit');
-
-  function openContractModal() {
-    contractError.textContent = '';
-    contractForm.reset();
-    contractSubmit.disabled = false;
-
-    const sel = document.getElementById('f-counterparty');
-    sel.innerHTML = '<option value="">Loading…</option>';
-    apiFetch('/counterparties').then(body => {
-      const rows = body.data ?? [];
-      sel.innerHTML = '<option value="">Select counterparty…</option>' +
-        rows.map(r => `<option value="${h(r.id)}">${h(r.legal_name)} (${h(r.country_of_incorporation)})</option>`).join('');
-    }).catch(() => {
-      sel.innerHTML = '<option value="">Could not load counterparties</option>';
-    });
-
-    openCard('modal-contract');
-    document.getElementById('f-ref').focus();
-  }
-
-  document.getElementById('new-contract-btn').addEventListener('click', openContractModal);
-  document.getElementById('contract-cancel').addEventListener('click', closeModal);
-
-  contractForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    contractError.textContent = '';
-    contractSubmit.disabled = true;
-    contractSubmit.textContent = 'Creating…';
-
-    const fd = new FormData(contractForm);
-    const body = {
-      contract_reference:       fd.get('contract_reference'),
-      counterparty_id:          fd.get('counterparty_id'),
-      commodity:                fd.get('commodity'),
-      commodity_type:           fd.get('commodity_type'),
-      hs_code:                  fd.get('hs_code'),
-      contract_quantity:        Number(fd.get('contract_quantity')),
-      quantity_unit:            fd.get('quantity_unit'),
-      contract_value:           Number(fd.get('contract_value')),
-      currency:                 fd.get('currency'),
-      unit_price:               Number(fd.get('unit_price')),
-      incoterms:                fd.get('incoterms'),
-      destination_country:      fd.get('destination_country'),
-      destination_port:         fd.get('destination_port') || null,
-      payment_terms:            fd.get('payment_terms'),
-      partial_shipment_allowed: fd.get('partial_shipment_allowed') === 'on',
-      contract_date:            fd.get('contract_date'),
-      expiry_date:              fd.get('expiry_date') || null,
-      notes:                    fd.get('notes') || null,
-    };
-
-    try {
-      const res = await fetch('/contracts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        const detail = json.fields ? ` (${json.fields.join(', ')})` : '';
-        contractError.textContent = (json.error || 'Creation failed') + detail;
-        return;
-      }
-      closeModal();
-      loadContracts();
-    } catch {
-      contractError.textContent = 'Could not reach the server.';
-    } finally {
-      contractSubmit.disabled = false;
-      contractSubmit.textContent = 'Create Contract';
-    }
-  });
-
-  // ── New Shipment modal ────────────────────────────────────────────────────────
-  const shipmentForm   = document.getElementById('shipment-form');
-  const shipmentError  = document.getElementById('shipment-error');
-  const shipmentSubmit = document.getElementById('shipment-submit');
-
-  function openShipmentModal() {
-    shipmentError.textContent = '';
-    shipmentForm.reset();
-    shipmentSubmit.disabled = false;
-
-    const sel = document.getElementById('s-contract');
-    sel.innerHTML = '<option value="">Loading…</option>';
-    apiFetch('/contracts').then(body => {
-      const rows = body.data ?? [];
-      sel.innerHTML = '<option value="">Select contract…</option>' +
-        rows.map(r => `<option value="${h(r.id)}">${h(r.contract_reference)} — ${h(r.commodity)}</option>`).join('');
-    }).catch(() => {
-      sel.innerHTML = '<option value="">Could not load contracts</option>';
-    });
-
-    openCard('modal-shipment');
-    document.getElementById('s-ref').focus();
-  }
-
-  document.getElementById('new-shipment-btn').addEventListener('click', openShipmentModal);
-  document.getElementById('shipment-cancel').addEventListener('click', closeModal);
-
-  shipmentForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    shipmentError.textContent = '';
-    shipmentSubmit.disabled = true;
-    shipmentSubmit.textContent = 'Creating…';
-
-    const fd = new FormData(shipmentForm);
-    const body = {
-      contract_id:        fd.get('contract_id'),
-      shipment_reference: fd.get('shipment_reference'),
-      nxp_reference:      fd.get('nxp_reference'),
-      port_of_loading:    fd.get('port_of_loading'),
-      port_of_discharge:  fd.get('port_of_discharge'),
-      shipment_quantity:  Number(fd.get('shipment_quantity')),
-      shipment_value:     Number(fd.get('shipment_value')),
-      currency:           fd.get('currency'),
-      vessel_name:        fd.get('vessel_name')  || null,
-      voyage_number:      fd.get('voyage_number') || null,
-    };
-
-    try {
-      const res = await fetch('/shipments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        const detail = json.fields ? ` (${json.fields.join(', ')})` : '';
-        shipmentError.textContent = (json.error || 'Creation failed') + detail;
-        return;
-      }
-      closeModal();
-      loadShipments();
-    } catch {
-      shipmentError.textContent = 'Could not reach the server.';
-    } finally {
-      shipmentSubmit.disabled = false;
-      shipmentSubmit.textContent = 'Create Shipment';
-    }
-  });
-
-  // ── New Bill of Lading modal ──────────────────────────────────────────────────
-  const blForm   = document.getElementById('bl-form');
-  const blError  = document.getElementById('bl-error');
-  const blSubmit = document.getElementById('bl-submit');
-
-  function openBLModal() {
-    blError.textContent = '';
-    blForm.reset();
-    blSubmit.disabled = false;
-
-    const sel = document.getElementById('b-shipment');
-    sel.innerHTML = '<option value="">Loading…</option>';
-    apiFetch('/shipments').then(body => {
-      const rows = body.data ?? [];
-      sel.innerHTML = '<option value="">Select shipment…</option>' +
-        rows.map(r => `<option value="${h(r.id)}">${h(r.shipment_reference)} — ${h(r.nxp_reference)}</option>`).join('');
-    }).catch(() => {
-      sel.innerHTML = '<option value="">Could not load shipments</option>';
-    });
-
-    openCard('modal-bl');
-    document.getElementById('b-number').focus();
-  }
-
-  document.getElementById('new-bl-btn').addEventListener('click', openBLModal);
-  document.getElementById('bl-cancel').addEventListener('click', closeModal);
-
-  blForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    blError.textContent = '';
-    blSubmit.disabled = true;
-    blSubmit.textContent = 'Creating…';
-
-    const fd = new FormData(blForm);
-    const body = {
-      shipment_id:          fd.get('shipment_id'),
-      bl_number:            fd.get('bl_number'),
-      bl_date:              fd.get('bl_date'),
-      bl_type:              fd.get('bl_type'),
-      nxp_reference:        fd.get('nxp_reference'),
-      shipper_name:         fd.get('shipper_name'),
-      consignee_name:       fd.get('consignee_name'),
-      description_of_goods: fd.get('description_of_goods'),
-      freight_terms:        fd.get('freight_terms') || null,
-    };
-
-    try {
-      const res = await fetch('/bills-of-lading', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        const detail = json.fields ? ` (${json.fields.join(', ')})` : '';
-        blError.textContent = (json.error || 'Creation failed') + detail;
-        return;
-      }
-      closeModal();
-      loadBillsOfLading();
-      loadCompliance();
-    } catch {
-      blError.textContent = 'Could not reach the server.';
-    } finally {
-      blSubmit.disabled = false;
-      blSubmit.textContent = 'Create BL';
-    }
-  });
-
-  // ── New Payment Receipt modal ─────────────────────────────────────────────────
-  const receiptForm   = document.getElementById('receipt-form');
-  const receiptError  = document.getElementById('receipt-error');
-  const receiptSubmit = document.getElementById('receipt-submit');
-
-  function openReceiptModal() {
-    receiptError.textContent = '';
-    receiptForm.reset();
-    receiptSubmit.disabled = false;
-    openCard('modal-receipt');
-    document.getElementById('rc-ref').focus();
-  }
-
-  document.getElementById('new-receipt-btn').addEventListener('click', openReceiptModal);
-  document.getElementById('receipt-cancel').addEventListener('click', closeModal);
-
-  receiptForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    receiptError.textContent = '';
-    receiptSubmit.disabled = true;
-    receiptSubmit.textContent = 'Creating…';
-
-    const fd = new FormData(receiptForm);
-    const body = {
-      receipt_reference:      fd.get('receipt_reference'),
-      instructed_amount:      Number(fd.get('instructed_amount')),
-      credited_amount:        Number(fd.get('credited_amount')),
-      currency:               fd.get('currency'),
-      credit_date:            fd.get('credit_date'),
-      value_date:             fd.get('value_date')             || null,
-      ordering_bank_bic:      fd.get('ordering_bank_bic')      || null,
-      ordering_customer_name: fd.get('ordering_customer_name') || null,
-      remittance_info:        fd.get('remittance_info')        || null,
-    };
-
-    try {
-      const res = await fetch('/payment-receipts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        const detail = json.fields ? ` (${json.fields.join(', ')})` : '';
-        receiptError.textContent = (json.error || 'Creation failed') + detail;
-        return;
-      }
-      closeModal();
-      loadPaymentReceipts();
-    } catch {
-      receiptError.textContent = 'Could not reach the server.';
-    } finally {
-      receiptSubmit.disabled = false;
-      receiptSubmit.textContent = 'Create Receipt';
-    }
-  });
-
-  // ── New Payment Evidence modal ────────────────────────────────────────────────
-  const evidenceForm   = document.getElementById('evidence-form');
-  const evidenceError  = document.getElementById('evidence-error');
-  const evidenceSubmit = document.getElementById('evidence-submit');
-
-  function openEvidenceModal() {
-    evidenceError.textContent = '';
-    evidenceForm.reset();
-    evidenceSubmit.disabled = false;
-
-    const bcaDiv = document.getElementById('bca-fields');
-    bcaDiv.hidden = true;
-    bcaDiv.querySelectorAll('input').forEach(el => { el.required = false; });
-
-    const sel = document.getElementById('ev-receipt');
-    sel.innerHTML = '<option value="">Loading…</option>';
-    apiFetch('/payment-receipts').then(body => {
-      const rows = body.data ?? [];
-      sel.innerHTML = '<option value="">— none —</option>' +
-        rows.map(r => `<option value="${h(r.id)}">${h(r.receipt_reference)} (${h(r.currency)} ${num(r.credited_amount)})</option>`).join('');
-    }).catch(() => {
-      sel.innerHTML = '<option value="">Could not load receipts</option>';
-    });
-
-    openCard('modal-evidence');
-  }
-
-  document.getElementById('ev-type').addEventListener('change', function() {
-    const isBCA = this.value === 'BANK_CREDIT_ADVICE';
-    const bcaDiv = document.getElementById('bca-fields');
-    bcaDiv.hidden = !isBCA;
-    bcaDiv.querySelectorAll('input').forEach(el => { el.required = isBCA; });
-  });
-
-  document.getElementById('new-evidence-btn').addEventListener('click', openEvidenceModal);
-  document.getElementById('evidence-cancel').addEventListener('click', closeModal);
-
-  evidenceForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    evidenceError.textContent = '';
-    evidenceSubmit.disabled = true;
-    evidenceSubmit.textContent = 'Creating…';
-
-    const fd = new FormData(evidenceForm);
-    const evidenceType = fd.get('evidence_type');
-    const isBCA = evidenceType === 'BANK_CREDIT_ADVICE';
-    const body = {
-      evidence_type:       evidenceType,
-      receipt_id:          fd.get('receipt_id')          || null,
-      source_document_ref: fd.get('source_document_ref') || null,
-      sender_bic:          fd.get('sender_bic')          || null,
-      receiver_bic:        fd.get('receiver_bic')        || null,
-      instructed_amount:   fd.get('instructed_amount')   ? Number(fd.get('instructed_amount')) : null,
-      instructed_currency: fd.get('instructed_currency') || null,
-      value_date:          fd.get('value_date')          || null,
-      charges_code:        fd.get('charges_code')        || null,
-      ...(isBCA ? {
-        credited_amount:   Number(fd.get('credited_amount')),
-        credited_currency: fd.get('credited_currency')   || null,
-        credit_date:       fd.get('credit_date')         || null,
-      } : {}),
-    };
-
-    try {
-      const res = await fetch('/payment-evidence', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        const detail = json.fields ? ` (${json.fields.join(', ')})` : '';
-        evidenceError.textContent = (json.error || 'Creation failed') + detail;
-        return;
-      }
-      closeModal();
-      loadPaymentEvidence();
-    } catch {
-      evidenceError.textContent = 'Could not reach the server.';
-    } finally {
-      evidenceSubmit.disabled = false;
-      evidenceSubmit.textContent = 'Create Evidence';
-    }
-  });
-
-  // ── Allocate Receipt modal ────────────────────────────────────────────────────
-  const allocateForm   = document.getElementById('allocate-form');
-  const allocateError  = document.getElementById('allocate-error');
-  const allocateSubmit = document.getElementById('allocate-submit');
-
-  function openAllocateModal(receiptId, receiptRef) {
-    allocateError.textContent = '';
-    allocateForm.reset();
-    allocateSubmit.disabled = false;
-
-    document.getElementById('alloc-receipt-id').value = receiptId;
-    document.getElementById('alloc-receipt-display').textContent = receiptRef;
-
-    const sel = document.getElementById('alloc-shipment');
-    sel.innerHTML = '<option value="">Loading…</option>';
-    apiFetch('/shipments').then(body => {
-      const rows = body.data ?? [];
-      sel.innerHTML = '<option value="">Select shipment…</option>' +
-        rows.map(r => `<option value="${h(r.id)}">${h(r.shipment_reference)} — ${h(r.nxp_reference)}</option>`).join('');
-    }).catch(() => {
-      sel.innerHTML = '<option value="">Could not load shipments</option>';
-    });
-
-    openCard('modal-allocate');
-    document.getElementById('alloc-amount').focus();
-  }
-
-  document.getElementById('body-receipts').addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-alloc');
-    if (!btn) return;
-    const rid = btn.dataset.receiptId;
-    const rrow = _receipts.find(r => r.id === rid);
-    openAllocateModal(rid, rrow ? rrow.receipt_reference : rid);
-  });
-
-  document.getElementById('allocate-cancel').addEventListener('click', closeModal);
-
-  allocateForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    allocateError.textContent = '';
-    allocateSubmit.disabled = true;
-    allocateSubmit.textContent = 'Allocating…';
-
-    const fd = new FormData(allocateForm);
-    const body = {
-      receipt_id:        fd.get('receipt_id'),
-      shipment_id:       fd.get('shipment_id'),
-      allocated_amount:  Number(fd.get('allocated_amount')),
-      allocation_method: fd.get('allocation_method'),
-      allocation_date:   fd.get('allocation_date'),
-      notes:             fd.get('notes') || null,
-    };
-
-    try {
-      const res = await fetch('/payment-allocations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        const detail = json.fields ? ` (${json.fields.join(', ')})` : '';
-        allocateError.textContent = (json.error || 'Allocation failed') + detail;
-        return;
-      }
-      closeModal();
-      loadPaymentReceipts();
-      loadShipments();
-      loadCompliance();
-    } catch {
-      allocateError.textContent = 'Could not reach the server.';
-    } finally {
-      allocateSubmit.disabled = false;
-      allocateSubmit.textContent = 'Allocate';
-    }
-  });
-
-  // ── Update Compliance modal ───────────────────────────────────────────────────
-  const complianceError  = document.getElementById('compliance-error');
-  const complianceSubmit = document.getElementById('compliance-submit');
-
-  function openComplianceModal(crow) {
-    complianceError.textContent = '';
-    complianceSubmit.disabled = false;
-
-    document.getElementById('comp-shipment-id').value        = crow.shipment_id;
-    document.getElementById('comp-shipment-display').textContent =
-      crow.shipment_reference ? crow.shipment_reference + (crow.nxp_reference ? ' / ' + crow.nxp_reference : '') : crow.shipment_id;
-    document.getElementById('comp-nxp-submitted').checked    = !!crow.nxp_submitted;
-    document.getElementById('comp-nxp-approved').checked     = !!crow.nxp_approved;
-    document.getElementById('comp-cci').checked              = !!crow.cci_obtained;
-    document.getElementById('comp-bl').checked               = !!crow.bl_uploaded;
-    document.getElementById('comp-evd').checked              = !!crow.payment_evidence_uploaded;
-    document.getElementById('comp-adv').checked              = !!crow.credit_advice_confirmed;
-    document.getElementById('comp-notes').value              = crow.notes ?? '';
-    document.getElementById('comp-flags').value              = (crow.compliance_flags ?? []).join(', ');
-
-    openCard('modal-compliance');
-  }
-
-  document.getElementById('body-compliance').addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-comp-update');
-    if (!btn) return;
-    const sid = btn.dataset.shipmentId;
-    const crow = _compliance.find(r => r.shipment_id === sid);
-    if (crow) openComplianceModal(crow);
-  });
-
-  document.getElementById('compliance-cancel').addEventListener('click', closeModal);
-
-  document.getElementById('compliance-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    complianceError.textContent = '';
-    complianceSubmit.disabled = true;
-    complianceSubmit.textContent = 'Updating…';
-
-    const shipmentId = document.getElementById('comp-shipment-id').value;
-    const flagsRaw   = document.getElementById('comp-flags').value.trim();
-    const flags      = flagsRaw ? flagsRaw.split(',').map(s => s.trim()).filter(Boolean) : null;
-
-    const body = {
-      nxp_submitted:             document.getElementById('comp-nxp-submitted').checked,
-      nxp_approved:              document.getElementById('comp-nxp-approved').checked,
-      cci_obtained:              document.getElementById('comp-cci').checked,
-      bl_uploaded:               document.getElementById('comp-bl').checked,
-      payment_evidence_uploaded: document.getElementById('comp-evd').checked,
-      credit_advice_confirmed:   document.getElementById('comp-adv').checked,
-      notes:                     document.getElementById('comp-notes').value.trim() || null,
-      compliance_flags:          flags,
-    };
-
-    try {
-      const res = await fetch(`/compliance/${shipmentId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        complianceError.textContent = json.error || 'Update failed';
-        return;
-      }
-      closeModal();
-      loadCompliance();
-    } catch {
-      complianceError.textContent = 'Could not reach the server.';
-    } finally {
-      complianceSubmit.disabled = false;
-      complianceSubmit.textContent = 'Update';
-    }
-  });
-
-  // ── Generate Evidence Pack modal ──────────────────────────────────────────────
-  const genPackError  = document.getElementById('gen-pack-error');
-  const genPackSubmit = document.getElementById('gen-pack-submit');
-
-  function openGenPackModal() {
-    genPackError.textContent = '';
-    genPackSubmit.disabled = false;
-    document.getElementById('gen-pack-form').reset();
-
-    const sel = document.getElementById('gp-shipment');
-    sel.innerHTML = '<option value="">Loading…</option>';
-    apiFetch('/shipments').then(body => {
-      const rows = body.data ?? [];
-      sel.innerHTML = '<option value="">Select shipment…</option>' +
-        rows.map(r => `<option value="${h(r.id)}">${h(r.shipment_reference)} — ${h(r.nxp_reference)}</option>`).join('');
-    }).catch(() => {
-      sel.innerHTML = '<option value="">Could not load shipments</option>';
-    });
-
-    openCard('modal-gen-pack');
-  }
-
-  document.getElementById('gen-pack-btn').addEventListener('click', openGenPackModal);
-  document.getElementById('gen-pack-cancel').addEventListener('click', closeModal);
-
-  document.getElementById('gen-pack-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    genPackError.textContent = '';
-    genPackSubmit.disabled = true;
-    genPackSubmit.textContent = 'Generating…';
-
-    const fd = new FormData(document.getElementById('gen-pack-form'));
-    const body = {
-      shipment_id: fd.get('shipment_id'),
-      notes:       fd.get('notes') || null,
-    };
-
-    try {
-      const res = await fetch('/evidence-packs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        const detail = json.fields ? ` (${json.fields.join(', ')})` : '';
-        genPackError.textContent = (json.error || 'Generation failed') + detail;
-        return;
-      }
-      closeModal();
-      loadPacks();
-    } catch {
-      genPackError.textContent = 'Could not reach the server.';
-    } finally {
-      genPackSubmit.disabled = false;
-      genPackSubmit.textContent = 'Generate Pack';
-    }
-  });
-
-  // ── Seal Evidence Pack modal ──────────────────────────────────────────────────
-  const sealError  = document.getElementById('seal-error');
-  const sealSubmit = document.getElementById('seal-submit');
-
-  function openSealModal(packId) {
-    sealError.textContent = '';
-    sealSubmit.disabled = false;
-
-    document.getElementById('seal-pack-id').value = packId;
-    const pack = _packs.find(p => p.id === packId);
-
-    if (pack) {
-      const snap = (pack.shipment_snapshot && typeof pack.shipment_snapshot === 'object') ? pack.shipment_snapshot : {};
-      const shipRef = snap.shipment_reference ?? short(pack.shipment_id);
-      const nxpRef  = pack.nxp_reference ?? '';
-      document.getElementById('seal-pack-display').textContent =
-        shipRef + (nxpRef ? ' / ' + nxpRef : '') + ' — v' + pack.version;
-
-      const comp = _compliance.find(r => r.shipment_id === pack.shipment_id);
-      document.getElementById('seal-compliance-status').innerHTML = comp
-        ? '<div class="checks" style="flex-wrap:wrap;gap:0.35rem">'
-          + ck(comp.nxp_approved,              'NXP', 'NXP Approved by CBN')
-          + ck(comp.cci_obtained,              'CCI', 'CCI Obtained')
-          + ck(comp.bl_uploaded,               'BL',  'Bill of Lading Uploaded')
-          + ck(comp.payment_evidence_uploaded, 'EVD', 'Payment Evidence Uploaded')
-          + ck(comp.credit_advice_confirmed,   'ADV', 'Credit Advice Confirmed')
-          + '</div>'
-        : '';
-    } else {
-      document.getElementById('seal-pack-display').textContent = packId;
-      document.getElementById('seal-compliance-status').innerHTML = '';
-    }
-
-    openCard('modal-seal');
-  }
-
-  document.getElementById('body-packs').addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-seal');
-    if (!btn) return;
-    openSealModal(btn.dataset.packId);
-  });
-
-  document.getElementById('seal-cancel').addEventListener('click', closeModal);
-
-  sealSubmit.addEventListener('click', async () => {
-    sealError.textContent = '';
-    sealSubmit.disabled = true;
-    sealSubmit.textContent = 'Sealing…';
-
-    const packId = document.getElementById('seal-pack-id').value;
-
-    try {
-      const res = await fetch(`/evidence-packs/${packId}/seal`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify({}),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        sealError.textContent = json.error || 'Seal failed';
-        return;
-      }
-      closeModal();
-      loadPacks();
-      loadCompliance();
-    } catch {
-      sealError.textContent = 'Could not reach the server.';
-    } finally {
-      sealSubmit.disabled = false;
-      sealSubmit.textContent = 'Seal Pack';
-    }
-  });
-
-  // ── Boot ─────────────────────────────────────────────────────────────────────
-  if (getToken()) {
-    showDashboard();
-  } else {
-    showLogin();
-  }
-</script>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>ExportOS v0.2 &nbsp;&middot;&nbsp; System of record for Nigerian non-oil export compliance &nbsp;&middot;&nbsp; <a href="mailto:admin@exportos.ng">admin@exportos.ng</a></p>
+  </footer>
 
 </body>
 </html>
