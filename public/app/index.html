@@ -96,9 +96,18 @@
       align-items: center;
       justify-content: space-between;
     }
-    .header-left { display: flex; align-items: baseline; gap: 1rem; }
+    .header-left { display: flex; align-items: baseline; gap: 0; }
     header h1 { font-size: 1rem; font-weight: 700; }
     header span { font-size: 0.8125rem; opacity: 0.5; }
+    #header-exporter {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #e2e8f0;
+      opacity: 1;
+      border-left: 1px solid #334155;
+      margin-left: 1rem;
+      padding-left: 1rem;
+    }
     #logout-btn {
       font-size: 0.75rem;
       color: #94a3b8;
@@ -110,7 +119,7 @@
     }
     #logout-btn:hover { color: #f1f5f9; border-color: #475569; }
 
-    main { padding: 1.25rem 1.5rem; display: grid; gap: 1.25rem; }
+    main { padding: 1.75rem 1.5rem 1.5rem; display: grid; gap: 1.25rem; }
 
     .card {
       background: #fff;
@@ -147,7 +156,13 @@
     }
     .btn-add:hover { background: #15294a; }
 
-    .table-wrap { overflow-x: auto; }
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .table-wrap::-webkit-scrollbar { height: 3px; }
+    .table-wrap::-webkit-scrollbar-track { background: transparent; }
+    .table-wrap::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
     table { width: 100%; border-collapse: collapse; white-space: nowrap; }
     thead tr { background: #f9fafb; }
     th {
@@ -451,7 +466,7 @@
     </section>
 
     <!-- Operational Records section label -->
-    <div class="ov-section-label" style="margin-top:0.5rem">Operational Records</div>
+    <div class="ov-section-label" style="margin-top:1.25rem">Operational Records</div>
 
     <!-- Contracts -->
     <div class="card">
