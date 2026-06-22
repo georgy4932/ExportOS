@@ -56,6 +56,75 @@ This replays all 6 migrations and the seed file from scratch. The API server doe
 
 ---
 
+## Manual Pilot Onboarding
+
+ExportOS has no public self-signup. Pilot exporters are onboarded manually by the administrator using a CLI script that connects directly to the live database.
+
+### Prerequisites
+
+- Node.js 18+ installed
+- `.env.local` present with `DATABASE_URL` pointing to the live Supabase database
+
+### Run the script
+
+```bash
+npm run pilot:create-exporter
+```
+
+The script prompts interactively:
+
+```
+=== ExportOS — Manual Pilot Onboarding ===
+
+Exporter company name (legal):        SUNRISE COCOA EXPORTS LTD
+Registration number (RC / CAC):       RC-2091456
+Country code (2-letter, e.g. NG):     NG
+Contact email (your records only):    cfo@sunrisecocoa.ng
+Login email:                          operator@sunrisecocoa.ng
+Temporary password (min 8 chars):     ············
+```
+
+On success it prints the credentials to share:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PILOT LOGIN CREDENTIALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Company:       SUNRISE COCOA EXPORTS LTD
+  Reg. number:   RC-2091456
+  Contact email: cfo@sunrisecocoa.ng
+  Login URL:     https://exportos.ng
+  Login email:   operator@sunrisecocoa.ng
+  Password:      ············
+  Exporter ID:   xxxxxxxx-…  (internal)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### What the script creates
+
+| Table | Row |
+|---|---|
+| `auth.users` | Supabase identity row (required by FK) |
+| `local_users` | v0.2 JWT login credentials (same UUID) |
+| `exporters` | Exporter company record |
+| `exporter_settings` | Default tolerances (2% / $500 cap, 180-day non-oil) |
+| `exporter_users` | Links user → exporter as ADMIN |
+
+All five inserts run in a single transaction — either all succeed or none are committed.
+
+### What the pilot exporter sees
+
+After logging in at `https://exportos.ng`, the exporter sees an **empty dashboard scoped entirely to their company**. No other exporter's data is visible.
+
+### Notes
+
+- **Contact email** is for the administrator's records only; it is not stored in the database.
+- **Temporary password** is displayed once. Send it via a secure channel — there is no password-reset flow in v0.2.
+- The **login email** must be unique. Running the script twice with the same email exits without creating a partial record.
+- This script requires direct database access (`DATABASE_URL`). Do not run it from a public server.
+
+---
+
 ## What the dashboard demonstrates
 
 The dashboard is a single-page HTML app (`public/index.html`) with seven cards covering the full operational lifecycle of a non-oil export:

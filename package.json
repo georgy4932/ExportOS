@@ -23,6 +23,7 @@
     "verify-invoices-api": "tsx scripts/verify-invoices-api.ts",
     "verify-compliance-api": "tsx scripts/verify-compliance-api.ts",
     "verify-evidence-packs-api": "tsx scripts/verify-evidence-packs-api.ts",
+    "pilot:create-exporter": "tsx scripts/pilot-create-exporter.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
