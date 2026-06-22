@@ -389,6 +389,40 @@
       font-size: 0.8125rem;
       color: #6b7280;
     }
+    .ov-att-dot.orange { background: #f97316; }
+    .ov-att-ref {
+      font-family: monospace;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    /* ── Compliance Cases ──────────────────────────────────────────────────── */
+    #cc-section { display: none; }
+    .cc-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 640px;
+    }
+    .cc-table th {
+      padding: 0.5rem 0.875rem;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b7280;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+    .cc-table td {
+      padding: 0.5rem 0.875rem;
+      font-size: 0.8125rem;
+      border-bottom: 1px solid #f3f4f6;
+      vertical-align: middle;
+    }
+    .cc-table tr:last-child td { border-bottom: none; }
+    .cc-blocker { color: #374151; }
     @media (max-width: 900px) {
       .ov-metric-row { grid-template-columns: repeat(3, 1fr); }
     }
@@ -461,6 +495,34 @@
         <div class="card-header"><h2>Attention Required</h2></div>
         <div id="ov-attention-body">
           <div class="state">Loading…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Compliance Cases ───────────────────────────────────────────────── -->
+    <section id="cc-section">
+      <div class="ov-section-label" style="margin-top:0.25rem">Compliance Cases</div>
+      <div class="card">
+        <div class="card-header">
+          <h2>Compliance Cases</h2>
+          <span id="cnt-cases" class="card-count"></span>
+        </div>
+        <div id="st-cases" class="state">Loading…</div>
+        <div id="tb-cases" hidden>
+          <div class="table-wrap">
+            <table class="cc-table">
+              <thead><tr>
+                <th>Shipment</th>
+                <th>NXP Reference</th>
+                <th>Status</th>
+                <th class="r">Outstanding</th>
+                <th>Deadline</th>
+                <th>Blocking Issue</th>
+                <th>Evidence Pack</th>
+              </tr></thead>
+              <tbody id="body-cases"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
@@ -1564,60 +1626,105 @@
     }).catch(e => errState('st-packs', e.message));
   }
 
-  // ── Load overview ─────────────────────────────────────────────────────────────
+  // ── Load overview ─────────────────────────────────────────────────────────────────────────────
   function loadOverview() {
-    const section    = document.getElementById('ov-section');
-    const metricsEl  = document.getElementById('ov-metrics');
-    const ringEl     = document.getElementById('ov-ring-body');
+    const section     = document.getElementById('ov-section');
+    const metricsEl   = document.getElementById('ov-metrics');
+    const ringEl      = document.getElementById('ov-ring-body');
     const deadlinesEl = document.getElementById('ov-deadlines-body');
-    const attEl      = document.getElementById('ov-attention-body');
+    const attEl       = document.getElementById('ov-attention-body');
+    const ccSection   = document.getElementById('cc-section');
+    const stCases     = document.getElementById('st-cases');
+    const tbCases     = document.getElementById('tb-cases');
+    const cntCases    = document.getElementById('cnt-cases');
+    const bodyCases   = document.getElementById('body-cases');
 
     Promise.all([
       apiFetch('/contracts').then(b => b.data ?? []).catch(() => []),
       apiFetch('/shipments').then(b => b.data ?? []).catch(() => []),
       apiFetch('/compliance').then(b => b.data ?? []).catch(() => []),
-    ]).then(([contracts, shipments, compliance]) => {
+      apiFetch('/evidence-packs').then(b => b.data ?? []).catch(() => []),
+    ]).then(([contracts, shipments, compliance, packs]) => {
       const now = new Date();
 
-      // ── Summary metric cards ────────────────────────────────────────────────
-      const activeContracts      = contracts.filter(c => c.status === 'ACTIVE').length;
-      const allocatedTotal       = contracts.reduce((s, c) => s + (Number(c.total_allocated_receipts) || 0), 0);
-      const outstandingTotal     = compliance.reduce((s, c) => s + (Number(c.proceeds_outstanding) || 0), 0);
-      const compliantCount       = compliance.filter(c =>
-        c.repatriation_status === 'PROCEEDS_COMPLETE' &&
-        (Number(c.proceeds_outstanding) || 0) <= 0 &&
-        c.nxp_approved && c.cci_obtained && c.bl_uploaded &&
-        c.payment_evidence_uploaded && c.credit_advice_confirmed
-      ).length;
-      const complianceRate       = compliance.length > 0
+      // ── Build per-shipment Compliance Case model ────────────────────────────────────
+      const packByShipment = {};
+      packs.forEach(p => { packByShipment[p.shipment_id] = p; });
+
+      const cases = compliance.map(c => {
+        const pack        = packByShipment[c.shipment_id] ?? null;
+        const daysLeft    = c.repatriation_deadline
+          ? Math.ceil((new Date(c.repatriation_deadline) - now) / 86400000)
+          : null;
+        const outstanding = Number(c.proceeds_outstanding) || 0;
+        const allChecklist = c.nxp_approved && c.cci_obtained && c.bl_uploaded
+          && c.payment_evidence_uploaded && c.credit_advice_confirmed;
+
+        // Case status
+        let caseStatus;
+        if (c.repatriation_status === 'COMPLETE' && outstanding <= 0 && allChecklist) {
+          caseStatus = 'COMPLETE';
+        } else if (daysLeft !== null && daysLeft < 0) {
+          caseStatus = 'OVERDUE';
+        } else if (daysLeft !== null && daysLeft <= 30) {
+          caseStatus = 'AT_RISK';
+        } else {
+          caseStatus = 'PARTIAL';
+        }
+
+        // Blocking issue (priority order)
+        let blocker = null;
+        if      (daysLeft !== null && daysLeft < 0)   blocker = 'Deadline ' + Math.abs(daysLeft) + 'd overdue';
+        else if (daysLeft !== null && daysLeft <= 30)  blocker = 'Deadline in ' + daysLeft + 'd';
+        else if (outstanding > 0)                      blocker = 'Outstanding proceeds USD' + ' ' + num(outstanding);
+        else if (!c.credit_advice_confirmed)           blocker = 'Missing credit advice';
+        else if (!c.payment_evidence_uploaded)         blocker = 'Missing payment evidence';
+        else if (!c.bl_uploaded)                       blocker = 'Missing BL';
+        else if (!c.cci_obtained)                      blocker = 'Missing CCI';
+        else if (!c.nxp_approved)                      blocker = 'Missing NXP approval';
+        else if (pack && !pack.sealed)                 blocker = 'Evidence pack not sealed';
+
+        // Missing checklist items
+        const missing = [];
+        if (!c.nxp_approved)              missing.push('NXP');
+        if (!c.cci_obtained)              missing.push('CCI');
+        if (!c.bl_uploaded)               missing.push('BL');
+        if (!c.payment_evidence_uploaded) missing.push('EVD');
+        if (!c.credit_advice_confirmed)   missing.push('ADV');
+
+        // Evidence pack readiness
+        let packStatus = 'NOT_READY';
+        if      (pack && pack.sealed)                   packStatus = 'SEALED';
+        else if (pack && !pack.sealed && allChecklist)  packStatus = 'READY_TO_SEAL';
+
+        return { ...c, daysLeft, outstanding, allChecklist, caseStatus, blocker, missing, packStatus, pack };
+      });
+
+      // ── Summary metric cards ──────────────────────────────────────────────────────
+      const activeContracts  = contracts.filter(c => c.status === 'ACTIVE').length;
+      const allocatedTotal   = contracts.reduce((s, c) => s + (Number(c.total_allocated_receipts) || 0), 0);
+      const outstandingTotal = compliance.reduce((s, c) => s + (Number(c.proceeds_outstanding) || 0), 0);
+      const compliantCount   = cases.filter(c => c.caseStatus === 'COMPLETE').length;
+      const complianceRate   = compliance.length > 0
         ? Math.round((compliantCount / compliance.length) * 100) + '%'
         : '—';
-      const deadlineCount        = compliance.filter(c => {
-        if (!c.repatriation_deadline) return false;
-        const diff = (new Date(c.repatriation_deadline) - now) / 86400000;
-        return diff >= 0 && diff <= 60;
-      }).length;
+      const deadlineCount    = cases.filter(c => c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= 60).length;
 
       metricsEl.innerHTML = [
-        { v: activeContracts,                    l: 'Active Contracts'      },
-        { v: complianceRate,                     l: 'Compliance Rate'       },
-        { v: 'USD ' + num(allocatedTotal),  l: 'Allocated Proceeds'    },
-        { v: 'USD ' + num(outstandingTotal), l: 'Outstanding Proceeds'  },
-        { v: deadlineCount,                      l: 'Upcoming Deadlines'    },
+        { v: activeContracts,                     l: 'Active Contracts'      },
+        { v: complianceRate,                      l: 'Compliance Rate'       },
+        { v: 'USD' + ' ' + num(allocatedTotal),   l: 'Allocated Proceeds'    },
+        { v: 'USD' + ' ' + num(outstandingTotal),  l: 'Outstanding Proceeds'  },
+        { v: deadlineCount,                       l: 'Upcoming Deadlines'    },
       ].map(m => `<div class="ov-metric-card"><div class="mv">${h(String(m.v))}</div><div class="ml">${h(m.l)}</div></div>`).join('');
 
-      // ── Compliance progress ring ────────────────────────────────────────────
+      // ── Compliance progress ring ──────────────────────────────────────────────────
       const total    = compliance.length;
-      const complete = compliance.filter(c =>
-        c.repatriation_status === 'PROCEEDS_COMPLETE' &&
-        (Number(c.proceeds_outstanding) || 0) <= 0 &&
-        c.nxp_approved && c.cci_obtained && c.bl_uploaded &&
-        c.payment_evidence_uploaded && c.credit_advice_confirmed
-      ).length;
-      const pct  = total > 0 ? Math.round((complete / total) * 100) : 0;
-      const R    = 40;
-      const circ = 2 * Math.PI * R;
-      const off  = circ * (1 - pct / 100);
+      const complete = compliantCount;
+      const pct      = total > 0 ? Math.round((complete / total) * 100) : 0;
+      const R        = 40;
+      const circ     = 2 * Math.PI * R;
+      const off      = circ * (1 - pct / 100);
       ringEl.innerHTML = `
         <svg width="104" height="104" viewBox="0 0 100 100" aria-label="${pct}% compliance">
           <circle cx="50" cy="50" r="${R}" fill="none" stroke="#e5e7eb" stroke-width="10"/>
@@ -1631,11 +1738,9 @@
         <div class="ov-ring-count">${complete} of ${total}</div>
         <div class="ov-ring-sub">Shipments fully<br>compliant</div>`;
 
-      // ── Upcoming deadlines ──────────────────────────────────────────────────
-      const deadlineRows = compliance
-        .filter(c => c.repatriation_deadline)
-        .map(c => ({ ...c, daysLeft: Math.ceil((new Date(c.repatriation_deadline) - now) / 86400000) }))
-        .filter(c => c.daysLeft >= -30)
+      // ── Upcoming deadlines ──────────────────────────────────────────────────────────────
+      const deadlineRows = cases
+        .filter(c => c.repatriation_deadline && c.daysLeft !== null && c.daysLeft >= -30)
         .sort((a, b) => a.daysLeft - b.daysLeft)
         .slice(0, 6);
 
@@ -1659,41 +1764,52 @@
         </table>`;
       }
 
-      // ── Attention Required ──────────────────────────────────────────────────
-      const items = [];
+      // ── Attention Required (case-driven) ───────────────────────────────────────────
+      const attItems = [];
 
-      const overdue = compliance.filter(c =>
-        c.repatriation_deadline &&
-        new Date(c.repatriation_deadline) < now &&
-        c.repatriation_status !== 'PROCEEDS_COMPLETE'
-      );
-      if (overdue.length)
-        items.push({ dot: 'red', text: `${overdue.length} deadline${overdue.length !== 1 ? 's' : ''} passed — proceeds not fully repatriated` });
-
-      const imminent = compliance.filter(c => {
-        if (!c.repatriation_deadline) return false;
-        const diff = (new Date(c.repatriation_deadline) - now) / 86400000;
-        return diff >= 0 && diff <= 30 && c.repatriation_status !== 'PROCEEDS_COMPLETE';
+      cases.forEach(c => {
+        if (c.caseStatus === 'COMPLETE' || !c.blocker) return;
+        const dot = c.caseStatus === 'OVERDUE' ? 'red'
+                  : c.caseStatus === 'AT_RISK'  ? 'orange'
+                  : 'yellow';
+        attItems.push({ dot, ref: h(c.nxp_reference || c.shipment_reference || '—'), text: h(c.blocker) });
       });
-      if (imminent.length)
-        items.push({ dot: 'yellow', text: `${imminent.length} deadline${imminent.length !== 1 ? 's' : ''} within 30 days — repatriation incomplete` });
 
-      const unreconciled = shipments.filter(s => !s.fully_reconciled);
-      if (unreconciled.length)
-        items.push({ dot: 'yellow', text: `${unreconciled.length} shipment${unreconciled.length !== 1 ? 's' : ''} not fully reconciled` });
+      shipments.filter(s => !s.fully_reconciled).forEach(s => {
+        attItems.push({ dot: 'yellow', ref: h(s.shipment_reference || s.id || '—'), text: 'Not fully reconciled' });
+      });
 
-      const missingChecks = compliance.filter(c =>
-        !(c.nxp_approved && c.cci_obtained && c.bl_uploaded &&
-          c.payment_evidence_uploaded && c.credit_advice_confirmed)
-      );
-      if (missingChecks.length)
-        items.push({ dot: 'yellow', text: `${missingChecks.length} shipment${missingChecks.length !== 1 ? 's' : ''} with incomplete compliance checklist` });
-
-      attEl.innerHTML = items.length
-        ? `<div class="ov-att-list">${items.map(it =>
-            `<div class="ov-att-item"><div class="ov-att-dot ${h(it.dot)}"></div><div>${h(it.text)}</div></div>`
+      attEl.innerHTML = attItems.length
+        ? `<div class="ov-att-list">${attItems.map(it =>
+            `<div class="ov-att-item">
+              <div class="ov-att-dot ${it.dot}"></div>
+              <div><span class="ov-att-ref">${it.ref}</span> — ${it.text}</div>
+            </div>`
           ).join('')}</div>`
         : '<p class="ov-empty-msg">No exceptions — all items in order.</p>';
+
+      // ── Compliance Cases table ──────────────────────────────────────────────────────────
+      const caseStatusCls = { COMPLETE: 'g', PARTIAL: 'y', AT_RISK: 'o', OVERDUE: 'r' };
+      const packStatusCls = { SEALED: 'b', READY_TO_SEAL: 'y', NOT_READY: 'gr' };
+
+      if (!cases.length) {
+        stCases.textContent = 'No compliance records found.';
+      } else {
+        bodyCases.innerHTML = cases.map(c => `
+          <tr>
+            <td>${h(c.shipment_reference ?? '—')}</td>
+            <td class="mono">${h(c.nxp_reference ?? '—')}</td>
+            <td><span class="badge ${caseStatusCls[c.caseStatus] ?? 'gr'}">${h(c.caseStatus.replace('_', ' '))}</span></td>
+            <td class="r">${c.outstanding > 0 ? 'USD' + ' ' + h(num(c.outstanding)) : '<span style="color:#9ca3af">—</span>'}</td>
+            <td>${date(c.repatriation_deadline)}</td>
+            <td class="cc-blocker">${c.blocker ? h(c.blocker) : '<span style="color:#9ca3af">—</span>'}</td>
+            <td><span class="badge ${packStatusCls[c.packStatus] ?? 'gr'}">${h(c.packStatus.replace(/_/g, ' '))}</span></td>
+          </tr>`).join('');
+        cntCases.textContent = cases.length + ' case' + (cases.length !== 1 ? 's' : '');
+        stCases.hidden = true;
+        tbCases.hidden = false;
+      }
+      ccSection.style.display = 'block';
 
       section.style.display = 'block';
     }).catch(() => {
