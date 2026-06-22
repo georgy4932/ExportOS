@@ -9,15 +9,16 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --navy:   #0f172a;
-      --navy2:  #1e3a5f;
-      --navy2h: #15294a;
-      --bg:     #f3f4f6;
-      --border: #e5e7eb;
-      --text:   #111827;
-      --mid:    #374151;
-      --muted:  #6b7280;
-      --white:  #ffffff;
+      --green:     #166534;
+      --green-h:   #14532d;
+      --green-lt:  #f0fdf4;
+      --bg:        #ffffff;
+      --bg-subtle: #f9fafb;
+      --text:      #111827;
+      --mid:       #374151;
+      --muted:     #6b7280;
+      --border:    #e5e7eb;
+      --border-lt: #f3f4f6;
     }
 
     body {
@@ -29,539 +30,686 @@
 
     /* ── NAV ── */
     nav {
-      background: var(--navy);
-      padding: 0 24px;
-      height: 56px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      height: 64px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      padding: 0 40px;
+      gap: 40px;
       position: sticky;
       top: 0;
       z-index: 100;
     }
-    .nav-brand {
-      color: var(--white);
-      font-size: 18px;
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .nav-logo-text {
+      font-size: 17px;
       font-weight: 700;
+      color: var(--text);
       letter-spacing: -0.3px;
-      text-decoration: none;
     }
-    .nav-brand span { color: #93c5fd; }
-    .nav-cta { display: flex; gap: 10px; align-items: center; }
-    .btn-nav-ghost {
-      color: #cbd5e1;
-      font-size: 13px;
-      text-decoration: none;
-      padding: 6px 14px;
-      border-radius: 6px;
-      border: 1px solid #334155;
-      transition: background 0.15s;
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      flex: 1;
     }
-    .btn-nav-ghost:hover { background: #1e293b; }
-    .btn-nav-primary {
-      background: var(--navy2);
-      color: var(--white);
-      font-size: 13px;
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--mid);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-actions { display: flex; gap: 10px; flex-shrink: 0; }
+    .btn-nav-outline {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      text-decoration: none;
+      padding: 8px 18px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      transition: border-color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .btn-nav-outline:hover { border-color: #9ca3af; background: var(--bg-subtle); }
+    .btn-nav-green {
+      font-size: 14px;
       font-weight: 600;
+      color: #fff;
       text-decoration: none;
-      padding: 6px 16px;
-      border-radius: 6px;
+      padding: 8px 18px;
+      border-radius: 7px;
+      background: var(--green);
       transition: background 0.15s;
+      white-space: nowrap;
     }
-    .btn-nav-primary:hover { background: var(--navy2h); }
+    .btn-nav-green:hover { background: var(--green-h); }
 
     /* ── HERO ── */
     .hero {
-      background: var(--navy);
-      color: var(--white);
-      padding: 80px 24px 88px;
-      text-align: center;
-    }
-    .hero-badge {
-      display: inline-block;
-      background: #1e293b;
-      color: #93c5fd;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.6px;
-      text-transform: uppercase;
-      padding: 4px 12px;
-      border-radius: 20px;
-      border: 1px solid #334155;
-      margin-bottom: 28px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 40px 96px;
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 64px;
+      align-items: center;
     }
     .hero h1 {
-      font-size: clamp(28px, 5vw, 48px);
+      font-size: clamp(28px, 3.8vw, 44px);
       font-weight: 800;
       line-height: 1.15;
-      max-width: 720px;
-      margin: 0 auto 20px;
       letter-spacing: -0.5px;
+      color: var(--text);
+      margin-bottom: 20px;
     }
-    .hero h1 em { font-style: normal; color: #93c5fd; }
+    .hero h1 span { color: var(--green); }
     .hero-sub {
-      font-size: clamp(15px, 2.2vw, 18px);
-      color: #94a3b8;
-      max-width: 580px;
-      margin: 0 auto 40px;
+      font-size: 17px;
+      color: var(--mid);
+      line-height: 1.65;
+      margin-bottom: 36px;
     }
     .hero-actions {
       display: flex;
       gap: 12px;
-      justify-content: center;
       flex-wrap: wrap;
+      margin-bottom: 24px;
     }
-    .btn-primary {
-      background: var(--navy2);
-      color: var(--white);
+    .btn-hero-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
       font-size: 15px;
       font-weight: 600;
+      color: #fff;
       text-decoration: none;
-      padding: 13px 28px;
+      padding: 12px 24px;
       border-radius: 8px;
-      transition: background 0.15s, transform 0.1s;
+      background: var(--green);
+      transition: background 0.15s;
     }
-    .btn-primary:hover { background: var(--navy2h); transform: translateY(-1px); }
-    .btn-secondary {
-      background: transparent;
-      color: #cbd5e1;
+    .btn-hero-primary:hover { background: var(--green-h); }
+    .btn-hero-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
       font-size: 15px;
       font-weight: 500;
+      color: var(--text);
       text-decoration: none;
-      padding: 13px 28px;
+      padding: 12px 24px;
       border-radius: 8px;
-      border: 1px solid #334155;
-      transition: background 0.15s, border-color 0.15s;
+      border: 1px solid var(--border);
+      transition: border-color 0.15s, background 0.15s;
     }
-    .btn-secondary:hover { background: #1e293b; border-color: #475569; }
-
-    /* ── LIFECYCLE STRIP ── */
-    .lifecycle {
-      background: #1e293b;
-      border-top: 1px solid #334155;
-      border-bottom: 1px solid #334155;
-      padding: 20px 24px;
-      overflow-x: auto;
-    }
-    .lifecycle-inner {
+    .btn-hero-outline:hover { border-color: #9ca3af; background: var(--bg-subtle); }
+    .hero-trust {
       display: flex;
       align-items: center;
-      max-width: 860px;
-      margin: 0 auto;
+      gap: 7px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ── DASHBOARD PREVIEW CARD ── */
+    .db-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.05);
+      overflow: hidden;
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .db-topbar {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .db-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .db-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .db-company-name {
+      font-size: 9.5px;
+      color: var(--muted);
+    }
+    .db-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--green);
+      color: #fff;
+      font-size: 8px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .db-body {
+      display: grid;
+      grid-template-columns: 118px 1fr;
+    }
+    .db-sidebar {
+      border-right: 1px solid var(--border);
+      padding: 10px 0;
+      background: #fafafa;
+    }
+    .db-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 11px;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .db-nav-item.active {
+      background: var(--green-lt);
+      color: var(--green);
+      font-weight: 600;
+    }
+    .db-nav-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+    .db-main {
+      padding: 13px 14px;
+      overflow: hidden;
+    }
+    .db-page-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 1px;
+    }
+    .db-page-sub {
+      font-size: 9px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .db-stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .db-stat {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 7px 6px;
+    }
+    .db-stat-val {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 3px;
+      color: var(--text);
+    }
+    .db-stat-val.green { color: var(--green); }
+    .db-stat-val.amber { color: #b45309; }
+    .db-stat-label {
+      font-size: 7.5px;
+      color: var(--muted);
+      line-height: 1.25;
+    }
+    .db-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-bottom: 7px;
+    }
+    .db-panel {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .db-panel-head {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .db-panel-title { font-size: 10px; font-weight: 600; }
+    .db-panel-link  { font-size: 9px; color: var(--green); }
+    table.db-table  { width: 100%; border-collapse: collapse; }
+    .db-table th {
+      text-align: left;
+      padding: 4px 8px;
+      font-size: 7.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: var(--muted);
+      background: #fafafa;
+      border-bottom: 1px solid var(--border);
+    }
+    .db-table td {
+      padding: 5px 8px;
+      font-size: 9px;
+      border-bottom: 1px solid var(--border-lt);
+      vertical-align: middle;
+    }
+    .db-table tr:last-child td { border-bottom: none; }
+    .db-badge {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 7px;
+      font-weight: 600;
       white-space: nowrap;
     }
-    .lc-step {
-      color: #94a3b8;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.4px;
-      text-transform: uppercase;
-      padding: 0 16px;
-    }
-    .lc-arrow { color: #475569; font-size: 16px; flex-shrink: 0; }
+    .badge-green  { background: #dcfce7; color: #166534; }
+    .badge-yellow { background: #fef9c3; color: #92400e; }
+    .badge-orange { background: #ffedd5; color: #9a3412; }
 
-    /* ── SECTIONS ── */
-    section { padding: 72px 24px; }
-    .section-inner { max-width: 960px; margin: 0 auto; }
-    .section-label {
+    /* ── WHO IT IS FOR ── */
+    .who-section {
+      background: var(--bg-subtle);
+      border-top: 1px solid var(--border);
+      padding: 72px 40px;
+    }
+    .who-inner { max-width: 1120px; margin: 0 auto; }
+    .who-label {
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 1px;
       text-transform: uppercase;
-      color: var(--navy2);
+      color: var(--green);
+      text-align: center;
       margin-bottom: 12px;
     }
-    .section-title {
-      font-size: clamp(22px, 4vw, 32px);
+    .who-title {
+      font-size: clamp(22px, 3.5vw, 30px);
       font-weight: 800;
-      line-height: 1.2;
+      text-align: center;
       letter-spacing: -0.3px;
-      margin-bottom: 16px;
-    }
-    .section-body {
-      font-size: 16px;
-      color: var(--mid);
-      max-width: 620px;
       margin-bottom: 48px;
     }
-
-    /* ── CAPABILITY CARDS ── */
-    .cards-grid {
+    .who-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
     }
-    .card {
-      background: var(--white);
+    .who-card {
+      background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 22px 24px;
+      padding: 24px 20px;
     }
-    .card-icon {
-      width: 36px;
-      height: 36px;
-      background: #eff6ff;
-      border-radius: 8px;
+    .who-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--green-lt);
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
       margin-bottom: 14px;
-      font-size: 18px;
     }
-    .card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
-    .card p { font-size: 13px; color: var(--muted); line-height: 1.55; }
-
-    /* ── WHO IT'S FOR ── */
-    .roles-bg {
-      background: var(--white);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    .roles-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
-    }
-    .role-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 22px 20px;
-    }
-    .role-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
-    .role-card p { font-size: 13px; color: var(--muted); line-height: 1.55; }
-
-    /* ── WHY SECTION ── */
-    .why-bg { background: var(--bg); }
-    .why-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 32px;
-      align-items: start;
-    }
-    @media (max-width: 640px) { .why-grid { grid-template-columns: 1fr; } }
-    .why-side h3 {
-      font-size: 14px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 16px;
-    }
-    .why-side.before h3 { color: #dc2626; }
-    .why-side.after  h3 { color: #16a34a; }
-    .why-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-    .why-list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      font-size: 14px;
-      color: var(--mid);
-      line-height: 1.5;
-    }
-    .why-list li .icon { width: 20px; flex-shrink: 0; margin-top: 2px; }
-    .why-side.before .icon { color: #dc2626; }
-    .why-side.after  .icon { color: #16a34a; }
-
-    /* ── DEMO TABLE ── */
-    .records-bg {
-      background: var(--white);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    .record-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    .record-table th {
-      text-align: left;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--muted);
-      padding: 10px 16px;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-    }
-    .record-table td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      color: var(--mid);
-      vertical-align: top;
-    }
-    .record-table tr:last-child td { border-bottom: none; }
-    .record-table td:first-child { font-weight: 600; color: var(--text); }
-    .badge {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-    .badge-green  { background: #dcfce7; color: #15803d; }
-    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
-    .badge-yellow { background: #fef9c3; color: #a16207; }
-    .badge-gray   { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+    .who-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .who-card p  { font-size: 13px; color: var(--muted); line-height: 1.55; }
 
     /* ── CTA BAND ── */
     .cta-band {
-      background: var(--navy);
-      color: var(--white);
-      padding: 72px 24px;
-      text-align: center;
+      background: var(--green);
+      padding: 64px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 40px;
+      flex-wrap: wrap;
     }
-    .cta-band h2 {
-      font-size: clamp(22px, 4vw, 34px);
-      font-weight: 800;
-      letter-spacing: -0.3px;
-      margin-bottom: 16px;
+    .cta-left { display: flex; align-items: center; gap: 20px; }
+    .cta-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
-    .cta-band p {
-      color: #94a3b8;
-      font-size: 16px;
-      max-width: 480px;
-      margin: 0 auto 36px;
+    .cta-copy h2 {
+      font-size: clamp(17px, 2.5vw, 22px);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
     }
-    .cta-band-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .cta-copy p { font-size: 14px; color: rgba(255,255,255,0.75); }
+    .cta-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-cta-white {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--green);
+      text-decoration: none;
+      padding: 11px 22px;
+      border-radius: 7px;
+      background: #fff;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    .btn-cta-white:hover { opacity: 0.93; }
+    .btn-cta-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+      text-decoration: none;
+      padding: 11px 22px;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,0.4);
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-cta-outline:hover { background: rgba(255,255,255,0.1); }
 
     /* ── FOOTER ── */
     footer {
-      background: var(--navy);
-      border-top: 1px solid #1e293b;
-      padding: 28px 24px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 24px 40px;
       text-align: center;
     }
-    footer p { font-size: 13px; color: #475569; }
-    footer a { color: #64748b; text-decoration: none; }
-    footer a:hover { color: #94a3b8; }
+    footer p { font-size: 13px; color: var(--muted); }
+    footer a  { color: #9ca3af; text-decoration: none; }
+    footer a:hover { color: var(--mid); }
 
-    /* ── OVERFLOW TABLE ON SMALL SCREENS ── */
-    .table-scroll { overflow-x: auto; }
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 48px 24px 64px;
+        gap: 48px;
+      }
+      nav { padding: 0 20px; gap: 16px; }
+      .nav-links { display: none; }
+      .who-grid { grid-template-columns: repeat(2, 1fr); }
+      .cta-band { padding: 48px 24px; }
+      .who-section { padding: 56px 24px; }
+      footer { padding: 20px 24px; }
+    }
+    @media (max-width: 500px) {
+      .who-grid { grid-template-columns: 1fr; }
+      .cta-band { flex-direction: column; align-items: flex-start; gap: 24px; }
+      .db-stats { grid-template-columns: repeat(3, 1fr); }
+    }
   </style>
 </head>
 <body>
 
   <!-- NAV -->
   <nav>
-    <a class="nav-brand" href="/">Export<span>OS</span></a>
-    <div class="nav-cta">
-      <a class="btn-nav-ghost" href="mailto:admin@exportos.ng">Request Pilot Access</a>
-      <a class="btn-nav-primary" href="/app">Open Demo</a>
+    <a class="nav-logo" href="/">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M13 1.5 24 7.75v12.5L13 26.5 2 20.25V7.75Z" fill="#166534"/>
+        <path d="M13 6.5 20.196 10.75v8.5L13 23.5l-7.196-4.25v-8.5Z" fill="white" fill-opacity="0.2"/>
+      </svg>
+      <span class="nav-logo-text">ExportOS</span>
+    </a>
+    <div class="nav-links">
+      <a href="#product">Product</a>
+      <a href="#benefits">Benefits</a>
+      <a href="#how-it-works">How it Works</a>
+      <a href="#who">Who It&rsquo;s For</a>
+      <a href="#about">About</a>
+    </div>
+    <div class="nav-actions">
+      <a class="btn-nav-outline" href="mailto:admin@exportos.ng">Request Pilot Access</a>
+      <a class="btn-nav-green"   href="/app">Open Demo</a>
     </div>
   </nav>
 
   <!-- HERO -->
-  <section class="hero">
-    <div class="hero-badge">Nigerian Non-Oil Export &nbsp;&middot;&nbsp; Compliance Workspace</div>
-    <h1>Export compliance workspace for <em>Nigerian non-oil exporters</em></h1>
-    <p class="hero-sub">
-      Organise contracts, NXP references, shipments, payment evidence, repatriation deadlines, and compliance packs in one secure workspace.
-    </p>
-    <div class="hero-actions">
-      <a class="btn-primary" href="/app">Open Demo</a>
-      <a class="btn-secondary" href="mailto:admin@exportos.ng">Request Pilot Access</a>
+  <section class="hero" id="product">
+    <div>
+      <h1>Export compliance workspace for <span>Nigerian non-oil exporters.</span></h1>
+      <p class="hero-sub">Organise contracts, NXP references, shipments, payment evidence, repatriation deadlines, and compliance packs in one secure workspace.</p>
+      <div class="hero-actions">
+        <a class="btn-hero-primary" href="/app">
+          Open Demo
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M2.5 7h9M7.5 3.5 11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a class="btn-hero-outline" href="mailto:admin@exportos.ng">
+          Request Pilot Access
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <rect x="1.5" y="3.5" width="11" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M1.5 4.5 7 8l5.5-3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </a>
+      </div>
+      <div class="hero-trust">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M7 1.5 2 3.5v4c0 3 2.2 5.2 5 5.9 2.8-.7 5-2.9 5-5.9v-4Z" stroke="#9ca3af" stroke-width="1.2" stroke-linejoin="round"/>
+        </svg>
+        Built for Nigerian non-oil export operations.
+      </div>
     </div>
-  </section>
 
-  <!-- LIFECYCLE STRIP -->
-  <div class="lifecycle">
-    <div class="lifecycle-inner">
-      <span class="lc-step">Contract</span>
-      <span class="lc-arrow">&#8250;</span>
-      <span class="lc-step">NXP</span>
-      <span class="lc-arrow">&#8250;</span>
-      <span class="lc-step">Shipment</span>
-      <span class="lc-arrow">&#8250;</span>
-      <span class="lc-step">Bill of Lading</span>
-      <span class="lc-arrow">&#8250;</span>
-      <span class="lc-step">Payment Receipt</span>
-      <span class="lc-arrow">&#8250;</span>
-      <span class="lc-step">Reconciliation</span>
-      <span class="lc-arrow">&#8250;</span>
-      <span class="lc-step">Evidence Pack</span>
-    </div>
-  </div>
-
-  <!-- CAPABILITIES -->
-  <section>
-    <div class="section-inner">
-      <div class="section-label">Capabilities</div>
-      <h2 class="section-title">Everything from contract to sealed evidence pack</h2>
-      <p class="section-body">
-        ExportOS is a system of record &mdash; not a payments or trading platform. It helps teams organise the documents and statuses used for export compliance review.
-      </p>
-      <div class="cards-grid">
-        <div class="card">
-          <div class="card-icon">&#128196;</div>
-          <h3>Contracts</h3>
-          <p>Record export contracts with commodity, quantity, value, buyer, and Incoterms. Status tracks from active through completed.</p>
+    <!-- Dashboard preview — real seeded data -->
+    <div class="db-card">
+      <div class="db-topbar">
+        <div class="db-brand">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <path d="M7.5 1 14 4.75v7.5L7.5 16 1 12.25v-7.5Z" fill="#166534"/>
+            <path d="M7.5 4 12 6.75v5.5L7.5 15 3 12.25v-5.5Z" fill="white" fill-opacity="0.2"/>
+          </svg>
+          ExportOS
         </div>
-        <div class="card">
-          <div class="card-icon">&#128674;</div>
-          <h3>Shipments</h3>
-          <p>Log individual shipments under a contract. Track NXP reference, vessel details, and proceeds reconciliation status.</p>
+        <div class="db-topbar-right">
+          <span class="db-company-name">AKOBO AGRI-EXPORT COMPANY LTD</span>
+          <div class="db-avatar">OA</div>
         </div>
-        <div class="card">
-          <div class="card-icon">&#128203;</div>
-          <h3>Bills of Lading</h3>
-          <p>Upload original B/L references. Repatriation deadlines are calculated from shipment documentation and tracked against each export record.</p>
+      </div>
+      <div class="db-body">
+        <div class="db-sidebar">
+          <div class="db-nav-item active"><span class="db-nav-dot"></span>Dashboard</div>
+          <div class="db-nav-item"><span class="db-nav-dot"></span>Contracts</div>
+          <div class="db-nav-item"><span class="db-nav-dot"></span>Shipments</div>
+          <div class="db-nav-item"><span class="db-nav-dot"></span>Proceeds</div>
+          <div class="db-nav-item"><span class="db-nav-dot"></span>Bills of Lading</div>
+          <div class="db-nav-item"><span class="db-nav-dot"></span>Payment Receipts</div>
+          <div class="db-nav-item"><span class="db-nav-dot"></span>NXP References</div>
+          <div class="db-nav-item"><span class="db-nav-dot"></span>Compliance Pack</div>
         </div>
-        <div class="card">
-          <div class="card-icon">&#128179;</div>
-          <h3>Payment Evidence</h3>
-          <p>Record SWIFT receipts and credit advice. Discrepancy status (CLEAN / DISCREPANT) is computed against your tolerance settings.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon">&#9878;</div>
-          <h3>Reconciliation</h3>
-          <p>Allocate payment receipts to shipments. Partial and full proceeds status is tracked automatically as receipts are allocated.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon">&#9989;</div>
-          <h3>Compliance Checklist</h3>
-          <p>Per-shipment checklist: NXP approved, CCI obtained, B/L uploaded, payment evidence uploaded, credit advice confirmed.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon">&#128274;</div>
-          <h3>Bank Evidence Packs</h3>
-          <p>Generate and seal evidence packs for submission to your commercial bank. Sealing is blocked until the full checklist is complete.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon">&#128193;</div>
-          <h3>Audit Trail</h3>
-          <p>Every data change is recorded with timestamp and user. Audit events are immutable &mdash; they cannot be edited or deleted.</p>
+        <div class="db-main">
+          <div class="db-page-title">Dashboard</div>
+          <div class="db-page-sub">Overview of your export operations and compliance status</div>
+          <div class="db-stats">
+            <div class="db-stat">
+              <div class="db-stat-val">1</div>
+              <div class="db-stat-label">Active Contracts</div>
+            </div>
+            <div class="db-stat">
+              <div class="db-stat-val">2</div>
+              <div class="db-stat-label">Shipments</div>
+            </div>
+            <div class="db-stat">
+              <div class="db-stat-val green">$55,900</div>
+              <div class="db-stat-label">Proceeds Allocated</div>
+            </div>
+            <div class="db-stat">
+              <div class="db-stat-val">2</div>
+              <div class="db-stat-label">NXP References</div>
+            </div>
+            <div class="db-stat">
+              <div class="db-stat-val amber">1</div>
+              <div class="db-stat-label">Upcoming Deadline</div>
+            </div>
+          </div>
+          <div class="db-grid">
+            <div class="db-panel">
+              <div class="db-panel-head">
+                <span class="db-panel-title">Contracts</span>
+                <span class="db-panel-link">View all</span>
+              </div>
+              <table class="db-table">
+                <thead><tr><th>Reference</th><th>Commodity</th><th>Value</th></tr></thead>
+                <tbody>
+                  <tr><td>CTR-2026-SES-001</td><td>Sesame Seeds</td><td>$80,000</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="db-panel">
+              <div class="db-panel-head">
+                <span class="db-panel-title">Shipments</span>
+                <span class="db-panel-link">View all</span>
+              </div>
+              <table class="db-table">
+                <thead><tr><th>Reference</th><th>Vessel</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td>SHP-2026-01</td>
+                    <td>MSC AURORA</td>
+                    <td><span class="db-badge badge-green">Proceeds Complete</span></td>
+                  </tr>
+                  <tr>
+                    <td>SHP-2026-02</td>
+                    <td>MSC AURORA</td>
+                    <td><span class="db-badge badge-yellow">Proceeds Partial</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="db-panel">
+            <div class="db-panel-head">
+              <span class="db-panel-title">Upcoming Repatriation Deadlines</span>
+              <span class="db-panel-link">View all</span>
+            </div>
+            <table class="db-table">
+              <thead><tr><th>NXP Reference</th><th>Deadline</th><th>Days Left</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>NXP-2026-SES-001</td>
+                  <td>19 Jul 2026</td>
+                  <td>27</td>
+                  <td><span class="db-badge badge-orange">Warning</span></td>
+                </tr>
+                <tr>
+                  <td>NXP-2026-SES-002</td>
+                  <td>11 Sep 2026</td>
+                  <td>81</td>
+                  <td><span class="db-badge badge-green">Safe</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- WHO IT'S FOR -->
-  <section class="roles-bg">
-    <div class="section-inner">
-      <div class="section-label">Who it&rsquo;s for</div>
-      <h2 class="section-title">Built for the people who manage non-oil exports</h2>
-      <p class="section-body">
-        ExportOS is designed for the teams responsible for documenting and evidencing compliance &mdash; not trading desks or payment processors.
-      </p>
-      <div class="roles-grid">
-        <div class="role-card">
-          <h3>Export Operators</h3>
-          <p>Record contracts and shipments as they happen. Keep repatriation deadlines visible before they become a problem.</p>
+  <!-- WHO IT IS FOR -->
+  <section class="who-section" id="who">
+    <div class="who-inner">
+      <div class="who-label">Who It Is For</div>
+      <h2 class="who-title">Built for non-oil export operations</h2>
+      <div class="who-grid">
+        <div class="who-card">
+          <div class="who-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+              <rect x="3" y="8" width="16" height="12" rx="1" stroke="#166534" stroke-width="1.5"/>
+              <path d="M8 20v-5h2.5v5M11.5 20v-5H14v5" stroke="#166534" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M6 8V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3" stroke="#166534" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <h3>Exporters</h3>
+          <p>Manage contracts, shipments, proceeds, and compliance in one place.</p>
         </div>
-        <div class="role-card">
+        <div class="who-card">
+          <div class="who-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+              <path d="M11 2 4 5v6c0 4 3.1 7.7 7 8.9 3.9-1.2 7-4.9 7-8.9V5Z" stroke="#166534" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M8 11l2 2 4-4" stroke="#166534" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
           <h3>Compliance Officers</h3>
-          <p>Maintain the compliance checklist for each shipment. Confirm NXP approval, CCI, and credit advice in one place.</p>
+          <p>Stay audit-ready with structured checklists, deadlines, and evidence packs.</p>
         </div>
-        <div class="role-card">
-          <h3>Freight &amp; Logistics Teams</h3>
-          <p>Upload Bill of Lading references and track shipment status from vessel booking through final allocation.</p>
+        <div class="who-card">
+          <div class="who-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+              <rect x="2" y="7" width="13" height="8" rx="1" stroke="#166534" stroke-width="1.5"/>
+              <path d="M15 9.5h3l2 2.5v3h-5V9.5Z" stroke="#166534" stroke-width="1.5" stroke-linejoin="round"/>
+              <circle cx="6"  cy="17" r="1.5" stroke="#166534" stroke-width="1.5"/>
+              <circle cx="17" cy="17" r="1.5" stroke="#166534" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <h3>Freight Forwarders</h3>
+          <p>Track shipments and documents across the export journey.</p>
         </div>
-        <div class="role-card">
+        <div class="who-card">
+          <div class="who-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+              <path d="M11 3 3 8h16Z" stroke="#166534" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M3 8h16v1H3z" fill="#166534"/>
+              <path d="M5 9v8M9 9v8M13 9v8M17 9v8" stroke="#166534" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M3 17h16v2H3z" stroke="#166534" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
+          </div>
           <h3>Trade Finance Teams</h3>
-          <p>Generate sealed bank evidence packs for submission. The system enforces completeness before sealing is allowed.</p>
+          <p>Verify export performance and repatriation obligations with a full record.</p>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- WHY EXPORTOS -->
-  <section class="why-bg">
-    <div class="section-inner">
-      <div class="section-label">Why ExportOS</div>
-      <h2 class="section-title">Replace spreadsheets and email threads with a structured record</h2>
-      <p class="section-body">
-        Most Nigerian non-oil exporters manage compliance across a mix of spreadsheets, WhatsApp groups, and email attachments. That works until it doesn&rsquo;t.
-      </p>
-      <div class="why-grid">
-        <div class="why-side before">
-          <h3>Without ExportOS</h3>
-          <ul class="why-list">
-            <li><span class="icon">&#10007;</span>Repatriation deadlines tracked in a shared spreadsheet that isn&rsquo;t always current</li>
-            <li><span class="icon">&#10007;</span>SWIFT receipts arrive by email; someone manually matches them to the right shipment</li>
-            <li><span class="icon">&#10007;</span>Compliance checklist is a PDF form that gets emailed back and forth</li>
-            <li><span class="icon">&#10007;</span>Evidence packs assembled manually from folders of scanned documents</li>
-            <li><span class="icon">&#10007;</span>No audit trail &mdash; who updated the NXP status and when?</li>
-          </ul>
-        </div>
-        <div class="why-side after">
-          <h3>With ExportOS</h3>
-          <ul class="why-list">
-            <li><span class="icon">&#10003;</span>Repatriation deadlines are tracked against each shipment and kept visible in the dashboard</li>
-            <li><span class="icon">&#10003;</span>Each receipt is allocated to a shipment; discrepancy status computed automatically</li>
-            <li><span class="icon">&#10003;</span>Compliance checklist is live on each shipment record, updated in the dashboard</li>
-            <li><span class="icon">&#10003;</span>Evidence packs sealed only when the full checklist is complete &mdash; enforced in the database</li>
-            <li><span class="icon">&#10003;</span>Immutable audit events on every change &mdash; timestamp and user recorded automatically</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- DEMO DATA -->
-  <section class="records-bg">
-    <div class="section-inner">
-      <div class="section-label">Demo data</div>
-      <h2 class="section-title">See a real export lifecycle in the demo</h2>
-      <p class="section-body">
-        The demo is seeded with a complete sesame seed export from AKOBO AGRI-EXPORT COMPANY &mdash; two shipments, two B/Ls, two SWIFT receipts, and one sealed evidence pack.
-      </p>
-      <div class="table-scroll">
-        <table class="record-table">
-          <thead>
-            <tr>
-              <th>Record</th>
-              <th>Reference</th>
-              <th>Details</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Contract</td>
-              <td>CTR-2026-SES-001</td>
-              <td>100&nbsp;MT sesame seeds &middot; $80,000&nbsp;USD &middot; Buyer: EUROGRAIN HAMBURG GMBH</td>
-              <td><span class="badge badge-green">ACTIVE</span></td>
-            </tr>
-            <tr>
-              <td>Shipment 1</td>
-              <td>SHP-2026-01</td>
-              <td>50&nbsp;MT &middot; MSC AURORA &middot; NXP-2026-SES-001</td>
-              <td><span class="badge badge-green">PROCEEDS COMPLETE</span></td>
-            </tr>
-            <tr>
-              <td>Shipment 2</td>
-              <td>SHP-2026-02</td>
-              <td>50&nbsp;MT &middot; MSC AURORA &middot; NXP-2026-SES-002</td>
-              <td><span class="badge badge-yellow">PROCEEDS PARTIAL</span></td>
-            </tr>
-            <tr>
-              <td>Bill of Lading 1</td>
-              <td>MSC-APAPA-2601</td>
-              <td>BL date: 2026-01-20 &middot; Repatriation deadline: 2026-07-19</td>
-              <td><span class="badge badge-blue">ON TIME</span></td>
-            </tr>
-            <tr>
-              <td>Receipt 1</td>
-              <td>RCPT-2026-001</td>
-              <td>Instructed $40,200 &middot; Credited $40,000 &middot; Difference within 2% tolerance</td>
-              <td><span class="badge badge-green">CLEAN</span></td>
-            </tr>
-            <tr>
-              <td>Evidence Pack 1</td>
-              <td>NXP-2026-SES-001</td>
-              <td>All 5 compliance items complete &middot; Submitted to bank</td>
-              <td><span class="badge badge-gray">SEALED</span></td>
-            </tr>
-          </tbody>
-        </table>
       </div>
     </div>
   </section>
 
   <!-- CTA BAND -->
   <section class="cta-band">
-    <h2>Ready to see it in action?</h2>
-    <p>Open the live demo with seeded export data, or contact us to onboard your company as a pilot exporter.</p>
-    <div class="cta-band-actions">
-      <a class="btn-primary" href="/app">Open Demo</a>
-      <a class="btn-secondary" href="mailto:admin@exportos.ng">Request Pilot Access</a>
+    <div class="cta-left">
+      <div class="cta-icon">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+          <circle cx="13" cy="9" r="4" stroke="white" stroke-width="1.5"/>
+          <path d="M5 22c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="cta-copy">
+        <h2>Ready to see it working?</h2>
+        <p>Open the live demo with real seeded export data, or request access to onboard your company.</p>
+      </div>
+    </div>
+    <div class="cta-actions">
+      <a class="btn-cta-white"   href="mailto:admin@exportos.ng">Request Pilot Access</a>
+      <a class="btn-cta-outline" href="/app">
+        Open Demo
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+          <path d="M2 6.5h9M7.5 3 11 6.5 7.5 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
     </div>
   </section>
 
