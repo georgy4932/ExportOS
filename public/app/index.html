@@ -1685,7 +1685,7 @@
           ).join('')}</div>`
         : '<p class="ov-empty-msg">No exceptions — all items in order.</p>';
 
-      section.style.display = '';
+      section.style.display = 'block';
     }).catch(() => {
       // Overview load failed silently — existing tables are unaffected
     });
