@@ -466,6 +466,25 @@
     .wq-pl-item strong { font-weight: 700; color: #0f172a; font-size: 0.875rem; }
     .wq-pl-sep { color: #d1d5db; }
     .wq-pl-label { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; margin-right: 0.5rem; }
+    /* ── Next Critical Action ──────────────────────────────────────── */
+    #nca-section { display: none; }
+    .nca-card-body { display: flex; align-items: center; gap: 0; }
+    .nca-col { padding: 0.875rem 1.25rem; display: flex; flex-direction: column; gap: 0.2rem; flex-shrink: 0; }
+    .nca-col-action { padding: 0.875rem 1.25rem; margin-left: auto; display: flex; align-items: center; }
+    .nca-divider { width: 1px; background: #e5e7eb; align-self: stretch; flex-shrink: 0; }
+    .nca-stat-label { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #9ca3af; }
+    .nca-shipment { font-size: 1.0625rem; font-weight: 700; color: #0f172a; line-height: 1.2; }
+    .nca-nxp { font-family: ui-monospace, monospace; font-size: 0.8125rem; color: #6b7280; margin-top: 0.1rem; }
+    .nca-amount { font-size: 0.9375rem; font-weight: 700; color: #b91c1c; }
+    .nca-issue { font-size: 0.875rem; font-weight: 600; color: #374151; }
+    .nca-action-pill { display: inline-flex; align-items: center; gap: 0.35rem; background: #eff6ff; color: #1e3a5f; font-size: 0.8125rem; font-weight: 600; padding: 0.375rem 0.875rem; border-radius: 6px; white-space: nowrap; }
+    .nca-empty { padding: 0.875rem 1.25rem; font-size: 0.8125rem; color: #6b7280; font-style: italic; }
+    @media (max-width: 640px) {
+      .nca-card-body { flex-direction: column; align-items: stretch; gap: 0; }
+      .nca-col { padding: 0.75rem 1rem; }
+      .nca-col-action { margin-left: 0; padding: 0 1rem 0.875rem; }
+      .nca-divider { display: none; }
+    }
     @media (max-width: 900px) {
       .ov-metric-row { grid-template-columns: repeat(3, 1fr); }
     }
@@ -475,6 +494,193 @@
       .wq-table-wrap { display: none !important; }
       .wq-card-list  { display: block; }
     }
+
+    /* ── Command Center Shell ─────────────────────────────────────── */
+    #dashboard { height: 100vh; overflow: hidden; }
+    #app-shell { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── Sidebar ── */
+    #sb {
+      width: 210px; min-width: 210px;
+      background: #fff;
+      border-right: 1px solid #e2e8f0;
+      display: flex; flex-direction: column;
+      height: 100vh; overflow: hidden;
+      flex-shrink: 0;
+    }
+    .sb-brand { padding: 15px 16px 12px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+    .sb-name { font-size: 13.5px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
+    .sb-ver {
+      font-size: 9.5px; font-weight: 600; color: #94a3b8;
+      text-transform: uppercase; letter-spacing: 0.06em; margin-left: 4px;
+    }
+    .sb-co {
+      padding: 9px 16px; border-bottom: 1px solid #e2e8f0;
+      background: #f8fafc; flex-shrink: 0;
+    }
+    .sb-co-lbl {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 2px;
+    }
+    .sb-co-name {
+      font-size: 11.5px; font-weight: 600; color: #1e293b;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sb-nav { flex: 1; overflow-y: auto; padding: 6px 0; }
+    .sb-group {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #94a3b8; padding: 10px 16px 3px;
+    }
+    .sb-link {
+      display: flex; align-items: center;
+      width: 100%; padding: 6px 16px;
+      font-size: 12.5px; font-weight: 500; color: #475569;
+      background: none; border: none; border-left: 2px solid transparent;
+      text-align: left; cursor: pointer; font-family: inherit; line-height: 1.5;
+    }
+    .sb-link:hover { background: #f8fafc; color: #0f172a; }
+    .sb-link.v-active { background: #f0fdf4; color: #15803d; font-weight: 600; border-left-color: #16a34a; }
+    .sb-foot { border-top: 1px solid #e2e8f0; padding: 6px 0; flex-shrink: 0; }
+    .sb-foot .sb-link { color: #94a3b8; }
+    .sb-foot .sb-link:hover { color: #64748b; }
+
+    /* ── App main ── */
+    #app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+    #app-topbar {
+      background: #fff; border-bottom: 1px solid #e2e8f0;
+      padding: 11px 20px; display: flex; align-items: center;
+      justify-content: space-between; flex-shrink: 0;
+    }
+    #app-topbar-title { font-size: 13.5px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
+    #app-topbar-right {
+      font-size: 11px; color: #64748b; background: #f1f5f9;
+      border: 1px solid #e2e8f0; border-radius: 4px; padding: 3px 9px;
+    }
+    #app-content { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; }
+
+    /* ── View switching ── */
+    .app-view { display: none; }
+    .app-view.v-active { display: block; }
+
+    /* ── Exports master list ── */
+    .xf-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 14px; border-bottom: 1px solid #f1f5f9; flex-wrap: wrap;
+    }
+    .xf-btn {
+      font-size: 11px; font-weight: 600; padding: 3px 9px;
+      border-radius: 3px; border: 1px solid #e2e8f0;
+      background: #f8fafc; color: #64748b; cursor: pointer;
+    }
+    .xf-btn.v-active { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    #exports-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+    #exports-tbl thead th {
+      text-align: left; padding: 8px 12px; font-size: 9.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8;
+      background: #f8fafc; border-bottom: 1px solid #e2e8f0; white-space: nowrap;
+    }
+    #exports-tbl thead th.r { text-align: right; }
+    #exports-tbl tbody td { padding: 10px 12px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+    #exports-tbl tbody tr:last-child td { border-bottom: none; }
+    #exports-tbl tbody tr:hover td { background: #f8fafc; cursor: pointer; }
+    .x-nxp { font-weight: 700; color: #0f172a; font-family: ui-monospace, monospace; font-size: 12px; }
+    .x-sref { font-family: ui-monospace, monospace; font-size: 10px; color: #94a3b8; margin-top: 1px; }
+    .x-route { font-size: 11px; color: #475569; }
+    .x-vessel { font-size: 10px; color: #94a3b8; margin-top: 1px; }
+    .x-open {
+      display: inline-flex; align-items: center; font-size: 10.5px;
+      font-weight: 600; padding: 3px 9px; border-radius: 3px;
+      border: 1px solid #e2e8f0; background: #f8fafc; color: #334155; cursor: pointer;
+    }
+    .x-open:hover { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+
+    /* ── Export Case ── */
+    #ec-header {
+      background: #fff; border: 1px solid #e2e8f0;
+      border-radius: 6px; margin-bottom: 14px; overflow: hidden;
+    }
+    .ec-bc { font-size: 10.5px; color: #94a3b8; padding: 10px 16px 0; }
+    .ec-bc button {
+      background: none; border: none; font-size: 10.5px; color: #64748b;
+      cursor: pointer; padding: 0; font-family: inherit;
+    }
+    .ec-bc button:hover { color: #15803d; }
+    .ec-ta { padding: 8px 16px 10px; }
+    .ec-nxp {
+      font-size: 18px; font-weight: 700; color: #0f172a;
+      letter-spacing: -0.02em; font-family: ui-monospace, monospace; line-height: 1;
+    }
+    .ec-sref { font-size: 11px; color: #64748b; margin-top: 4px; font-family: ui-monospace, monospace; }
+    .ec-bdg { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 7px; }
+    .ec-meta { display: flex; align-items: stretch; border-top: 1px solid #f1f5f9; overflow-x: auto; }
+    .ec-mc { display: flex; flex-direction: column; padding: 8px 16px; border-right: 1px solid #f1f5f9; flex-shrink: 0; }
+    .ec-mc:last-child { border-right: none; }
+    .ec-ml { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #94a3b8; margin-bottom: 3px; }
+    .ec-mv { font-size: 12px; font-weight: 600; color: #1e293b; white-space: nowrap; }
+    .ec-mv.red { color: #b91c1c; }
+    .ec-mv.mono { font-family: ui-monospace, monospace; font-size: 11px; }
+
+    .ec-nca { background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; }
+    .ec-nca.ok { background: #f0fdf4; border-color: #bbf7d0; }
+    .ec-nca-l { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #b91c1c; margin-bottom: 2px; }
+    .ec-nca.ok .ec-nca-l { color: #15803d; }
+    .ec-nca-t { font-size: 12.5px; font-weight: 600; color: #7f1d1d; }
+    .ec-nca.ok .ec-nca-t { color: #14532d; }
+
+    .ec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .ec-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 12px; }
+    .ec-card-h { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid #f1f5f9; }
+    .ec-card-t { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #0f172a; }
+    .ec-card-s { font-size: 9.5px; color: #94a3b8; font-style: italic; }
+    .ec-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; border-bottom: 1px solid #f8fafc; font-size: 12px; gap: 8px; }
+    .ec-row:last-child { border-bottom: none; }
+    .ec-rl { color: #64748b; flex-shrink: 0; }
+    .ec-rv { color: #0f172a; font-weight: 500; text-align: right; }
+    .ec-rv.mono { font-family: ui-monospace, monospace; font-size: 11px; }
+    .ec-rv.red { color: #b91c1c; font-weight: 600; }
+    .ec-rv.green { color: #15803d; font-weight: 600; }
+    .ec-rv.muted { color: #94a3b8; font-weight: 400; }
+
+    .ec-chk { display: flex; align-items: center; gap: 9px; padding: 8px 14px; border-bottom: 1px solid #f8fafc; font-size: 12px; }
+    .ec-chk:last-child { border-bottom: none; }
+    .ec-chk-i { font-size: 13px; line-height: 1; flex-shrink: 0; color: #16a34a; }
+    .ec-chk-i.x { color: #dc2626; }
+    .ec-chk-l { flex: 1; color: #334155; }
+    .ec-chk-t { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; background: #f1f5f9; padding: 1px 5px; border-radius: 2px; }
+    .ec-chk-n { font-size: 10.5px; }
+    .ec-chk-n.ok { color: #15803d; }
+    .ec-chk-n.bad { color: #b91c1c; }
+
+    /* ── Mobile nav ── */
+    #mob-menu-btn {
+      display: none;
+      background: none; border: none; cursor: pointer;
+      padding: 4px 6px; color: #475569; font-size: 20px; line-height: 1;
+      flex-shrink: 0; margin-right: 8px; border-radius: 4px;
+    }
+    #mob-menu-btn:hover { background: #f1f5f9; color: #0f172a; }
+    #sb-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,23,42,0.35); z-index: 200;
+    }
+    #app-topbar-left {
+      display: flex; align-items: center; min-width: 0;
+    }
+
+    @media (max-width: 640px) {
+      #sb { display: none; }
+      #sb.mob-open {
+        display: flex; position: fixed;
+        left: 0; top: 0; bottom: 0; z-index: 300;
+        box-shadow: 2px 0 16px rgba(15,23,42,0.18);
+      }
+      #sb-backdrop.mob-open { display: block; }
+      #mob-menu-btn { display: flex; align-items: center; }
+      #app-main { width: 100%; }
+      .ec-grid { grid-template-columns: 1fr; }
+      .ec-meta { flex-wrap: wrap; }
+    }
+
   </style>
   <script src="/config.js"></script>
 </head>
@@ -502,16 +708,54 @@
 
 <!-- ── Dashboard ──────────────────────────────────────────────────────────── -->
 <div id="dashboard">
-  <header>
-    <div class="header-left">
-      <h1>ExportOS v0.2</h1>
-      <span id="header-exporter">—</span>
-    </div>
-    <button id="logout-btn">Sign out</button>
-  </header>
+  <div id="app-shell">
 
-  <main>
-    <!-- ── Overview ──────────────────────────────────────────────────────────── -->
+    <!-- ── Sidebar ──────────────────────────────────────────────────── -->
+    <div id="sb">
+      <div class="sb-brand">
+        <span class="sb-name">ExportOS</span><span class="sb-ver">v0.2</span>
+      </div>
+      <div class="sb-co">
+        <div class="sb-co-lbl">Active Exporter</div>
+        <div class="sb-co-name" id="header-exporter">—</div>
+      </div>
+      <nav class="sb-nav">
+        <div class="sb-group">Command Center</div>
+        <button class="sb-link v-active" data-view="view-overview" onclick="showView('view-overview')">Overview</button>
+        <button class="sb-link" data-view="view-workqueue" onclick="showView('view-workqueue')">Work Queue</button>
+        <button class="sb-link" data-view="view-deadlines" onclick="showView('view-deadlines')">Deadlines</button>
+        <div class="sb-group">Operations</div>
+        <button class="sb-link" data-view="view-exports" onclick="showView('view-exports')">Exports</button>
+        <div class="sb-group">Records</div>
+        <button class="sb-link" data-view="view-contracts" onclick="showView('view-contracts')">Contracts</button>
+        <button class="sb-link" data-view="view-shipments" onclick="showView('view-shipments')">Shipments</button>
+        <button class="sb-link" data-view="view-bl" onclick="showView('view-bl')">Bills of Lading</button>
+        <button class="sb-link" data-view="view-receipts" onclick="showView('view-receipts')">Payment Receipts</button>
+        <button class="sb-link" data-view="view-evidence" onclick="showView('view-evidence')">Payment Evidence</button>
+        <button class="sb-link" data-view="view-compliance" onclick="showView('view-compliance')">Compliance Records</button>
+        <button class="sb-link" data-view="view-packs" onclick="showView('view-packs')">Evidence Packs</button>
+      </nav>
+      <div class="sb-foot">
+        <button class="sb-link" id="logout-btn">&#8617; Sign out</button>
+      </div>
+    </div>
+
+    <!-- ── Mobile nav backdrop ──────────────────────────────────────── -->
+    <div id="sb-backdrop" onclick="closeMobileNav()"></div>
+
+    <!-- ── Main content ─────────────────────────────────────────────── -->
+    <div id="app-main">
+      <div id="app-topbar">
+        <div id="app-topbar-left">
+          <button id="mob-menu-btn" onclick="toggleMobileNav()" aria-label="Open navigation">&#9776;</button>
+          <div id="app-topbar-title">Overview</div>
+        </div>
+        <div id="app-topbar-right"></div>
+      </div>
+      <div id="app-content">
+
+        <!-- VIEW: Overview ─────────────────────────────────────────── -->
+        <div id="view-overview" class="app-view v-active">
     <section id="ov-section">
       <!-- Section heading -->
       <div class="ov-section-label">Operations Overview</div>
@@ -543,8 +787,16 @@
         </div>
       </div>
     </section>
-
-    <!-- ── Compliance Work Queue ─────────────────────────────────────── -->
+    <section id="nca-section">
+      <div class="ov-section-label" style="margin-top:0.25rem">Next Critical Action</div>
+      <div class="card">
+        <div class="card-header">
+          <h2>Next Critical Action</h2>
+          <span id="nca-priority"></span>
+        </div>
+        <div id="nca-body"></div>
+      </div>
+    </section>
     <section id="wq-section">
       <div class="ov-section-label" style="margin-top:0.25rem">Compliance Work Queue</div>
       <div class="card">
@@ -574,10 +826,31 @@
         <div id="body-wq-cards" class="wq-card-list" hidden></div>
       </div>
     </section>
+        </div>
 
-    <!-- Operational Records section label -->
-    <div class="ov-section-label" style="margin-top:1.25rem">Operational Records</div>
+        <!-- VIEW: Work Queue ───────────────────────────────────────── -->
+        <div id="view-workqueue" class="app-view">
+          <div id="wq-standalone"></div>
+        </div>
 
+        <!-- VIEW: Deadlines ────────────────────────────────────────── -->
+        <div id="view-deadlines" class="app-view">
+          <div id="dl-standalone"></div>
+        </div>
+
+        <!-- VIEW: Exports ──────────────────────────────────────────── -->
+        <div id="view-exports" class="app-view">
+          <div id="exports-container"></div>
+        </div>
+
+        <!-- VIEW: Export Case Summary ──────────────────────────────── -->
+        <div id="view-export-case" class="app-view">
+          <div id="ec-header"></div>
+          <div id="ec-content"></div>
+        </div>
+
+        <!-- VIEW: Contracts ────────────────────────────────────────── -->
+        <div id="view-contracts" class="app-view">
     <!-- Contracts -->
     <div class="card">
       <div class="card-header">
@@ -599,7 +872,10 @@
         </table>
       </div>
     </div>
+        </div>
 
+        <!-- VIEW: Shipments ────────────────────────────────────────── -->
+        <div id="view-shipments" class="app-view">
     <!-- Shipments -->
     <div class="card">
       <div class="card-header">
@@ -622,7 +898,10 @@
         </table>
       </div>
     </div>
+        </div>
 
+        <!-- VIEW: Bills of Lading ──────────────────────────────────── -->
+        <div id="view-bl" class="app-view">
     <!-- Bills of Lading -->
     <div class="card">
       <div class="card-header">
@@ -643,7 +922,10 @@
         </table>
       </div>
     </div>
+        </div>
 
+        <!-- VIEW: Payment Receipts ─────────────────────────────────── -->
+        <div id="view-receipts" class="app-view">
     <!-- Payment Receipts -->
     <div class="card">
       <div class="card-header">
@@ -665,7 +947,10 @@
         </table>
       </div>
     </div>
+        </div>
 
+        <!-- VIEW: Payment Evidence ─────────────────────────────────── -->
+        <div id="view-evidence" class="app-view">
     <!-- Payment Evidence -->
     <div class="card">
       <div class="card-header">
@@ -687,7 +972,10 @@
         </table>
       </div>
     </div>
+        </div>
 
+        <!-- VIEW: Compliance Records ───────────────────────────────── -->
+        <div id="view-compliance" class="app-view">
     <!-- Compliance Records -->
     <div class="card">
       <div class="card-header">
@@ -706,7 +994,10 @@
         </table>
       </div>
     </div>
+        </div>
 
+        <!-- VIEW: Evidence Packs ───────────────────────────────────── -->
+        <div id="view-packs" class="app-view">
     <!-- Evidence Packs -->
     <div class="card">
       <div class="card-header">
@@ -727,8 +1018,12 @@
         </table>
       </div>
     </div>
-  </main>
-</div>
+        </div>
+
+      </div><!-- /#app-content -->
+    </div><!-- /#app-main -->
+  </div><!-- /#app-shell -->
+</div><!-- /#dashboard --></div>
 
 <!-- ── Modal overlay (shared by all forms) ───────────────────────────────── -->
 <div id="modal-overlay">
@@ -1330,7 +1625,9 @@
 
   function showDashboard() {
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('dashboard').style.display = 'flex';
+    const emailEl = document.getElementById('app-topbar-right');
+    if (emailEl) emailEl.textContent = document.getElementById('email')?.value || '';
     loadAll();
   }
 
@@ -1411,6 +1708,7 @@
       MT103: 'b', PACS008: 'b', MT910: 'b', BANK_CREDIT_ADVICE: 'g',
       MT940_LINE: 'gr', MT950_LINE: 'gr', MANUAL: 'gr',
     };
+    if (status == null || status === '') return '<span class="badge gr">—</span>';
     return '<span class="badge ' + (map[status] ?? 'gr') + '">' + status.replace(/_/g, ' ') + '</span>';
   }
 
@@ -1531,12 +1829,12 @@
       document.getElementById('body-bl').innerHTML = rows.map(r => `
         <tr>
           <td class="mono">${h(r.bl_number)}</td>
-          <td class="mono" title="${h(r.shipment_id)}">${short(r.shipment_id)}</td>
+          <td class="mono" title="${h(r.shipment_id ?? '')}">${short(r.shipment_id)}</td>
           <td>${date(r.bl_date)}</td>
-          <td>${badge(r.bl_type)}</td>
-          <td class="mono">${h(r.nxp_reference)}</td>
+          <td>${badge(r.bl_type ?? '')}</td>
+          <td class="mono">${h(r.nxp_reference ?? '—')}</td>
           <td>${date(r.repatriation_deadline)}</td>
-          <td>${badge(r.deadline_status)}</td>
+          <td>${badge(r.deadline_status ?? '')}</td>
         </tr>`).join('');
       show('st-bl', 'tb-bl', 'cnt-bl', rows);
     }).catch(e => errState('st-bl', e.message));
@@ -1688,6 +1986,9 @@
     const bodyWq      = document.getElementById('body-wq');
     const bodyWqCards = document.getElementById('body-wq-cards');
     const wqPipeline  = document.getElementById('wq-pipeline');
+    const ncaSection  = document.getElementById('nca-section');
+    const ncaBody     = document.getElementById('nca-body');
+    const ncaPriority = document.getElementById('nca-priority');
 
     Promise.all([
       apiFetch('/contracts').then(b => b.data ?? []).catch(() => []),
@@ -1786,6 +2087,9 @@
         return b.outstanding - a.outstanding;
       });
 
+      _cases = cases;
+      _allShipments = shipments;
+
       // ── Summary metric cards ────────────────────────────────────────────────────
       const activeContracts  = contracts.filter(c => c.status === 'ACTIVE').length;
       const allocatedTotal   = contracts.reduce((s, c) => s + (Number(c.total_allocated_receipts) || 0), 0);
@@ -1879,14 +2183,58 @@
           ).join('')}</div>`
         : '<p class="ov-empty-msg">No exceptions — all items in order.</p>';
 
-      // ── Compliance Work Queue ────────────────────────────────────────────────────────────────────────────
-      const prCls     = { HIGH: 'r', MEDIUM: 'o', LOW: 'g' };
-      const packStCls = { SEALED: 'b', READY_TO_SEAL: 'y', NOT_READY: 'gr' };
-
+      // ── Case filter & pipeline counts (shared by NCA + Work Queue) ─────────────────────────────────────
       const highCount     = cases.filter(c => c.priority === 'HIGH').length;
       const mediumCount   = cases.filter(c => c.priority === 'MEDIUM').length;
       const completeCount = cases.filter(c => c.caseStatus === 'COMPLETE').length;
       const wqItems       = cases.filter(c => c.priority !== 'LOW');
+
+      // ── Next Critical Action ─────────────────────────────────────────────────────────────────────────────
+      const ncaItem = wqItems.length > 0 ? wqItems[0] : null;
+      if (ncaItem) {
+        const prBadgeCls = { HIGH: 'r', MEDIUM: 'o', LOW: 'g' };
+        const dLabel = ncaItem.daysLeft === null ? '—'
+                     : ncaItem.daysLeft < 0     ? Math.abs(ncaItem.daysLeft) + 'd overdue'
+                     :                            ncaItem.daysLeft + 'd';
+        const dCls   = ncaItem.daysLeft === null ? 'gr'
+                     : ncaItem.daysLeft < 0     ? 'r'
+                     : ncaItem.daysLeft <= 30   ? 'y' : 'g';
+        ncaPriority.innerHTML = '<span class="badge ' + (prBadgeCls[ncaItem.priority] ?? 'gr') + '">' + h(ncaItem.priority) + '</span>';
+        ncaBody.innerHTML =
+          '<div class="nca-card-body">' +
+            '<div class="nca-col">' +
+              '<div class="nca-stat-label">Shipment</div>' +
+              '<div class="nca-shipment">' + h(ncaItem.shipment_reference ?? '—') + '</div>' +
+              '<div class="nca-nxp">' + h(ncaItem.nxp_reference ?? '—') + '</div>' +
+            '</div>' +
+            '<div class="nca-divider"></div>' +
+            '<div class="nca-col">' +
+              '<div class="nca-stat-label">Deadline</div>' +
+              '<div><span class="badge ' + dCls + '">' + h(dLabel) + '</span></div>' +
+            '</div>' +
+            '<div class="nca-divider"></div>' +
+            '<div class="nca-col">' +
+              '<div class="nca-stat-label">Unrepatriated Proceeds</div>' +
+              '<div class="nca-amount">' + (ncaItem.outstanding > 0 ? 'USD ' + h(num(ncaItem.outstanding)) : '<span style="color:#6b7280">—</span>') + '</div>' +
+            '</div>' +
+            '<div class="nca-divider"></div>' +
+            '<div class="nca-col">' +
+              '<div class="nca-stat-label">Issue</div>' +
+              '<div class="nca-issue">' + h(ncaItem.issue) + '</div>' +
+            '</div>' +
+            '<div class="nca-col-action">' +
+              '<span class="nca-action-pill">→ ' + h(ncaItem.nextAction) + '</span>' +
+            '</div>' +
+          '</div>';
+      } else {
+        ncaPriority.innerHTML = '';
+        ncaBody.innerHTML = '<div class="nca-empty">No urgent compliance action.</div>';
+      }
+      ncaSection.style.display = 'block';
+
+      // ── Compliance Work Queue ────────────────────────────────────────────────────────────────────────────
+      const prCls     = { HIGH: 'r', MEDIUM: 'o', LOW: 'g' };
+      const packStCls = { SEALED: 'b', READY_TO_SEAL: 'y', NOT_READY: 'gr' };
 
       wqPipeline.innerHTML =
         '<span class="wq-pl-label">Compliance Pipeline</span>' +
@@ -2617,6 +2965,383 @@
       sealSubmit.textContent = 'Seal Pack';
     }
   });
+
+
+  // ── RFC-011: Global data (populated by loadOverview) ─────────────────────────
+  let _cases = [];
+  let _allShipments = [];
+
+  // ── View switching ────────────────────────────────────────────────────────────
+  const VIEW_TITLES = {
+    'view-overview':     'Overview',
+    'view-workqueue':    'Work Queue',
+    'view-deadlines':    'Deadlines',
+    'view-exports':      'Exports',
+    'view-export-case':  '',
+    'view-contracts':    'Contracts',
+    'view-shipments':    'Shipments',
+    'view-bl':           'Bills of Lading',
+    'view-receipts':     'Payment Receipts',
+    'view-evidence':     'Payment Evidence',
+    'view-compliance':   'Compliance Records',
+    'view-packs':        'Evidence Packs',
+  };
+
+  // ── Mobile navigation ────────────────────────────────────────────────────────
+  function toggleMobileNav() {
+    const sb = document.getElementById('sb');
+    const bd = document.getElementById('sb-backdrop');
+    const open = sb.classList.toggle('mob-open');
+    bd.classList.toggle('mob-open', open);
+  }
+
+  function closeMobileNav() {
+    document.getElementById('sb').classList.remove('mob-open');
+    document.getElementById('sb-backdrop').classList.remove('mob-open');
+  }
+
+  function showView(id, customTitle, activeSbId) {
+    document.querySelectorAll('.app-view').forEach(v => v.classList.remove('v-active'));
+    document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('v-active'));
+
+    const view = document.getElementById(id);
+    if (view) view.classList.add('v-active');
+
+    const sbTarget = activeSbId || id;
+    const sbLink = document.querySelector('.sb-link[data-view="' + sbTarget + '"]');
+    if (sbLink) sbLink.classList.add('v-active');
+
+    const titleEl = document.getElementById('app-topbar-title');
+    if (titleEl) titleEl.textContent = customTitle !== undefined ? customTitle : (VIEW_TITLES[id] || '');
+
+    closeMobileNav();
+
+    if (id === 'view-exports')    renderExportsView();
+    if (id === 'view-workqueue')  renderWQView();
+    if (id === 'view-deadlines')  renderDeadlinesView();
+  }
+
+  // ── Exports master list ───────────────────────────────────────────────────────
+  function renderExportsView() {
+    const container = document.getElementById('exports-container');
+    if (!_cases.length) {
+      container.innerHTML = '<div class="card"><div class="state">Overview data loading—please wait and try again.</div></div>';
+      return;
+    }
+
+    const shipMap = {};
+    _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
+
+    const prCls  = { HIGH: 'r', MEDIUM: 'o', LOW: 'g' };
+    const packCls   = { SEALED: 'g', READY_TO_SEAL: 'b', NOT_READY: 'gr' };
+    const packLabel = { SEALED: 'SEALED', READY_TO_SEAL: 'READY TO SEAL', NOT_READY: 'NOT READY' };
+
+    function exportRow(c) {
+      const ship = shipMap[c.nxp_reference] ?? {};
+      const route = (ship.port_of_loading && ship.port_of_discharge)
+        ? h(ship.port_of_loading) + ' → ' + h(ship.port_of_discharge)
+        : '—';
+      const vessel = ship.vessel_name ? h(ship.vessel_name) : '—';
+      const dLabel = c.daysLeft === null    ? '—'
+                   : c.daysLeft < 0        ? Math.abs(c.daysLeft) + 'd overdue'
+                   :                         c.daysLeft + 'd left';
+      const dCls   = c.daysLeft === null    ? 'gr'
+                   : c.daysLeft < 0        ? 'r'
+                   : c.daysLeft <= 30      ? 'o' : 'gr';
+      const stLabel = c.caseStatus === 'COMPLETE' ? 'COMPLETE' : c.priority;
+      const stCls   = c.caseStatus === 'COMPLETE' ? 'g' : (prCls[c.priority] ?? 'gr');
+      const ps = c.packStatus ?? 'NOT_READY';
+
+      return '<tr data-nxp="' + h(c.nxp_reference) + '">'
+        + '<td><div class="x-nxp">' + h(c.nxp_reference ?? '—') + '</div>'
+        +     '<div class="x-sref">' + h(c.shipment_reference ?? '—') + '</div></td>'
+        + '<td><div class="x-route">' + route + '</div>'
+        +     '<div class="x-vessel">' + vessel + '</div></td>'
+        + '<td><span class="badge ' + dCls + '">' + h(dLabel) + '</span></td>'
+        + '<td><span class="badge ' + stCls + '">' + h(stLabel) + '</span></td>'
+        + '<td class="r">' + (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</td>'
+        + '<td class="r" style="' + (c.outstanding > 0 ? 'color:#b91c1c;font-weight:600' : 'color:#94a3b8') + '">'
+        +   (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : '—') + '</td>'
+        + '<td><span class="badge ' + (packCls[ps] ?? 'gr') + '">' + h(packLabel[ps] ?? ps) + '</span></td>'
+        + '<td><button class="x-open" data-nxp="' + h(c.nxp_reference) + '">Open →</button></td>'
+        + '</tr>';
+    }
+
+    const tbody = _cases.map(exportRow).join('');
+
+    container.innerHTML =
+      '<div class="card">'
+      + '<div class="card-header"><h2>All Exports</h2>'
+      + '<span class="card-count">' + _cases.length + ' export' + (_cases.length !== 1 ? 's' : '') + '</span></div>'
+      + '<div class="xf-bar">'
+      + '<button class="xf-btn v-active" onclick="filterExports(\'all\',this)">All</button>'
+      + '<button class="xf-btn" onclick="filterExports(\'overdue\',this)">Overdue</button>'
+      + '<button class="xf-btn" onclick="filterExports(\'due30\',this)">Due &lt;30d</button>'
+      + '<button class="xf-btn" onclick="filterExports(\'outstanding\',this)">Outstanding Proceeds</button>'
+      + '</div>'
+      + '<div class="table-wrap"><table id="exports-tbl">'
+      + '<thead><tr>'
+      + '<th>NXP Reference</th><th>Route</th><th>CBN Deadline</th>'
+      + '<th>Status</th><th class="r">Proceeds Required</th>'
+      + '<th class="r">Outstanding</th><th>Pack Status</th><th></th>'
+      + '</tr></thead>'
+      + '<tbody id="exports-tbody">' + tbody + '</tbody>'
+      + '</table></div></div>';
+
+    document.getElementById('exports-tbody').addEventListener('click', function(e) {
+      const btn = e.target.closest('.x-open');
+      const row = e.target.closest('tr[data-nxp]');
+      const nxp = btn ? btn.dataset.nxp : (row ? row.dataset.nxp : null);
+      if (nxp) openExportCase(nxp);
+    });
+  }
+
+  function filterExports(type, btn) {
+    document.querySelectorAll('.xf-btn').forEach(b => b.classList.remove('v-active'));
+    if (btn) btn.classList.add('v-active');
+    const tbody = document.getElementById('exports-tbody');
+    if (!tbody) return;
+    Array.from(tbody.querySelectorAll('tr[data-nxp]')).forEach(row => {
+      const nxp = row.dataset.nxp;
+      const c = _cases.find(x => x.nxp_reference === nxp);
+      if (!c) return;
+      let show = true;
+      if (type === 'overdue')     show = c.daysLeft !== null && c.daysLeft < 0;
+      if (type === 'due30')       show = c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= 30;
+      if (type === 'outstanding') show = c.outstanding > 0;
+      row.style.display = show ? '' : 'none';
+    });
+  }
+
+  // ── Export Case Summary ───────────────────────────────────────────────────────
+  function openExportCase(nxpRef) {
+    const c = _cases.find(x => x.nxp_reference === nxpRef);
+    if (!c) return;
+
+    const shipMap = {};
+    _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
+    const ship = shipMap[nxpRef] ?? {};
+
+    const dLabel = c.daysLeft === null ? '—'
+                 : c.daysLeft < 0     ? Math.abs(c.daysLeft) + 'd overdue'
+                 :                      c.daysLeft + 'd left';
+    const dCls   = c.daysLeft === null ? 'gr'
+                 : c.daysLeft < 0     ? 'r'
+                 : c.daysLeft <= 30   ? 'o' : 'gr';
+
+    const packCls   = { SEALED: 'g', READY_TO_SEAL: 'b', NOT_READY: 'gr' };
+    const packLabel = { SEALED: 'SEALED', READY_TO_SEAL: 'READY TO SEAL', NOT_READY: 'NOT READY' };
+    const ps = c.packStatus ?? 'NOT_READY';
+
+    const repCls = c.repatriation_status === 'OVERDUE'  ? 'r'
+                 : c.repatriation_status === 'COMPLETE' ? 'g'
+                 : c.repatriation_status === 'PARTIAL'  ? 'o' : 'gr';
+
+    const deadlineStr = c.repatriation_deadline
+      ? date(c.repatriation_deadline) : '—';
+
+    // Header
+    let badges = '';
+    if (c.caseStatus === 'OVERDUE')    badges += '<span class="badge r">OVERDUE</span> ';
+    if (c.priority === 'HIGH')         badges += '<span class="badge r">HIGH</span> ';
+    if (c.priority === 'MEDIUM')       badges += '<span class="badge o">MEDIUM</span> ';
+    if (c.caseStatus === 'COMPLETE')   badges += '<span class="badge g">COMPLETE</span> ';
+    badges += '<span class="badge ' + dCls + '">' + h(dLabel) + '</span> ';
+    badges += '<span class="badge ' + (packCls[ps] ?? 'gr') + '">PACK: ' + h(packLabel[ps] ?? ps) + '</span>';
+
+    document.getElementById('ec-header').innerHTML =
+      '<div class="ec-bc"><button onclick="showView(\'view-exports\',\'Exports\',\'view-exports\')">← Exports</button></div>'
+      + '<div class="ec-ta">'
+      +   '<div class="ec-nxp">' + h(c.nxp_reference ?? '—') + '</div>'
+      +   '<div class="ec-sref">' + h(c.shipment_reference ?? '—') + '</div>'
+      +   '<div class="ec-bdg">' + badges + '</div>'
+      + '</div>'
+      + '<div class="ec-meta">'
+      +   '<div class="ec-mc"><div class="ec-ml">Shipment Value</div><div class="ec-mv">'
+      +     (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : '—') + '</div></div>'
+      +   '<div class="ec-mc"><div class="ec-ml">Proceeds Required</div><div class="ec-mv">'
+      +     (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</div></div>'
+      +   '<div class="ec-mc"><div class="ec-ml">Outstanding</div><div class="ec-mv' + (c.outstanding > 0 ? ' red' : '') + '">'
+      +     (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : '—') + '</div></div>'
+      +   '<div class="ec-mc"><div class="ec-ml">CBN Deadline</div><div class="ec-mv' + (c.daysLeft !== null && c.daysLeft < 0 ? ' red' : '') + '">' + deadlineStr + '</div></div>'
+      +   '<div class="ec-mc"><div class="ec-ml">Repatriation</div><div class="ec-mv"><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></div></div>'
+      + '</div>';
+
+    // NCA banner
+    const ncaOk = c.nextAction === 'No action' || c.caseStatus === 'COMPLETE';
+    const ncaClass = ncaOk ? 'ec-nca ok' : 'ec-nca';
+
+    // Checklist helper
+    function eck(val, tag, label) {
+      return '<div class="ec-chk">'
+        + '<span class="ec-chk-i' + (val ? '' : ' x') + '">' + (val ? '✓' : '✗') + '</span>'
+        + '<span class="ec-chk-l">' + h(label) + '</span>'
+        + '<span class="ec-chk-t">' + h(tag) + '</span>'
+        + '<span class="ec-chk-n ' + (val ? 'ok' : 'bad') + '">' + (val ? 'On file' : 'Missing') + '</span>'
+        + '</div>';
+    }
+
+    // Route
+    const route = (ship.port_of_loading && ship.port_of_discharge)
+      ? h(ship.port_of_loading) + ' → ' + h(ship.port_of_discharge)
+      : '—';
+
+    // Missing checklist items for pack blocking
+    const missing = [
+      !c.nxp_approved             && 'NXP',
+      !c.bl_uploaded              && 'BL',
+      !c.cci_obtained             && 'CCI',
+      !c.payment_evidence_uploaded && 'EVD',
+      !c.credit_advice_confirmed  && 'ADV',
+    ].filter(Boolean);
+
+    document.getElementById('ec-content').innerHTML =
+      '<div class="' + ncaClass + '">'
+      + '<div class="ec-nca-l">Next Required Action</div>'
+      + '<div class="ec-nca-t">' + h(c.nextAction ?? '—') + '</div>'
+      + '</div>'
+
+      + '<div class="ec-grid">'
+
+      // Shipment card
+      + '<div class="ec-card">'
+      + '<div class="ec-card-h"><span class="ec-card-t">Shipment</span><span class="ec-card-s">/shipments</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">NXP Reference</span><span class="ec-rv mono">' + h(c.nxp_reference ?? '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Shipment Reference</span><span class="ec-rv mono">' + h(c.shipment_reference ?? '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Route</span><span class="ec-rv" style="font-size:11px">' + route + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Vessel</span><span class="ec-rv' + (ship.vessel_name ? '' : ' muted') + '">' + (ship.vessel_name ? h(ship.vessel_name) : '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Shipment Value</span><span class="ec-rv">' + (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : '<span class="ec-rv muted">—</span>') + '</span></div>'
+      + '</div>'
+
+      // Proceeds card
+      + '<div class="ec-card">'
+      + '<div class="ec-card-h"><span class="ec-card-t">Proceeds &amp; Repatriation</span><span class="ec-card-s">/compliance</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Proceeds Required</span><span class="ec-rv">' + (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Proceeds Received</span><span class="ec-rv' + (Number(c.proceeds_received) > 0 ? ' green' : '') + '">' + (Number(c.proceeds_received) > 0 ? 'USD ' + num(c.proceeds_received) : '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Outstanding</span><span class="ec-rv' + (c.outstanding > 0 ? ' red' : ' green') + '">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : 'Nil') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Deadline</span><span class="ec-rv' + (c.daysLeft !== null && c.daysLeft < 0 ? ' red' : '') + '">' + deadlineStr + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Late Repatriation</span><span class="ec-rv' + (c.was_repatriated_late ? ' red' : '') + '">' + (c.was_repatriated_late ? 'Yes' : 'No') + '</span></div>'
+      + '</div>'
+
+      + '</div>' // ec-grid
+
+      // Compliance checklist
+      + '<div class="ec-card">'
+      + '<div class="ec-card-h"><span class="ec-card-t">Compliance Checklist</span><span class="ec-card-s">/compliance</span></div>'
+      + eck(c.nxp_approved,              'NXP', 'NXP Approved by CBN')
+      + eck(c.bl_uploaded,               'BL',  'Bill of Lading Uploaded')
+      + eck(c.cci_obtained,              'CCI', 'CCI Obtained')
+      + eck(c.payment_evidence_uploaded, 'EVD', 'Payment Evidence Uploaded')
+      + eck(c.credit_advice_confirmed,   'ADV', 'Credit Advice Confirmed')
+      + '</div>'
+
+      // Evidence pack
+      + '<div class="ec-card">'
+      + '<div class="ec-card-h"><span class="ec-card-t">Evidence Pack</span><span class="ec-card-s">/evidence-packs</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Pack Status</span><span class="ec-rv"><span class="badge ' + (packCls[ps] ?? 'gr') + '">' + h(packLabel[ps] ?? ps) + '</span></span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Sealed</span><span class="ec-rv' + (c.pack && c.pack.sealed ? ' green' : '') + '">' + (c.pack && c.pack.sealed ? 'Yes' : 'No') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Checklist Complete</span><span class="ec-rv ' + (c.allChecklist ? 'green' : 'red') + '">'
+      +   (c.allChecklist ? 'Yes' : 'No — ' + missing.join(', ') + ' missing') + '</span></div>'
+      + '</div>';
+
+    showView('view-export-case', h(c.nxp_reference ?? ''), 'view-exports');
+  }
+
+  // ── Work Queue standalone view ────────────────────────────────────────────────
+  function renderWQView() {
+    const container = document.getElementById('wq-standalone');
+    if (!_cases.length) {
+      container.innerHTML = '<div class="card"><div class="state">Overview data loading—please wait.</div></div>';
+      return;
+    }
+    const wqItems = _cases.filter(c => c.priority !== 'LOW');
+    const highCount     = _cases.filter(c => c.priority === 'HIGH').length;
+    const mediumCount   = _cases.filter(c => c.priority === 'MEDIUM').length;
+    const completeCount = _cases.filter(c => c.caseStatus === 'COMPLETE').length;
+
+    const prCls = { HIGH: 'r', MEDIUM: 'o', LOW: 'g' };
+    const packCls = { SEALED: 'b', READY_TO_SEAL: 'y', NOT_READY: 'gr' };
+
+    const rows = wqItems.map(c => {
+      const dLabel = c.daysLeft === null ? '—'
+                   : c.daysLeft < 0     ? Math.abs(c.daysLeft) + 'd overdue'
+                   :                      c.daysLeft + 'd';
+      const dCls   = c.daysLeft === null ? 'gr'
+                   : c.daysLeft < 0     ? 'r'
+                   : c.daysLeft <= 30   ? 'y' : 'g';
+      return '<tr>'
+        + '<td><span class="badge ' + (prCls[c.priority] ?? 'gr') + '">' + h(c.priority) + '</span></td>'
+        + '<td class="mono">' + h(c.shipment_reference ?? '—') + '<br><small style="color:#9ca3af">' + h(c.nxp_reference ?? '') + '</small></td>'
+        + '<td>' + h(c.issue) + '</td>'
+        + '<td><span class="badge ' + dCls + '">' + h(dLabel) + '</span></td>'
+        + '<td class="r">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : '—') + '</td>'
+        + '<td>' + h(c.nextAction) + '</td>'
+        + '<td><span class="badge ' + (packCls[c.packStatus] ?? 'gr') + '">' + h(c.packStatus ?? '—') + '</span></td>'
+        + '</tr>';
+    }).join('');
+
+    container.innerHTML =
+      '<div class="card">'
+      + '<div class="card-header"><h2>Compliance Work Queue</h2>'
+      + '<span class="card-count">' + wqItems.length + ' item' + (wqItems.length !== 1 ? 's' : '') + '</span></div>'
+      + '<div class="wq-pipeline" style="display:flex;align-items:center;gap:1.25rem;padding:0.625rem 1rem;border-bottom:1px solid #e5e7eb;font-size:0.8125rem">'
+      + '<span class="wq-pl-label" style="font-size:0.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9ca3af;margin-right:0.5rem">Compliance Pipeline</span>'
+      + '<span><span class="badge r">HIGH</span> <strong>' + highCount + '</strong></span>'
+      + ' <span style="color:#d1d5db">·</span> '
+      + '<span><span class="badge o">MEDIUM</span> <strong>' + mediumCount + '</strong></span>'
+      + ' <span style="color:#d1d5db">·</span> '
+      + '<span><span class="badge g">COMPLETE</span> <strong>' + completeCount + '</strong></span>'
+      + '</div>'
+      + (wqItems.length
+        ? '<div class="table-wrap"><table><thead><tr>'
+          + '<th>Priority</th><th>Shipment</th><th>Issue</th>'
+          + '<th>Days Left</th><th class="r">Unrepatriated Proceeds</th>'
+          + '<th>Next Action</th><th>Pack</th>'
+          + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+        : '<div class="state">No HIGH or MEDIUM items in the work queue.</div>')
+      + '</div>';
+  }
+
+  // ── Deadlines standalone view ─────────────────────────────────────────────────
+  function renderDeadlinesView() {
+    const container = document.getElementById('dl-standalone');
+    if (!_cases.length) {
+      container.innerHTML = '<div class="card"><div class="state">Overview data loading—please wait.</div></div>';
+      return;
+    }
+    const deadlineRows = _cases
+      .filter(c => c.repatriation_deadline && c.daysLeft !== null && c.daysLeft >= -30)
+      .sort((a, b) => a.daysLeft - b.daysLeft);
+
+    const rows = deadlineRows.map(c => {
+      const cls   = c.daysLeft < 0 ? 'r' : c.daysLeft <= 30 ? 'y' : 'g';
+      const label = c.daysLeft < 0 ? Math.abs(c.daysLeft) + 'd overdue' : c.daysLeft + 'd';
+      const repCls = c.repatriation_status === 'OVERDUE'  ? 'r'
+                   : c.repatriation_status === 'COMPLETE' ? 'g'
+                   : c.repatriation_status === 'PARTIAL'  ? 'o' : 'gr';
+      return '<tr>'
+        + '<td class="mono">' + h(c.nxp_reference ?? '—') + '</td>'
+        + '<td class="mono">' + h(c.shipment_reference ?? '—') + '</td>'
+        + '<td>' + date(c.repatriation_deadline) + '</td>'
+        + '<td><span class="badge ' + cls + '">' + h(label) + '</span></td>'
+        + '<td><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></td>'
+        + '<td class="r">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : '—') + '</td>'
+        + '</tr>';
+    }).join('');
+
+    container.innerHTML =
+      '<div class="card">'
+      + '<div class="card-header"><h2>Deadlines</h2>'
+      + '<span class="card-count">' + deadlineRows.length + ' item' + (deadlineRows.length !== 1 ? 's' : '') + '</span></div>'
+      + (deadlineRows.length
+        ? '<div class="table-wrap"><table><thead><tr>'
+          + '<th>NXP Reference</th><th>Shipment</th><th>Deadline</th>'
+          + '<th>Days</th><th>Repatriation</th><th class="r">Outstanding</th>'
+          + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+        : '<div class="state">No upcoming deadlines.</div>')
+      + '</div>';
+  }
 
   // ── Boot ─────────────────────────────────────────────────────────────────────
   if (getToken()) {
