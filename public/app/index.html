@@ -651,8 +651,31 @@
     .ec-chk-n.ok { color: #15803d; }
     .ec-chk-n.bad { color: #b91c1c; }
 
+    /* ── Mobile nav ── */
+    #mob-menu-btn {
+      display: none;
+      background: none; border: none; cursor: pointer;
+      padding: 4px 6px; color: #475569; font-size: 20px; line-height: 1;
+      flex-shrink: 0; margin-right: 8px; border-radius: 4px;
+    }
+    #mob-menu-btn:hover { background: #f1f5f9; color: #0f172a; }
+    #sb-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,23,42,0.35); z-index: 200;
+    }
+    #app-topbar-left {
+      display: flex; align-items: center; min-width: 0;
+    }
+
     @media (max-width: 640px) {
       #sb { display: none; }
+      #sb.mob-open {
+        display: flex; position: fixed;
+        left: 0; top: 0; bottom: 0; z-index: 300;
+        box-shadow: 2px 0 16px rgba(15,23,42,0.18);
+      }
+      #sb-backdrop.mob-open { display: block; }
+      #mob-menu-btn { display: flex; align-items: center; }
       #app-main { width: 100%; }
       .ec-grid { grid-template-columns: 1fr; }
       .ec-meta { flex-wrap: wrap; }
@@ -717,10 +740,16 @@
       </div>
     </div>
 
+    <!-- ── Mobile nav backdrop ──────────────────────────────────────── -->
+    <div id="sb-backdrop" onclick="closeMobileNav()"></div>
+
     <!-- ── Main content ─────────────────────────────────────────────── -->
     <div id="app-main">
       <div id="app-topbar">
-        <div id="app-topbar-title">Overview</div>
+        <div id="app-topbar-left">
+          <button id="mob-menu-btn" onclick="toggleMobileNav()" aria-label="Open navigation">&#9776;</button>
+          <div id="app-topbar-title">Overview</div>
+        </div>
         <div id="app-topbar-right"></div>
       </div>
       <div id="app-content">
@@ -1679,6 +1708,7 @@
       MT103: 'b', PACS008: 'b', MT910: 'b', BANK_CREDIT_ADVICE: 'g',
       MT940_LINE: 'gr', MT950_LINE: 'gr', MANUAL: 'gr',
     };
+    if (status == null || status === '') return '<span class="badge gr">—</span>';
     return '<span class="badge ' + (map[status] ?? 'gr') + '">' + status.replace(/_/g, ' ') + '</span>';
   }
 
@@ -1799,12 +1829,12 @@
       document.getElementById('body-bl').innerHTML = rows.map(r => `
         <tr>
           <td class="mono">${h(r.bl_number)}</td>
-          <td class="mono" title="${h(r.shipment_id)}">${short(r.shipment_id)}</td>
+          <td class="mono" title="${h(r.shipment_id ?? '')}">${short(r.shipment_id)}</td>
           <td>${date(r.bl_date)}</td>
-          <td>${badge(r.bl_type)}</td>
-          <td class="mono">${h(r.nxp_reference)}</td>
+          <td>${badge(r.bl_type ?? '')}</td>
+          <td class="mono">${h(r.nxp_reference ?? '—')}</td>
           <td>${date(r.repatriation_deadline)}</td>
-          <td>${badge(r.deadline_status)}</td>
+          <td>${badge(r.deadline_status ?? '')}</td>
         </tr>`).join('');
       show('st-bl', 'tb-bl', 'cnt-bl', rows);
     }).catch(e => errState('st-bl', e.message));
@@ -2957,6 +2987,19 @@
     'view-packs':        'Evidence Packs',
   };
 
+  // ── Mobile navigation ────────────────────────────────────────────────────────
+  function toggleMobileNav() {
+    const sb = document.getElementById('sb');
+    const bd = document.getElementById('sb-backdrop');
+    const open = sb.classList.toggle('mob-open');
+    bd.classList.toggle('mob-open', open);
+  }
+
+  function closeMobileNav() {
+    document.getElementById('sb').classList.remove('mob-open');
+    document.getElementById('sb-backdrop').classList.remove('mob-open');
+  }
+
   function showView(id, customTitle, activeSbId) {
     document.querySelectorAll('.app-view').forEach(v => v.classList.remove('v-active'));
     document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('v-active'));
@@ -2970,6 +3013,8 @@
 
     const titleEl = document.getElementById('app-topbar-title');
     if (titleEl) titleEl.textContent = customTitle !== undefined ? customTitle : (VIEW_TITLES[id] || '');
+
+    closeMobileNav();
 
     if (id === 'view-exports')    renderExportsView();
     if (id === 'view-workqueue')  renderWQView();
