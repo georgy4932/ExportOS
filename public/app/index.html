@@ -88,36 +88,6 @@
     /* ── Dashboard ──────────────────────────────────────────────────────────── */
     #dashboard { display: none; }
 
-    header {
-      background: #0f172a;
-      color: #f8fafc;
-      padding: 0.875rem 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .header-left { display: flex; align-items: baseline; gap: 0; }
-    header h1 { font-size: 1rem; font-weight: 700; }
-    header span { font-size: 0.8125rem; opacity: 0.5; }
-    #header-exporter {
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: #e2e8f0;
-      opacity: 1;
-      border-left: 1px solid #334155;
-      margin-left: 1rem;
-      padding-left: 1rem;
-    }
-    #logout-btn {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      background: none;
-      border: 1px solid #334155;
-      border-radius: 4px;
-      padding: 0.25rem 0.625rem;
-      cursor: pointer;
-    }
-    #logout-btn:hover { color: #f1f5f9; border-color: #475569; }
 
     main { padding: 1.75rem 1.5rem 1.5rem; display: grid; gap: 1.25rem; }
 
@@ -495,72 +465,211 @@
       .wq-card-list  { display: block; }
     }
 
-    /* ── Command Center Shell ─────────────────────────────────────── */
+    /* ── ExportOS Workspace Shell ─────────────────────────────────────── */
     #dashboard { height: 100vh; overflow: hidden; }
     #app-shell { display: flex; height: 100vh; overflow: hidden; }
-
-    /* ── Sidebar ── */
     #sb {
-      width: 210px; min-width: 210px;
-      background: #fff;
-      border-right: 1px solid #e2e8f0;
-      display: flex; flex-direction: column;
-      height: 100vh; overflow: hidden;
+      width: 188px;
+      min-width: 188px;
+      background: #ffffff;
+      border-right: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
       flex-shrink: 0;
     }
-    .sb-brand { padding: 15px 16px 12px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
-    .sb-name { font-size: 13.5px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
+    .sb-brand {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid #eef2f7;
+    }
+    .sb-logo-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sb-logo-mark {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      background: #166534;
+    }
+    .sb-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+    }
     .sb-ver {
-      font-size: 9.5px; font-weight: 600; color: #94a3b8;
-      text-transform: uppercase; letter-spacing: 0.06em; margin-left: 4px;
+      display: block;
+      margin-top: 2px;
+      margin-left: 28px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
     .sb-co {
-      padding: 9px 16px; border-bottom: 1px solid #e2e8f0;
-      background: #f8fafc; flex-shrink: 0;
+      margin: 12px 12px 8px;
+      padding: 10px 12px;
+      border: 1px solid #dbeafe;
+      border-radius: 8px;
+      background: #f8fafc;
     }
     .sb-co-lbl {
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 2px;
+      font-size: 9px;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
     }
     .sb-co-name {
-      font-size: 11.5px; font-weight: 600; color: #1e293b;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.25;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
     }
-    .sb-nav { flex: 1; overflow-y: auto; padding: 6px 0; }
+    .sb-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 8px 12px;
+    }
     .sb-group {
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.08em; color: #94a3b8; padding: 10px 16px 3px;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      padding: 14px 10px 6px;
     }
     .sb-link {
-      display: flex; align-items: center;
-      width: 100%; padding: 6px 16px;
-      font-size: 12.5px; font-weight: 500; color: #475569;
-      background: none; border: none; border-left: 2px solid transparent;
-      text-align: left; cursor: pointer; font-family: inherit; line-height: 1.5;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: #334155;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
     }
-    .sb-link:hover { background: #f8fafc; color: #0f172a; }
-    .sb-link.v-active { background: #f0fdf4; color: #15803d; font-weight: 600; border-left-color: #16a34a; }
-    .sb-foot { border-top: 1px solid #e2e8f0; padding: 6px 0; flex-shrink: 0; }
-    .sb-foot .sb-link { color: #94a3b8; }
-    .sb-foot .sb-link:hover { color: #64748b; }
+    .sb-link:hover {
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    .sb-link.v-active {
+      background: #ecfdf5;
+      color: #166534;
+      box-shadow: inset 3px 0 0 #16a34a;
+    }
+    .sb-details {
+      margin-top: 10px;
+    }
+    .sb-details summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      border-top: 1px solid #eef2f7;
+    }
+    .sb-details summary::-webkit-details-marker { display: none; }
+    .sb-details summary::after {
+      content: "Show";
+      float: right;
+      font-size: 10px;
+      color: #94a3b8;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .sb-details[open] summary::after { content: "Hide"; }
+    .sb-details .sb-link {
+      font-size: 12px;
+      font-weight: 500;
+      color: #64748b;
+      min-height: 30px;
+      padding-left: 14px;
+    }
+    .sb-foot {
+      border-top: 1px solid #eef2f7;
+      padding: 8px;
+    }
+    .sb-foot .sb-link {
+      color: #64748b;
+    }
 
     /* ── App main ── */
     #app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
     #app-topbar {
-      background: #fff; border-bottom: 1px solid #e2e8f0;
-      padding: 11px 20px; display: flex; align-items: center;
-      justify-content: space-between; flex-shrink: 0;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
     }
-    #app-topbar-title { font-size: 13.5px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
+    #app-topbar-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+    }
     #app-topbar-right {
-      font-size: 11px; color: #64748b; background: #f1f5f9;
-      border: 1px solid #e2e8f0; border-radius: 4px; padding: 3px 9px;
+      font-size: 12px;
+      color: #475569;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 5px 10px;
     }
-    #app-content { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; }
+    #app-content { flex: 1; overflow-y: auto; padding: 24px 30px 36px; }
 
     /* ── View switching ── */
     .app-view { display: none; }
     .app-view.v-active { display: block; }
+
+    /* ── Better KPI layout ── */
+    .ov-metric-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 1rem;
+    }
+    .ov-metric-card {
+      min-height: 132px;
+      padding: 1.5rem 1.6rem;
+    }
+    .ov-metric-card .mv {
+      font-size: clamp(1.45rem, 2.4vw, 2rem);
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      line-height: 1.1;
+    }
+    .ov-metric-card .ml {
+      font-size: 0.72rem;
+      line-height: 1.35;
+      max-width: 14rem;
+    }
+    .ov-metric-card .mv-count {
+      font-size: 1.45rem;
+      line-height: 1.1;
+    }
+    .ov-row2 {
+      grid-template-columns: minmax(230px, 280px) 1fr;
+    }
 
     /* ── Exports master list ── */
     .xf-bar {
@@ -654,29 +763,54 @@
     /* ── Mobile nav ── */
     #mob-menu-btn {
       display: none;
-      background: none; border: none; cursor: pointer;
-      padding: 4px 6px; color: #475569; font-size: 20px; line-height: 1;
-      flex-shrink: 0; margin-right: 8px; border-radius: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 6px;
+      color: #475569;
+      font-size: 20px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-right: 8px;
+      border-radius: 4px;
     }
     #mob-menu-btn:hover { background: #f1f5f9; color: #0f172a; }
     #sb-backdrop {
-      display: none; position: fixed; inset: 0;
-      background: rgba(15,23,42,0.35); z-index: 200;
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.35);
+      z-index: 200;
     }
     #app-topbar-left {
-      display: flex; align-items: center; min-width: 0;
+      display: flex;
+      align-items: center;
+      min-width: 0;
     }
-
+    @media (max-width: 900px) {
+      #sb { width: 176px; min-width: 176px; }
+      #app-content { padding: 20px; }
+      .ov-row2 { grid-template-columns: 1fr; }
+    }
     @media (max-width: 640px) {
       #sb { display: none; }
       #sb.mob-open {
-        display: flex; position: fixed;
-        left: 0; top: 0; bottom: 0; z-index: 300;
+        display: flex;
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 300;
+        width: 230px;
+        min-width: 230px;
         box-shadow: 2px 0 16px rgba(15,23,42,0.18);
       }
       #sb-backdrop.mob-open { display: block; }
       #mob-menu-btn { display: flex; align-items: center; }
       #app-main { width: 100%; }
+      #app-content { padding: 16px; }
+      .ov-metric-row { grid-template-columns: 1fr 1fr; }
+      .ov-metric-card { min-height: 112px; padding: 1rem; }
       .ec-grid { grid-template-columns: 1fr; }
       .ec-meta { flex-wrap: wrap; }
     }
@@ -713,7 +847,11 @@
     <!-- ── Sidebar ──────────────────────────────────────────────────── -->
     <div id="sb">
       <div class="sb-brand">
-        <span class="sb-name">ExportOS</span><span class="sb-ver">v0.2</span>
+        <div class="sb-logo-row">
+          <div class="sb-logo-mark"></div>
+          <span class="sb-name">ExportOS</span>
+        </div>
+        <span class="sb-ver">v0.2</span>
       </div>
       <div class="sb-co">
         <div class="sb-co-lbl">Active Exporter</div>
@@ -726,14 +864,16 @@
         <button class="sb-link" data-view="view-deadlines" onclick="showView('view-deadlines')">Deadlines</button>
         <div class="sb-group">Operations</div>
         <button class="sb-link" data-view="view-exports" onclick="showView('view-exports')">Exports</button>
-        <div class="sb-group">Records</div>
-        <button class="sb-link" data-view="view-contracts" onclick="showView('view-contracts')">Contracts</button>
-        <button class="sb-link" data-view="view-shipments" onclick="showView('view-shipments')">Shipments</button>
-        <button class="sb-link" data-view="view-bl" onclick="showView('view-bl')">Bills of Lading</button>
-        <button class="sb-link" data-view="view-receipts" onclick="showView('view-receipts')">Payment Receipts</button>
-        <button class="sb-link" data-view="view-evidence" onclick="showView('view-evidence')">Payment Evidence</button>
-        <button class="sb-link" data-view="view-compliance" onclick="showView('view-compliance')">Compliance Records</button>
         <button class="sb-link" data-view="view-packs" onclick="showView('view-packs')">Evidence Packs</button>
+        <details class="sb-details">
+          <summary>Data Records</summary>
+          <button class="sb-link" data-view="view-contracts" onclick="showView('view-contracts')">Contracts</button>
+          <button class="sb-link" data-view="view-shipments" onclick="showView('view-shipments')">Shipments</button>
+          <button class="sb-link" data-view="view-bl" onclick="showView('view-bl')">Bills of Lading</button>
+          <button class="sb-link" data-view="view-receipts" onclick="showView('view-receipts')">Payment Receipts</button>
+          <button class="sb-link" data-view="view-evidence" onclick="showView('view-evidence')">Payment Evidence</button>
+          <button class="sb-link" data-view="view-compliance" onclick="showView('view-compliance')">Compliance Records</button>
+        </details>
       </nav>
       <div class="sb-foot">
         <button class="sb-link" id="logout-btn">&#8617; Sign out</button>
