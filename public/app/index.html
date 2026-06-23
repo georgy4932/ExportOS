@@ -9,7 +9,7 @@
 
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-      background: #f3f4f6;
+      background: #f8fafc;
       color: #111827;
       line-height: 1.5;
       font-size: 14px;
@@ -93,9 +93,10 @@
 
     .card {
       background: #fff;
-      border: 1px solid #e5e7eb;
+      border: 1px solid #e2e8f0;
       border-radius: 8px;
       overflow: hidden;
+      box-shadow: 0 1px 4px rgba(15,23,42,0.05);
     }
     .card-header {
       display: flex;
@@ -165,12 +166,16 @@
       font-weight: 700;
       letter-spacing: 0.03em;
     }
-    .g  { background: #dcfce7; color: #15803d; }
-    .y  { background: #fef9c3; color: #a16207; }
-    .r  { background: #fee2e2; color: #b91c1c; }
-    .b  { background: #dbeafe; color: #1d4ed8; }
-    .gr { background: #f3f4f6; color: #6b7280; }
-    .o  { background: #ffedd5; color: #c2410c; }
+    /* Badge color classes — scoped to .badge to prevent bleeding onto td.r / th.r */
+    .badge.g  { background: #dcfce7; color: #15803d; }
+    .badge.y  { background: #fef9c3; color: #a16207; }
+    .badge.r  { background: #fee2e2; color: #b91c1c; }
+    .badge.b  { background: #dbeafe; color: #1d4ed8; }
+    .badge.gr { background: #f3f4f6; color: #6b7280; }
+    .badge.o  { background: #ffedd5; color: #c2410c; }
+    /* Explicit resets so td.r / th.r never pick up badge backgrounds */
+    th.r { text-align: right; background: #f9fafb; }
+    td.r { text-align: right; font-variant-numeric: tabular-nums; color: #111827; background: transparent; }
 
     .checks { display: flex; gap: 3px; }
     .ck { font-size: 0.625rem; font-weight: 700; padding: 0.1rem 0.3rem; border-radius: 3px; }
@@ -394,19 +399,33 @@
       border-bottom: 1px solid #e5e7eb;
       text-align: left;
     }
-    .wq-table th.r { text-align: right; }
+    .wq-table th.r { text-align: right; background: #f9fafb; }
     .wq-table td {
       padding: 0.5rem 0.875rem;
       font-size: 0.8125rem;
       border-bottom: 1px solid #f3f4f6;
       vertical-align: middle;
       color: #374151;
+      background: transparent;
     }
-    .wq-table td.r { text-align: right; font-variant-numeric: tabular-nums; color: #111827; }
+    .wq-table td.r { text-align: right; font-variant-numeric: tabular-nums; color: #111827; background: transparent; }
     .wq-table td.mono { font-family: ui-monospace, monospace; font-size: 0.8125rem; color: #6b7280; }
     .wq-table tr:last-child td { border-bottom: none; }
-    .wq-table tbody tr:hover td { background: #fafafa; }
-    .wq-action { font-size: 0.75rem; font-weight: 600; color: #1e3a5f; }
+    .wq-table tbody tr { position: relative; }
+    .wq-table tbody tr:hover td { background: #f8fafc !important; }
+    /* Priority left-border accent on first cell */
+    .wq-table tbody tr.wq-high td:first-child { box-shadow: inset 3px 0 0 #ef4444; }
+    .wq-table tbody tr.wq-medium td:first-child { box-shadow: inset 3px 0 0 #f97316; }
+    .wq-table tbody tr.wq-complete td:first-child { box-shadow: inset 3px 0 0 #22c55e; }
+    /* Action tag */
+    .wq-action-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600;
+      color: #1e40af; background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 3px 9px; border-radius: 4px;
+      white-space: nowrap;
+    }
     .wq-na { color: #9ca3af; font-size: 0.75rem; font-style: italic; }
     .wq-card-list { display: none; }
     .wq-item {
@@ -422,16 +441,29 @@
     .wq-item-issue { font-size: 0.8125rem; color: #374151; }
     .wq-item-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; font-size: 0.75rem; color: #6b7280; }
     .wq-item-action {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #1e3a5f;
-      background: #eff6ff;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      display: inline-block;
+      font-size: 0.75rem; font-weight: 600;
+      color: #1e40af; background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block;
     }
     .wq-item-na { font-size: 0.75rem; color: #9ca3af; font-style: italic; }
-    .wq-pipeline { display: flex; align-items: center; gap: 1.25rem; padding: 0.625rem 1rem; border-bottom: 1px solid #e5e7eb; font-size: 0.8125rem; color: #374151; }
+    /* Pipeline summary tiles */
+    .wq-pipeline {
+      display: flex; align-items: stretch; gap: 0;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f8fafc;
+    }
+    .wq-pl-tile {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 10px 20px; gap: 2px;
+      border-right: 1px solid #e5e7eb;
+    }
+    .wq-pl-tile:last-child { border-right: none; }
+    .wq-pl-tile-count { font-size: 1.125rem; font-weight: 800; color: #0f172a; line-height: 1; }
+    .wq-pl-tile-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #94a3b8; }
+    .wq-pl-tile.high .wq-pl-tile-count { color: #b91c1c; }
+    .wq-pl-tile.medium .wq-pl-tile-count { color: #c2410c; }
+    .wq-pl-tile.complete .wq-pl-tile-count { color: #15803d; }
     .wq-pl-item { display: flex; align-items: center; gap: 0.375rem; }
     .wq-pl-item strong { font-weight: 700; color: #0f172a; font-size: 0.875rem; }
     .wq-pl-sep { color: #d1d5db; }
@@ -645,11 +677,11 @@
       border-radius: 6px;
       padding: 5px 10px;
     }
-    #app-content { flex: 1; overflow-y: auto; padding: 24px 30px 36px; }
+    #app-content { flex: 1; overflow-y: auto; padding: 24px 30px 36px; background: #ffffff; }
 
     /* ── View switching ── */
     .app-view { display: none; }
-    .app-view.v-active { display: block; }
+    .app-view.v-active { display: block; min-height: calc(100vh - 62px); }
 
     /* ── Better KPI layout ── */
     .ov-metric-row {
@@ -698,8 +730,8 @@
       text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8;
       background: #f8fafc; border-bottom: 1px solid #e2e8f0; white-space: nowrap;
     }
-    #exports-tbl thead th.r { text-align: right; }
-    #exports-tbl tbody td { padding: 10px 12px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+    #exports-tbl thead th.r { text-align: right; background: #f8fafc; }
+    #exports-tbl tbody td { padding: 10px 12px; border-bottom: 1px solid #f8fafc; vertical-align: middle; background: transparent; }
     #exports-tbl tbody tr:last-child td { border-bottom: none; }
     #exports-tbl tbody tr:hover td { background: #f8fafc; cursor: pointer; }
     .x-nxp { font-weight: 700; color: #0f172a; font-family: ui-monospace, monospace; font-size: 12px; }
@@ -836,6 +868,51 @@
       font-family: inherit;
     }
     .ec-nca.ok .ec-nca-pill { border-color: #86efac; color: #15803d; }
+
+    /* ── Evidence Packs list ── */
+    .ep-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .ep-table thead th {
+      padding: 9px 14px; font-size: 9.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8;
+      background: #f8fafc; border-bottom: 1px solid #e2e8f0;
+      text-align: left; white-space: nowrap;
+    }
+    .ep-table tbody td { padding: 11px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; background: transparent; }
+    .ep-table tbody tr:last-child td { border-bottom: none; }
+    .ep-table tbody tr:hover td { background: #f8fafc !important; }
+    .ep-ref { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; color: #0f172a; }
+    .ep-nxp { font-family: ui-monospace, monospace; font-size: 11px; color: #64748b; margin-top: 2px; }
+    .ep-seal-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600;
+      color: #15803d; background: #f0fdf4;
+      border: 1px solid #bbf7d0; border-radius: 4px;
+      padding: 4px 10px; cursor: pointer; font-family: inherit;
+    }
+    .ep-seal-btn:hover { background: #dcfce7; border-color: #86efac; }
+    /* Pack summary bar */
+    .ep-summary {
+      display: flex; align-items: center; gap: 0;
+      border-bottom: 1px solid #e2e8f0; background: #f8fafc;
+    }
+    .ep-sum-tile {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 10px 18px; gap: 2px; border-right: 1px solid #e2e8f0;
+    }
+    .ep-sum-tile:last-child { border-right: none; }
+    .ep-sum-count { font-size: 1.1rem; font-weight: 800; color: #0f172a; line-height: 1; }
+    .ep-sum-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #94a3b8; }
+
+    /* ── Records page improvements ── */
+    .rec-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-bottom: 1px solid #e2e8f0; background: #fff;
+    }
+    .rec-card-title {
+      font-size: 13px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em;
+    }
+    .rec-card-meta { display: flex; align-items: center; gap: 10px; }
+    .rec-count { font-size: 11px; color: #94a3b8; font-weight: 600; }
 
     /* ── Mobile nav ── */
     #mob-menu-btn {
@@ -1069,7 +1146,6 @@
 
         <!-- VIEW: Contracts ────────────────────────────────────────── -->
         <div id="view-contracts" class="app-view">
-    <!-- Contracts -->
     <div class="card">
       <div class="card-header">
         <h2>Contracts</h2>
@@ -1082,9 +1158,9 @@
         <div class="state" id="st-contracts">Loading…</div>
         <table id="tb-contracts" hidden>
           <thead><tr>
-            <th>Reference</th><th>Status</th><th>Commodity</th><th>Destination</th>
-            <th>Cur</th><th class="r">Contract Value</th><th class="r">Shipped</th>
-            <th class="r">Allocated</th><th class="r">Unallocated</th><th class="r">Shipments</th>
+            <th>Reference</th><th>Buyer</th><th>Commodity</th><th>Status</th>
+            <th class="r">Contract Value</th><th class="r">Shipped</th>
+            <th class="r">Unallocated</th><th class="r">Shipments</th>
           </tr></thead>
           <tbody id="body-contracts"></tbody>
         </table>
@@ -1216,7 +1292,6 @@
 
         <!-- VIEW: Evidence Packs ───────────────────────────────────── -->
         <div id="view-packs" class="app-view">
-    <!-- Evidence Packs -->
     <div class="card">
       <div class="card-header">
         <h2>Evidence Packs</h2>
@@ -1225,12 +1300,13 @@
           <button class="btn-add" id="gen-pack-btn">+ Generate Pack</button>
         </div>
       </div>
+      <div id="ep-summary-bar"></div>
       <div class="table-wrap">
         <div class="state" id="st-packs">Loading…</div>
-        <table id="tb-packs" hidden>
+        <table class="ep-table" id="tb-packs" hidden>
           <thead><tr>
-            <th>Pack</th><th>Shipment</th><th>Ver</th><th>Repatriation</th>
-            <th>Sealed</th><th>NXP Ref</th><th>Generated</th><th></th>
+            <th>Pack Ref</th><th>NXP Reference</th><th>Status</th>
+            <th>State</th><th>Generated</th><th></th>
           </tr></thead>
           <tbody id="body-packs"></tbody>
         </table>
@@ -1989,16 +2065,17 @@
       if (!rows.length) { st.textContent = 'No contracts found.'; return; }
       document.getElementById('body-contracts').innerHTML = rows.map(r => `
         <tr>
-          <td>${h(r.contract_reference)}</td>
+          <td>
+            <span style="font-weight:700;color:#0f172a">${h(r.contract_reference)}</span>
+            ${r.destination_country ? '<br><span style="font-size:10px;color:#94a3b8">' + h(r.destination_country) + (r.currency ? ' · ' + h(r.currency) : '') + '</span>' : ''}
+          </td>
+          <td style="color:#374151">${h(r.buyer_name ?? '—')}</td>
+          <td style="color:#374151">${h(r.commodity ?? '—')}</td>
           <td>${badge(r.status)}</td>
-          <td>${h(r.commodity)}</td>
-          <td>${h(r.destination_country)}</td>
-          <td>${h(r.currency)}</td>
-          <td class="r">${num(r.contract_value)}</td>
+          <td class="r" style="font-weight:600">${num(r.contract_value)}</td>
           <td class="r">${num(r.total_shipped_value)}</td>
-          <td class="r">${num(r.total_allocated_receipts)}</td>
           <td class="r">${num(r.unallocated_contract_value)}</td>
-          <td class="r">${r.shipment_count ?? '—'}</td>
+          <td class="r" style="color:#64748b">${r.shipment_count ?? '—'}</td>
         </tr>`).join('');
       show('st-contracts', 'tb-contracts', 'cnt-contracts', rows);
     }).catch(e => errState('st-contracts', e.message));
@@ -2169,23 +2246,48 @@
     apiFetch('/evidence-packs').then(body => {
       _packs = body.data ?? [];
       if (!_packs.length) { st.textContent = 'No evidence packs found.'; return; }
+
+      // Summary bar
+      const sealedCount  = _packs.filter(p => p.sealed).length;
+      const statusCounts = {};
+      _packs.forEach(p => {
+        const s = p.status ?? 'PENDING';
+        statusCounts[s] = (statusCounts[s] ?? 0) + 1;
+      });
+      const summaryBar = document.getElementById('ep-summary-bar');
+      if (summaryBar) {
+        const statusTiles = Object.entries(statusCounts).map(([s, n]) =>
+          '<div class="ep-sum-tile"><div class="ep-sum-count">' + n + '</div><div class="ep-sum-label">' + h(s) + '</div></div>'
+        ).join('');
+        summaryBar.innerHTML = '<div class="ep-summary">'
+          + '<div class="ep-sum-tile"><div class="ep-sum-count">' + _packs.length + '</div><div class="ep-sum-label">Total Packs</div></div>'
+          + statusTiles
+          + '<div class="ep-sum-tile"><div class="ep-sum-count">' + sealedCount + '</div><div class="ep-sum-label">Sealed</div></div>'
+          + '</div>';
+      }
+
+      const packStatusCls = { SUBMITTED: 'b', PENDING: 'y', INCOMPLETE: 'r', APPROVED: 'g', REJECTED: 'r' };
+
       document.getElementById('body-packs').innerHTML = _packs.map(r => {
-        const snap = (r.shipment_snapshot && typeof r.shipment_snapshot === 'object') ? r.shipment_snapshot : {};
-        const shipRef = snap.shipment_reference ?? null;
-        return `
-        <tr>
-          <td class="mono" title="${h(r.id)}">${short(r.id)}</td>
-          <td title="${h(r.shipment_id)}">
-            <span style="font-weight:600">${h(shipRef ?? short(r.shipment_id))}</span>
-          </td>
-          <td class="r">${r.version ?? '—'}</td>
-          <td>${badge(r.repatriation_status)}</td>
-          <td>${r.sealed ? '<span class="badge g">Sealed</span>' : '<span class="badge gr">Draft</span>'}</td>
-          <td class="mono">${h(r.nxp_reference ?? '—')}</td>
-          <td>${date(r.generated_at)}</td>
-          <td>${r.sealed ? '' : '<button class="btn-seal btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem" data-pack-id="' + h(r.id) + '">Seal</button>'}</td>
-        </tr>`;
+        const packRef   = r.pack_reference ?? short(r.id);
+        const nxpRef    = r.nxp_reference ?? '—';
+        const statusCls = packStatusCls[r.status] ?? 'gr';
+        const sealedBadge = r.sealed
+          ? '<span class="badge g">Sealed</span>'
+          : '<span class="badge gr">Draft</span>';
+        const sealBtn = r.sealed
+          ? ''
+          : '<button class="ep-seal-btn btn-seal" data-pack-id="' + h(r.id) + '">Seal Pack</button>';
+        return '<tr>'
+          + '<td><div class="ep-ref">' + h(packRef) + '</div></td>'
+          + '<td><div class="ep-nxp">' + h(nxpRef) + '</div></td>'
+          + '<td><span class="badge ' + statusCls + '">' + h(r.status ?? 'PENDING') + '</span></td>'
+          + '<td>' + sealedBadge + '</td>'
+          + '<td>' + date(r.generated_at) + '</td>'
+          + '<td>' + sealBtn + '</td>'
+          + '</tr>';
       }).join('');
+
       show('st-packs', 'tb-packs', 'cnt-packs', _packs);
     }).catch(e => errState('st-packs', e.message));
   }
@@ -3497,45 +3599,49 @@
     const packCls = { SEALED: 'b', READY_TO_SEAL: 'y', NOT_READY: 'gr' };
 
     const rows = wqItems.map(c => {
-      const dLabel = c.daysLeft === null ? '—'
+      const dLabel = c.daysLeft === null ? '\u2014'
                    : c.daysLeft < 0     ? Math.abs(c.daysLeft) + 'd overdue'
                    :                      c.daysLeft + 'd';
       const dCls   = c.daysLeft === null ? 'gr'
                    : c.daysLeft < 0     ? 'r'
                    : c.daysLeft <= 30   ? 'y' : 'g';
-      return '<tr>'
+      const rowCls = c.priority === 'HIGH' ? 'wq-high' : c.priority === 'MEDIUM' ? 'wq-medium' : 'wq-complete';
+      const actionHtml = c.nextAction && c.nextAction !== 'No action'
+        ? '<span class="wq-action-tag">\u2192 ' + h(c.nextAction) + '</span>'
+        : '<span style="color:#94a3b8;font-size:11px;font-style:italic">No action needed</span>';
+      return '<tr class="' + rowCls + '">'
         + '<td><span class="badge ' + (prCls[c.priority] ?? 'gr') + '">' + h(c.priority) + '</span></td>'
-        + '<td class="mono">' + h(c.shipment_reference ?? '—') + '<br><small style="color:#9ca3af">' + h(c.nxp_reference ?? '') + '</small></td>'
-        + '<td>' + h(c.issue) + '</td>'
+        + '<td><span style="font-weight:700;font-size:12px;color:#0f172a;font-family:ui-monospace,monospace">' + h(c.nxp_reference ?? '\u2014') + '</span>'
+        +    '<br><span style="font-size:10px;color:#94a3b8">' + h(c.shipment_reference ?? '\u2014') + '</span></td>'
+        + '<td style="color:#374151">' + h(c.issue) + '</td>'
         + '<td><span class="badge ' + dCls + '">' + h(dLabel) + '</span></td>'
-        + '<td class="r">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : '—') + '</td>'
-        + '<td>' + h(c.nextAction) + '</td>'
-        + '<td><span class="badge ' + (packCls[c.packStatus] ?? 'gr') + '">' + h(c.packStatus ?? '—') + '</span></td>'
+        + '<td style="text-align:right;font-variant-numeric:tabular-nums;color:' + (c.outstanding > 0 ? '#b91c1c;font-weight:600' : '#94a3b8') + '">'
+        +   (c.outstanding > 0 ? 'USD\u00a0' + num(c.outstanding) : '\u2014') + '</td>'
+        + '<td>' + actionHtml + '</td>'
+        + '<td><span class="badge ' + (packCls[c.packStatus] ?? 'gr') + '">' + h((c.packStatus ?? '\u2014').replace(/_/g,' ')) + '</span></td>'
         + '</tr>';
     }).join('');
 
     container.innerHTML =
       '<div class="card">'
-      + '<div class="card-header"><h2>Compliance Work Queue</h2>'
-      + '<span class="card-count">' + wqItems.length + ' item' + (wqItems.length !== 1 ? 's' : '') + '</span></div>'
-      + '<div class="wq-pipeline" style="display:flex;align-items:center;gap:1.25rem;padding:0.625rem 1rem;border-bottom:1px solid #e5e7eb;font-size:0.8125rem">'
-      + '<span class="wq-pl-label" style="font-size:0.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9ca3af;margin-right:0.5rem">Compliance Pipeline</span>'
-      + '<span><span class="badge r">HIGH</span> <strong>' + highCount + '</strong></span>'
-      + ' <span style="color:#d1d5db">·</span> '
-      + '<span><span class="badge o">MEDIUM</span> <strong>' + mediumCount + '</strong></span>'
-      + ' <span style="color:#d1d5db">·</span> '
-      + '<span><span class="badge g">COMPLETE</span> <strong>' + completeCount + '</strong></span>'
+      + '<div class="card-header" style="padding:12px 16px">'
+      +   '<span style="font-size:13px;font-weight:700;color:#0f172a">Compliance Work Queue</span>'
+      +   '<span style="font-size:11px;color:#94a3b8;font-weight:600">' + wqItems.length + ' item' + (wqItems.length !== 1 ? 's' : '') + '</span>'
+      + '</div>'
+      + '<div class="wq-pipeline">'
+      +   '<div class="wq-pl-tile high"><div class="wq-pl-tile-count">' + highCount + '</div><div class="wq-pl-tile-label">High</div></div>'
+      +   '<div class="wq-pl-tile medium"><div class="wq-pl-tile-count">' + mediumCount + '</div><div class="wq-pl-tile-label">Medium</div></div>'
+      +   '<div class="wq-pl-tile complete"><div class="wq-pl-tile-count">' + completeCount + '</div><div class="wq-pl-tile-label">Complete</div></div>'
       + '</div>'
       + (wqItems.length
-        ? '<div class="table-wrap"><table><thead><tr>'
-          + '<th>Priority</th><th>Shipment</th><th>Issue</th>'
-          + '<th>Days Left</th><th class="r">Unrepatriated Proceeds</th>'
+        ? '<div class="table-wrap"><table class="wq-table"><thead><tr>'
+          + '<th>Priority</th><th>Export / NXP Ref</th><th>Issue</th>'
+          + '<th>Days Left</th><th style="text-align:right">Outstanding</th>'
           + '<th>Next Action</th><th>Pack</th>'
           + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
         : '<div class="state">No HIGH or MEDIUM items in the work queue.</div>')
       + '</div>';
   }
-
   // ── Deadlines standalone view ─────────────────────────────────────────────────
   function renderDeadlinesView() {
     const container = document.getElementById('dl-standalone');
