@@ -2055,10 +2055,10 @@
         const dd = ad - bd;
         if (dd !== 0) return dd;
         return b.outstanding - a.outstanding;
+      });
+
       _cases = cases;
       _allShipments = shipments;
-
-      });
 
       // ── Summary metric cards ────────────────────────────────────────────────────
       const activeContracts  = contracts.filter(c => c.status === 'ACTIVE').length;
