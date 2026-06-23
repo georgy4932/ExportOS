@@ -572,6 +572,16 @@
       color: #166534;
       box-shadow: inset 3px 0 0 #16a34a;
     }
+    .sb-icon {
+      width: 14px;
+      text-align: center;
+      font-size: 12px;
+      opacity: 0.55;
+      flex-shrink: 0;
+      margin-right: 6px;
+    }
+    .sb-link.v-active .sb-icon { opacity: 1; }
+    .sb-link:hover .sb-icon    { opacity: 0.85; }
     .sb-details {
       margin-top: 10px;
     }
@@ -729,12 +739,6 @@
     .ec-mv.red { color: #b91c1c; }
     .ec-mv.mono { font-family: ui-monospace, monospace; font-size: 11px; }
 
-    .ec-nca { background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; }
-    .ec-nca.ok { background: #f0fdf4; border-color: #bbf7d0; }
-    .ec-nca-l { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #b91c1c; margin-bottom: 2px; }
-    .ec-nca.ok .ec-nca-l { color: #15803d; }
-    .ec-nca-t { font-size: 12.5px; font-weight: 600; color: #7f1d1d; }
-    .ec-nca.ok .ec-nca-t { color: #14532d; }
 
     .ec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
     .ec-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 12px; }
@@ -759,6 +763,79 @@
     .ec-chk-n { font-size: 10.5px; }
     .ec-chk-n.ok { color: #15803d; }
     .ec-chk-n.bad { color: #b91c1c; }
+
+    /* ── Export Case: breadcrumb, tab row, NCA pill ── */
+    .ec-breadcrumb { font-size: 10.5px; color: #94a3b8; padding: 10px 16px 0; }
+    .ec-breadcrumb a, .ec-breadcrumb button {
+      background: none; border: none; font-size: 10.5px; color: #64748b;
+      cursor: pointer; padding: 0; font-family: inherit; text-decoration: none;
+    }
+    .ec-breadcrumb a:hover, .ec-breadcrumb button:hover { color: #15803d; }
+    .ec-breadcrumb-sep { margin: 0 5px; color: #cbd5e1; }
+    .ec-tabs {
+      display: flex;
+      border-top: 1px solid #e2e8f0;
+      background: #fff;
+      padding: 0 16px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      margin: 0 -1px;
+    }
+    .ec-tab {
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      background: none;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+      border-radius: 0;
+      font-family: inherit;
+      min-height: auto;
+      box-shadow: none;
+    }
+    .ec-tab:hover { color: #334155; background: transparent; }
+    .ec-tab.active { color: #15803d; border-bottom-color: #16a34a; }
+    .ec-tab.disabled { color: #cbd5e1; cursor: default; }
+    .ec-tab.disabled:hover { background: transparent; color: #cbd5e1; }
+    .ec-nca {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      padding: 11px 14px;
+      margin-bottom: 14px;
+    }
+    .ec-nca.ok { background: #f0fdf4; border-color: #bbf7d0; }
+    .ec-nca-left { display: flex; flex-direction: column; }
+    .ec-nca-l { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #b91c1c; margin-bottom: 2px; }
+    .ec-nca.ok .ec-nca-l { color: #15803d; }
+    .ec-nca-t { font-size: 12.5px; font-weight: 600; color: #7f1d1d; }
+    .ec-nca.ok .ec-nca-t { color: #14532d; }
+    .ec-nca-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #fff;
+      border: 1px solid #fca5a5;
+      border-radius: 4px;
+      padding: 5px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #b91c1c;
+      cursor: default;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-family: inherit;
+    }
+    .ec-nca.ok .ec-nca-pill { border-color: #86efac; color: #15803d; }
 
     /* ── Mobile nav ── */
     #mob-menu-btn {
@@ -859,12 +936,12 @@
       </div>
       <nav class="sb-nav">
         <div class="sb-group">Command Center</div>
-        <button class="sb-link v-active" data-view="view-overview" onclick="showView('view-overview')">Overview</button>
-        <button class="sb-link" data-view="view-workqueue" onclick="showView('view-workqueue')">Work Queue</button>
-        <button class="sb-link" data-view="view-deadlines" onclick="showView('view-deadlines')">Deadlines</button>
+        <button class="sb-link v-active" data-view="view-overview" onclick="showView('view-overview')"><span class="sb-icon">&#9636;</span>Overview</button>
+        <button class="sb-link" data-view="view-workqueue" onclick="showView('view-workqueue')"><span class="sb-icon">&#9873;</span>Work Queue</button>
+        <button class="sb-link" data-view="view-deadlines" onclick="showView('view-deadlines')"><span class="sb-icon">&#9719;</span>Deadlines</button>
         <div class="sb-group">Operations</div>
-        <button class="sb-link" data-view="view-exports" onclick="showView('view-exports')">Exports</button>
-        <button class="sb-link" data-view="view-packs" onclick="showView('view-packs')">Evidence Packs</button>
+        <button class="sb-link" data-view="view-exports" onclick="showView('view-exports')"><span class="sb-icon">&#10696;</span>Exports</button>
+        <button class="sb-link" data-view="view-packs" onclick="showView('view-packs')"><span class="sb-icon">&#9641;</span>Evidence Packs</button>
         <details class="sb-details">
           <summary>Data Records</summary>
           <button class="sb-link" data-view="view-contracts" onclick="showView('view-contracts')">Contracts</button>
@@ -876,7 +953,7 @@
         </details>
       </nav>
       <div class="sb-foot">
-        <button class="sb-link" id="logout-btn">&#8617; Sign out</button>
+        <button class="sb-link" id="logout-btn"><span class="sb-icon">&#8617;</span>Sign out</button>
       </div>
     </div>
 
@@ -986,6 +1063,7 @@
         <!-- VIEW: Export Case Summary ──────────────────────────────── -->
         <div id="view-export-case" class="app-view">
           <div id="ec-header"></div>
+          <div id="ec-tabs"></div>
           <div id="ec-content"></div>
         </div>
 
@@ -1831,7 +1909,7 @@
     if (!v) return '—';
     return new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   }
-  function short(id) { return id ? '…' + id.slice(-8) : '—'; }
+  function short(id) { return id != null ? '…' + String(id).slice(-8) : '—'; }
 
   function badge(status) {
     const map = {
@@ -1920,7 +1998,7 @@
           <td class="r">${num(r.total_shipped_value)}</td>
           <td class="r">${num(r.total_allocated_receipts)}</td>
           <td class="r">${num(r.unallocated_contract_value)}</td>
-          <td class="r">${r.shipment_count}</td>
+          <td class="r">${r.shipment_count ?? '—'}</td>
         </tr>`).join('');
       show('st-contracts', 'tb-contracts', 'cnt-contracts', rows);
     }).catch(e => errState('st-contracts', e.message));
@@ -2100,10 +2178,10 @@
           <td title="${h(r.shipment_id)}">
             <span style="font-weight:600">${h(shipRef ?? short(r.shipment_id))}</span>
           </td>
-          <td class="r">${r.version}</td>
+          <td class="r">${r.version ?? '—'}</td>
           <td>${badge(r.repatriation_status)}</td>
           <td>${r.sealed ? '<span class="badge g">Sealed</span>' : '<span class="badge gr">Draft</span>'}</td>
-          <td class="mono">${h(r.nxp_reference)}</td>
+          <td class="mono">${h(r.nxp_reference ?? '—')}</td>
           <td>${date(r.generated_at)}</td>
           <td>${r.sealed ? '' : '<button class="btn-seal btn-add" style="padding:0.2rem 0.5rem;font-size:0.7rem" data-pack-id="' + h(r.id) + '">Seal</button>'}</td>
         </tr>`;
@@ -2139,11 +2217,11 @@
       const now = new Date();
 
       // ── Build per-shipment case model ──────────────────────────────────────
-      const packByShipment = {};
-      packs.forEach(p => { packByShipment[p.shipment_id] = p; });
+      const packByNxp = {};
+      packs.forEach(p => { if (p.nxp_reference) packByNxp[p.nxp_reference] = p; });
 
       const cases = compliance.map(c => {
-        const pack        = packByShipment[c.shipment_id] ?? null;
+        const pack        = packByNxp[c.nxp_reference] ?? null;
         const daysLeft    = c.repatriation_deadline
           ? Math.ceil((new Date(c.repatriation_deadline) - now) / 86400000)
           : null;
@@ -3222,7 +3300,7 @@
       + '<div class="table-wrap"><table id="exports-tbl">'
       + '<thead><tr>'
       + '<th>NXP Reference</th><th>Route</th><th>CBN Deadline</th>'
-      + '<th>Status</th><th class="r">Proceeds Required</th>'
+      + '<th>Compliance</th><th class="r">Proceeds Required</th>'
       + '<th class="r">Outstanding</th><th>Pack Status</th><th></th>'
       + '</tr></thead>'
       + '<tbody id="exports-tbody">' + tbody + '</tbody>'
@@ -3289,8 +3367,20 @@
     badges += '<span class="badge ' + dCls + '">' + h(dLabel) + '</span> ';
     badges += '<span class="badge ' + (packCls[ps] ?? 'gr') + '">PACK: ' + h(packLabel[ps] ?? ps) + '</span>';
 
+    document.getElementById('ec-tabs').innerHTML =
+      '<div class="ec-tabs">'
+      + '<button class="ec-tab active">Summary</button>'
+      + '<button class="ec-tab disabled" disabled>Shipment</button>'
+      + '<button class="ec-tab disabled" disabled>Documents</button>'
+      + '<button class="ec-tab disabled" disabled>Payments</button>'
+      + '<button class="ec-tab disabled" disabled>Compliance</button>'
+      + '<button class="ec-tab disabled" disabled>Evidence Pack</button>'
+      + '</div>';
+
     document.getElementById('ec-header').innerHTML =
-      '<div class="ec-bc"><button onclick="showView(\'view-exports\',\'Exports\',\'view-exports\')">← Exports</button></div>'
+      '<div class="ec-breadcrumb"><button onclick="showView(\'view-exports\',\'Exports\',\'view-exports\')">Exports</button>'
+      + '<span class="ec-breadcrumb-sep">›</span>'
+      + '<span>' + h(c.nxp_reference ?? '—') + '</span></div>'
       + '<div class="ec-ta">'
       +   '<div class="ec-nxp">' + h(c.nxp_reference ?? '—') + '</div>'
       +   '<div class="ec-sref">' + h(c.shipment_reference ?? '—') + '</div>'
@@ -3337,8 +3427,11 @@
 
     document.getElementById('ec-content').innerHTML =
       '<div class="' + ncaClass + '">'
+      + '<div class="ec-nca-left">'
       + '<div class="ec-nca-l">Next Required Action</div>'
       + '<div class="ec-nca-t">' + h(c.nextAction ?? '—') + '</div>'
+      + '</div>'
+      + (ncaOk ? '' : '<button class="ec-nca-pill">' + h(c.nextAction) + ' →</button>')
       + '</div>'
 
       + '<div class="ec-grid">'
@@ -3357,7 +3450,7 @@
       + '<div class="ec-card">'
       + '<div class="ec-card-h"><span class="ec-card-t">Proceeds &amp; Repatriation</span><span class="ec-card-s">/compliance</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Proceeds Required</span><span class="ec-rv">' + (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Proceeds Received</span><span class="ec-rv' + (Number(c.proceeds_received) > 0 ? ' green' : '') + '">' + (Number(c.proceeds_received) > 0 ? 'USD ' + num(c.proceeds_received) : '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Proceeds Received</span><span class="ec-rv' + (Number(c.proceeds_received) > 0 ? ' green' : '') + '">' + (c.proceeds_received != null ? 'USD ' + num(c.proceeds_received) : '—') + '</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Outstanding</span><span class="ec-rv' + (c.outstanding > 0 ? ' red' : ' green') + '">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : 'Nil') + '</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Deadline</span><span class="ec-rv' + (c.daysLeft !== null && c.daysLeft < 0 ? ' red' : '') + '">' + deadlineStr + '</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></span></div>'
