@@ -385,6 +385,43 @@
       color: #6b7280;
       margin-top: 0.1rem;
     }
+    /* ── Overview Phase 2 ─────────────────────────────────────────────── */
+    #ov-content { width: 100%; max-width: none; display: grid; gap: 14px; }
+    .ov-severity-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; }
+    .ov-severity-card {
+      min-height: 86px; width: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 7px;
+      padding: 16px 20px 14px; display: flex; flex-direction: column; gap: 5px;
+    }
+    .ov-sev-count { font-size: 28px; font-weight: 700; line-height: 1; color: #0f172a; }
+    .ov-severity-card.critical .ov-sev-count { color: #b91c1c; }
+    .ov-severity-card.overdue  .ov-sev-count { color: #b91c1c; }
+    .ov-severity-card.at-risk  .ov-sev-count { color: #c2410c; }
+    .ov-sev-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #6b7280; }
+    .ov-muc { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .ov-muc-empty { color: #64748b; font-size: 12px; padding: 1.5rem 1rem; }
+    .ov-muc-name { font-size: 15px; font-weight: 700; color: #0f172a; }
+    .ov-muc-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .ov-muc-amount { font-size: 12px; font-weight: 600; color: #b91c1c; }
+    .ov-muc-action { font-size: 12px; color: #374151; }
+    .ov-muc-open {
+      display: inline-flex; align-items: center; font-size: 11px; font-weight: 600;
+      padding: 4px 10px; border-radius: 4px; border: 1px solid #e2e8f0;
+      background: #f8fafc; color: #334155; cursor: pointer; font-family: inherit; align-self: flex-start;
+    }
+    .ov-muc-open:hover { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+    .ov-att-list { padding: 4px 0; }
+    .ov-att-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 16px; border-bottom: 1px solid #f1f5f9; }
+    .ov-att-item:last-child { border-bottom: none; }
+    .ov-att-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+    .ov-att-dot.red    { background: #ef4444; }
+    .ov-att-dot.orange { background: #f97316; }
+    .ov-att-dot.yellow { background: #eab308; }
+    .ov-dl-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .ov-dl-table th { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; padding: 8px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    .ov-dl-table td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: #374151; }
+    .ov-dl-table tr:last-child td { border-bottom: none; }
+    @media (max-width: 640px) { .ov-severity-grid { grid-template-columns: 1fr 1fr; } }
+
     /* ── Compliance Work Queue ───────────────────────────────────────── */
     #wq-section { display: none; }
     .wq-table { width: 100%; border-collapse: collapse; min-width: 700px; }
@@ -469,7 +506,7 @@
 
     /* ── ExportOS Workspace Shell ─────────────────────────────────────── */
     #dashboard { height: 100vh; overflow: hidden; }
-    #app-shell { display: flex; height: 100vh; overflow: hidden; }
+    #app-shell { display: flex; height: 100vh; overflow: hidden; width: 100%; }
     #sb {
       width: 196px;
       min-width: 196px;
@@ -977,76 +1014,7 @@
 
         <!-- VIEW: Overview ─────────────────────────────────────────── -->
         <div id="view-overview" class="app-view v-active">
-    <section id="ov-section">
-      <!-- Section heading -->
-      <div class="ov-section-label">Operations Overview</div>
-
-      <!-- Row 1: Summary metric cards -->
-      <div class="ov-metric-row" id="ov-metrics"></div>
-
-      <!-- Row 2: Compliance progress ring + Upcoming deadlines -->
-      <div class="ov-row2" style="margin-top:1rem">
-        <div class="card">
-          <div class="card-header"><h2>Compliance Progress</h2></div>
-          <div class="ov-ring-body" id="ov-ring-body">
-            <div class="state">Loading…</div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header"><h2>Upcoming Deadlines</h2></div>
-          <div id="ov-deadlines-body">
-            <div class="state">Loading…</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Row 3: Attention Required -->
-      <div class="card" style="margin-top:1rem">
-        <div class="card-header"><h2>Attention Required</h2></div>
-        <div id="ov-attention-body">
-          <div class="state">Loading…</div>
-        </div>
-      </div>
-    </section>
-    <section id="nca-section">
-      <div class="ov-section-label" style="margin-top:0.25rem">Next Critical Action</div>
-      <div class="card">
-        <div class="card-header">
-          <h2>Next Critical Action</h2>
-          <span id="nca-priority"></span>
-        </div>
-        <div id="nca-body"></div>
-      </div>
-    </section>
-    <section id="wq-section">
-      <div class="ov-section-label" style="margin-top:0.25rem">Compliance Work Queue</div>
-      <div class="card">
-        <div class="card-header">
-          <h2>Compliance Work Queue</h2>
-          <span id="cnt-wq" class="card-count"></span>
-        </div>
-        <div id="st-wq" class="state">Loading…</div>
-        <div id="wq-pipeline" class="wq-pipeline" hidden></div>
-        <div id="tb-wq" class="wq-table-wrap" hidden>
-          <div class="table-wrap">
-            <table class="wq-table">
-              <thead><tr>
-                <th>Priority</th>
-                <th>Shipment</th>
-                <th>NXP Reference</th>
-                <th>Issue</th>
-                <th>Days Left</th>
-                <th class="r">Unrepatriated Proceeds</th>
-                <th>Next Action</th>
-                <th>Evidence Pack</th>
-              </tr></thead>
-              <tbody id="body-wq"></tbody>
-            </table>
-          </div>
-        </div>
-        <div id="body-wq-cards" class="wq-card-list" hidden></div>
-      </div>
-    </section>
+          <div id="ov-content"><div class="state">Loading…</div></div>
         </div>
 
         <!-- VIEW: Work Queue ───────────────────────────────────────── -->
@@ -2209,21 +2177,6 @@
 
   // ── Load overview ─────────────────────────────────────────────────────────────────────────────
   function loadOverview() {
-    const section     = document.getElementById('ov-section');
-    const metricsEl   = document.getElementById('ov-metrics');
-    const ringEl      = document.getElementById('ov-ring-body');
-    const deadlinesEl = document.getElementById('ov-deadlines-body');
-    const attEl       = document.getElementById('ov-attention-body');
-    const wqSection   = document.getElementById('wq-section');
-    const stWq        = document.getElementById('st-wq');
-    const tbWq        = document.getElementById('tb-wq');
-    const cntWq       = document.getElementById('cnt-wq');
-    const bodyWq      = document.getElementById('body-wq');
-    const bodyWqCards = document.getElementById('body-wq-cards');
-    const wqPipeline  = document.getElementById('wq-pipeline');
-    const ncaSection  = document.getElementById('nca-section');
-    const ncaBody     = document.getElementById('nca-body');
-    const ncaPriority = document.getElementById('nca-priority');
 
     Promise.all([
       apiFetch('/contracts').then(b => b.data ?? []).catch(() => []),
@@ -2325,221 +2278,105 @@
       _cases = cases;
       _allShipments = shipments;
 
-      // ── Summary metric cards ────────────────────────────────────────────────────
-      const activeContracts  = contracts.filter(c => c.status === 'ACTIVE').length;
-      const allocatedTotal   = contracts.reduce((s, c) => s + (Number(c.total_allocated_receipts) || 0), 0);
-      const outstandingTotal = compliance.reduce((s, c) => s + (Number(c.proceeds_outstanding) || 0), 0);
-      const compliantCount   = cases.filter(c => c.caseStatus === 'COMPLETE').length;
-      const compliancePct    = compliance.length > 0
-        ? Math.round((compliantCount / compliance.length) * 100) + '%'
-        : '—';
-      const deadlineCount    = cases.filter(c => c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= 60).length;
-      const complianceLabel  = compliantCount + ' of ' + compliance.length + ' Compliant';
+      // ── Build shipment name map (for display name derivation) ──────────────────
+      const shipMap = {};
+      shipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
 
-      metricsEl.innerHTML = [
-        { v: activeContracts,                     l: 'Active Contracts'   },
-        { count: complianceLabel, pct: compliancePct, l: 'Compliance Rate' },
-        { v: 'USD' + ' ' + num(allocatedTotal),   l: 'Allocated Proceeds' },
-        { v: 'USD' + ' ' + num(outstandingTotal), l: 'Unrepatriated Proceeds' },
-        { v: deadlineCount,                       l: 'Upcoming Deadlines' },
-      ].map(m => `<div class="ov-metric-card">${
-        m.count !== undefined
-          ? '<div class="mv-count">' + h(m.count) + '</div><div class="mv-pct">' + h(m.pct) + '</div>'
-          : '<div class="mv">' + h(String(m.v)) + '</div>'
-      }<div class="ml">${h(m.l)}</div></div>`).join('');
+      // Derive a human-readable case name from available fields (render layer only)
+      function caseName(c) {
+        const ship = shipMap[c.nxp_reference] ?? {};
+        const commodity = ship.commodity || '';
+        const dest = ship.port_of_discharge || '';
+        if (commodity && dest) return commodity + ' Export — ' + dest;
+        if (commodity) return commodity + ' Export';
+        return c.nxp_reference || c.shipment_reference || '—';
+      }
 
-      // ── Compliance progress ring ──────────────────────────────────────────────
-      const total    = compliance.length;
-      const complete = compliantCount;
-      const pct      = total > 0 ? Math.round((complete / total) * 100) : 0;
-      const R        = 40;
-      const circ     = 2 * Math.PI * R;
-      const off      = circ * (1 - pct / 100);
-      ringEl.innerHTML = `
-        <svg width="104" height="104" viewBox="0 0 100 100" aria-label="${pct}% compliance">
-          <circle cx="50" cy="50" r="${R}" fill="none" stroke="#e5e7eb" stroke-width="10"/>
-          <circle cx="50" cy="50" r="${R}" fill="none" stroke="#16a34a" stroke-width="10"
-            stroke-dasharray="${circ.toFixed(2)} ${circ.toFixed(2)}"
-            stroke-dashoffset="${off.toFixed(2)}"
-            stroke-linecap="round"
-            transform="rotate(-90 50 50)"/>
-          <text x="50" y="55" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">${pct}%</text>
-        </svg>
-        <div class="ov-ring-count">${complete} of ${total}</div>
-        <div class="ov-ring-sub">Shipments fully<br>compliant</div>`;
+      // ── Section 1: Severity Summary ──────────────────────────────────────────────
+      const criticalCount = cases.filter(c => c.priority === 'HIGH').length;
+      const overdueCount  = cases.filter(c => c.caseStatus === 'OVERDUE').length;
+      const atRiskCount   = cases.filter(c => c.caseStatus === 'AT_RISK').length;
 
-      // ── Upcoming deadlines ────────────────────────────────────────────────────────────
-      const deadlineRows = cases
+      // ── Section 2: Most Urgent Case ─────────────────────────────────────────────
+      const wqItems = cases.filter(c => c.priority !== 'LOW');
+      const topCase = wqItems.length > 0 ? wqItems[0] : null;
+
+      // ── Section 3: Upcoming Deadlines ──────────────────────────────────────────
+      const dlRows = cases
         .filter(c => c.repatriation_deadline && c.daysLeft !== null && c.daysLeft >= -30)
         .sort((a, b) => a.daysLeft - b.daysLeft)
         .slice(0, 6);
 
-      if (!deadlineRows.length) {
-        deadlinesEl.innerHTML = '<p class="ov-empty-msg">No upcoming deadlines.</p>';
-      } else {
-        deadlinesEl.innerHTML = `<table class="ov-dl-table">
-          <thead><tr>
-            <th>NXP Reference</th><th>Deadline</th><th>Days</th><th>Status</th>
-          </tr></thead>
-          <tbody>${deadlineRows.map(c => {
-            const cls   = c.daysLeft < 0 ? 'r' : c.daysLeft <= 30 ? 'y' : 'g';
-            const label = c.daysLeft < 0 ? Math.abs(c.daysLeft) + 'd overdue' : c.daysLeft + 'd';
-            return `<tr>
-              <td class="mono">${h(c.nxp_reference ?? '—')}</td>
-              <td>${date(c.repatriation_deadline)}</td>
-              <td><span class="badge ${cls}">${h(label)}</span></td>
-              <td>${badge(c.repatriation_status)}</td>
-            </tr>`;
-          }).join('')}</tbody>
-        </table>`;
-      }
+      // ── Section 4: Attention Required ─────────────────────────────────────────
+      const attItems = cases
+        .filter(c => c.priority !== 'LOW' && c.blocker)
+        .map(c => ({ name: caseName(c), reason: c.blocker }));
 
-      // ── Attention Required — HIGH and MEDIUM only ───────────────────────────────
-      const attItems = [];
+      // ── Build HTML ────────────────────────────────────────────────────────────
+      const sevHtml =
+        '<div class="ov-severity-grid">'
+        + '<div class="ov-severity-card critical"><div class="ov-sev-count">' + criticalCount + '</div><div class="ov-sev-label">Critical</div></div>'
+        + '<div class="ov-severity-card overdue"><div class="ov-sev-count">' + overdueCount + '</div><div class="ov-sev-label">Overdue</div></div>'
+        + '<div class="ov-severity-card at-risk"><div class="ov-sev-count">' + atRiskCount + '</div><div class="ov-sev-label">At Risk</div></div>'
+        + '</div>';
 
-      cases.forEach(c => {
-        if (c.priority === 'LOW' || !c.blocker) return;
-        const dot = c.priority === 'HIGH' && c.caseStatus === 'OVERDUE' ? 'red'
-                  : c.priority === 'HIGH' ? 'orange'
-                  : 'yellow';
-        attItems.push({ dot, ref: h(c.nxp_reference || c.shipment_reference || '—'), text: h(c.blocker) });
-      });
+      const mucHtml = topCase
+        ? ('<div class="card">'
+          + '<div class="card-header"><h2>Most Urgent Case</h2></div>'
+          + '<div class="ov-muc">'
+          + '<div class="ov-muc-name">' + h(caseName(topCase)) + '</div>'
+          + '<div class="ov-muc-meta">'
+          + '<span class="badge ' + (topCase.caseStatus === 'OVERDUE' ? 'r' : topCase.caseStatus === 'AT_RISK' ? 'o' : 'gr') + '">'
+          + h(topCase.caseStatus === 'OVERDUE' ? 'OVERDUE' : topCase.caseStatus === 'AT_RISK' ? 'AT RISK' : topCase.caseStatus) + '</span>'
+          + (topCase.outstanding > 0 ? '<span class="ov-muc-amount">USD ' + num(topCase.outstanding) + ' outstanding</span>' : '')
+          + '</div>'
+          + '<div class="ov-muc-action">→ ' + h(topCase.nextAction) + '</div>'
+          + '<button class="ov-muc-open" onclick="openExportCase(' + JSON.stringify(topCase.nxp_reference) + ')">Open Case →</button>'
+          + '</div></div>')
+        : '<div class="card"><div class="ov-muc ov-muc-empty">No urgent cases.</div></div>';
 
-      shipments.filter(s => !s.fully_reconciled).forEach(s => {
-        attItems.push({ dot: 'yellow', ref: h(s.shipment_reference || s.id || '—'), text: 'Not fully reconciled' });
-      });
+      const dlHtml = '<div class="card">'
+        + '<div class="card-header"><h2>Upcoming Deadlines</h2></div>'
+        + (dlRows.length
+          ? '<div class="table-wrap"><table class="ov-dl-table"><thead><tr>'
+            + '<th>Case</th><th>Deadline</th><th>Days</th><th>Status</th>'
+            + '</tr></thead><tbody>'
+            + dlRows.map(c => {
+                const dcls  = c.daysLeft < 0 ? 'r' : c.daysLeft <= 14 ? 'o' : 'y';
+                const dlbl  = c.daysLeft < 0 ? Math.abs(c.daysLeft) + 'd overdue' : c.daysLeft + 'd';
+                const scls  = c.repatriation_status === 'OVERDUE' ? 'r' : c.repatriation_status === 'PENDING' ? 'y' : 'g';
+                return '<tr>'
+                  + '<td><div style="font-weight:600;color:#0f172a;font-size:12px">' + h(caseName(c)) + '</div>'
+                  + '<div style="font-size:10px;color:#94a3b8;font-family:ui-monospace,monospace;margin-top:1px">' + h(c.nxp_reference ?? '') + '</div></td>'
+                  + '<td style="white-space:nowrap">' + (c.repatriation_deadline ? date(c.repatriation_deadline) : '—') + '</td>'
+                  + '<td><span class="badge ' + dcls + '">' + h(dlbl) + '</span></td>'
+                  + '<td><span class="badge ' + scls + '">' + h(c.repatriation_status ?? '—') + '</span></td>'
+                  + '</tr>';
+              }).join('')
+            + '</tbody></table></div>'
+          : '<div class="state">No upcoming deadlines.</div>')
+        + '</div>';
 
-      attEl.innerHTML = attItems.length
-        ? `<div class="ov-att-list">${attItems.map(it =>
-            `<div class="ov-att-item">
-              <div class="ov-att-dot ${it.dot}"></div>
-              <div><span class="ov-att-ref">${it.ref}</span> — ${it.text}</div>
-            </div>`
-          ).join('')}</div>`
-        : '<p class="ov-empty-msg">No exceptions — all items in order.</p>';
+      const attHtml = '<div class="card">'
+        + '<div class="card-header"><h2>Attention Required</h2></div>'
+        + (attItems.length
+          ? '<div class="ov-att-list">'
+            + attItems.map(it => {
+                const dot = it.reason.toLowerCase().includes('overdue') ? 'red'
+                  : it.reason.includes('Deadline in') ? 'orange' : 'yellow';
+                return '<div class="ov-att-item">'
+                  + '<div class="ov-att-dot ' + dot + '"></div>'
+                  + '<div><div style="font-weight:600;color:#0f172a;font-size:12px">' + h(it.name) + '</div>'
+                  + '<div style="font-size:11px;color:#64748b;margin-top:1px">' + h(it.reason) + '</div></div>'
+                  + '</div>';
+              }).join('')
+            + '</div>'
+          : '<div class="state">No exceptions — all items in order.</div>')
+        + '</div>';
 
-      // ── Case filter & pipeline counts (shared by NCA + Work Queue) ─────────────────────────────────────
-      const highCount     = cases.filter(c => c.priority === 'HIGH').length;
-      const mediumCount   = cases.filter(c => c.priority === 'MEDIUM').length;
-      const completeCount = cases.filter(c => c.caseStatus === 'COMPLETE').length;
-      const wqItems       = cases.filter(c => c.priority !== 'LOW');
-
-      // ── Next Critical Action ─────────────────────────────────────────────────────────────────────────────
-      const ncaItem = wqItems.length > 0 ? wqItems[0] : null;
-      if (ncaItem) {
-        const prBadgeCls = { HIGH: 'r', MEDIUM: 'o', LOW: 'g' };
-        const dLabel = ncaItem.daysLeft === null ? '—'
-                     : ncaItem.daysLeft < 0     ? Math.abs(ncaItem.daysLeft) + 'd overdue'
-                     :                            ncaItem.daysLeft + 'd';
-        const dCls   = ncaItem.daysLeft === null ? 'gr'
-                     : ncaItem.daysLeft < 0     ? 'r'
-                     : ncaItem.daysLeft <= 30   ? 'y' : 'g';
-        ncaPriority.innerHTML = '<span class="badge ' + (prBadgeCls[ncaItem.priority] ?? 'gr') + '">' + h(ncaItem.priority) + '</span>';
-        ncaBody.innerHTML =
-          '<div class="nca-card-body">' +
-            '<div class="nca-col">' +
-              '<div class="nca-stat-label">Shipment</div>' +
-              '<div class="nca-shipment">' + h(ncaItem.shipment_reference ?? '—') + '</div>' +
-              '<div class="nca-nxp">' + h(ncaItem.nxp_reference ?? '—') + '</div>' +
-            '</div>' +
-            '<div class="nca-divider"></div>' +
-            '<div class="nca-col">' +
-              '<div class="nca-stat-label">Deadline</div>' +
-              '<div><span class="badge ' + dCls + '">' + h(dLabel) + '</span></div>' +
-            '</div>' +
-            '<div class="nca-divider"></div>' +
-            '<div class="nca-col">' +
-              '<div class="nca-stat-label">Unrepatriated Proceeds</div>' +
-              '<div class="nca-amount">' + (ncaItem.outstanding > 0 ? 'USD ' + h(num(ncaItem.outstanding)) : '<span style="color:#6b7280">—</span>') + '</div>' +
-            '</div>' +
-            '<div class="nca-divider"></div>' +
-            '<div class="nca-col">' +
-              '<div class="nca-stat-label">Issue</div>' +
-              '<div class="nca-issue">' + h(ncaItem.issue) + '</div>' +
-            '</div>' +
-            '<div class="nca-col-action">' +
-              '<span class="nca-action-pill">→ ' + h(ncaItem.nextAction) + '</span>' +
-            '</div>' +
-          '</div>';
-      } else {
-        ncaPriority.innerHTML = '';
-        ncaBody.innerHTML = '<div class="nca-empty">No urgent compliance action.</div>';
-      }
-      ncaSection.style.display = 'block';
-
-      // ── Compliance Work Queue ────────────────────────────────────────────────────────────────────────────
-      const prCls     = { HIGH: 'r', MEDIUM: 'o', LOW: 'g' };
-      const packStCls = { SEALED: 'b', READY_TO_SEAL: 'y', NOT_READY: 'gr' };
-
-      wqPipeline.innerHTML =
-        '<span class="wq-pl-label">Compliance Pipeline</span>' +
-        '<span class="wq-pl-item"><span class="badge r">HIGH</span> <strong>' + highCount + '</strong></span>' +
-        '<span class="wq-pl-sep">·</span>' +
-        '<span class="wq-pl-item"><span class="badge o">MEDIUM</span> <strong>' + mediumCount + '</strong></span>' +
-        '<span class="wq-pl-sep">·</span>' +
-        '<span class="wq-pl-item"><span class="badge g">COMPLETE</span> <strong>' + completeCount + '</strong></span>';
-      wqPipeline.hidden = false;
-
-      if (!cases.length) {
-        stWq.textContent = 'No compliance records found.';
-      } else {
-        bodyWq.innerHTML = wqItems.map(c => {
-          const dLabel = c.daysLeft === null ? '—'
-                       : c.daysLeft < 0     ? Math.abs(c.daysLeft) + 'd overdue'
-                       :                      c.daysLeft + 'd';
-          const dCls   = c.daysLeft === null ? 'gr'
-                       : c.daysLeft < 0     ? 'r'
-                       : c.daysLeft <= 30   ? 'y' : 'g';
-          return `<tr>
-            <td><span class="badge ${prCls[c.priority] ?? 'gr'}">${h(c.priority)}</span></td>
-            <td style="font-weight:600">${h(c.shipment_reference ?? '—')}</td>
-            <td class="mono">${h(c.nxp_reference ?? '—')}</td>
-            <td>${h(c.issue)}</td>
-            <td><span class="badge ${dCls}">${h(dLabel)}</span></td>
-            <td class="r">${c.outstanding > 0 ? 'USD' + ' ' + h(num(c.outstanding)) : '<span style="color:#9ca3af">—</span>'}</td>
-            <td class="${c.nextAction === 'No action' ? 'wq-na' : 'wq-action'}">${h(c.nextAction)}</td>
-            <td><span class="badge ${packStCls[c.packStatus] ?? 'gr'}">${h(c.packStatus.replace(/_/g, ' '))}</span></td>
-          </tr>`;
-        }).join('');
-
-        bodyWqCards.innerHTML = wqItems.map(c => {
-          const dLabel = c.daysLeft === null ? '—'
-                       : c.daysLeft < 0     ? Math.abs(c.daysLeft) + 'd overdue'
-                       :                      c.daysLeft + 'd';
-          const dCls   = c.daysLeft === null ? 'gr'
-                       : c.daysLeft < 0     ? 'r'
-                       : c.daysLeft <= 30   ? 'y' : 'g';
-          const unrep = c.outstanding > 0 ? 'USD' + ' ' + num(c.outstanding) : '';
-          return `<div class="wq-item">
-            <div class="wq-item-top">
-              <div>
-                <span class="wq-item-ref">${h(c.shipment_reference ?? '—')}</span>
-                <span class="wq-item-nxp"> · ${h(c.nxp_reference ?? '—')}</span>
-              </div>
-              <span class="badge ${prCls[c.priority] ?? 'gr'}">${h(c.priority)}</span>
-            </div>
-            <div class="wq-item-issue">${h(c.issue)}</div>
-            <div class="wq-item-meta">
-              <span class="badge ${dCls}">${h(dLabel)}</span>
-              ${unrep ? '<span>' + h(unrep) + '</span>' : ''}
-              <span class="badge ${packStCls[c.packStatus] ?? 'gr'}">${h(c.packStatus.replace(/_/g, ' '))}</span>
-            </div>
-            ${c.nextAction !== 'No action'
-              ? '<div class="wq-item-action">→ ' + h(c.nextAction) + '</div>'
-              : '<div class="wq-item-na">No action required</div>'}
-          </div>`;
-        }).join('');
-
-        cntWq.textContent = wqItems.length + ' item' + (wqItems.length !== 1 ? 's' : '');
-        stWq.hidden = true;
-        tbWq.hidden = false;
-        bodyWqCards.hidden = false;
-      }
-      wqSection.style.display = 'block';
-
-      section.style.display = 'block';
+      document.getElementById('ov-content').innerHTML = sevHtml + mucHtml + dlHtml + attHtml;
     }).catch(() => {
-      // Overview load failed silently — existing tables are unaffected
+      document.getElementById('ov-content').innerHTML = '<div class="state err">Failed to load overview data.</div>';
     });
   }
 
