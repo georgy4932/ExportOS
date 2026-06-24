@@ -695,30 +695,38 @@
     }
 
     /* ── Exports master list ── */
-    .xf-bar {
+    .xf-toolbar {
       display: flex; align-items: center; gap: 8px;
-      padding: 9px 14px; border-bottom: 1px solid #f1f5f9; flex-wrap: wrap;
+      padding: 10px 14px; border-bottom: 1px solid #f1f5f9; flex-wrap: wrap;
     }
+    .xf-search {
+      flex: 1; min-width: 160px; max-width: 260px; font-size: 12px;
+      padding: 5px 9px; border: 1px solid #e2e8f0; border-radius: 4px;
+      color: #374151; font-family: inherit; background: #fff;
+    }
+    .xf-search:focus { outline: none; border-color: #a7f3d0; }
+    .xf-divider { width: 1px; height: 18px; background: #e2e8f0; flex-shrink: 0; }
+    .xf-group-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #9ca3af; }
     .xf-btn {
       font-size: 11px; font-weight: 600; padding: 3px 9px;
       border-radius: 3px; border: 1px solid #e2e8f0;
-      background: #f8fafc; color: #64748b; cursor: pointer;
+      background: #f8fafc; color: #64748b; cursor: pointer; font-family: inherit;
     }
     .xf-btn.v-active { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    .xf-count { font-size: 11px; color: #94a3b8; margin-left: auto; white-space: nowrap; }
     #exports-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
     #exports-tbl thead th {
       text-align: left; padding: 8px 12px; font-size: 9.5px; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8;
       background: #f8fafc; border-bottom: 1px solid #e2e8f0; white-space: nowrap;
     }
-    #exports-tbl thead th.r { text-align: right; background: #f8fafc; }
+    #exports-tbl thead th.r { text-align: right; }
     #exports-tbl tbody td { padding: 10px 12px; border-bottom: 1px solid #f8fafc; vertical-align: middle; background: transparent; }
     #exports-tbl tbody tr:last-child td { border-bottom: none; }
     #exports-tbl tbody tr:hover td { background: #f8fafc; cursor: pointer; }
-    .x-nxp { font-weight: 700; color: #0f172a; font-family: ui-monospace, monospace; font-size: 12px; }
-    .x-sref { font-family: ui-monospace, monospace; font-size: 10px; color: #94a3b8; margin-top: 1px; }
-    .x-route { font-size: 11px; color: #475569; }
-    .x-vessel { font-size: 10px; color: #94a3b8; margin-top: 1px; }
+    .x-name { font-weight: 600; font-size: 12px; color: #0f172a; }
+    .x-nxp  { font-family: ui-monospace, monospace; font-size: 10px; color: #94a3b8; margin-top: 1px; }
+    .x-sref { font-family: ui-monospace, monospace; font-size: 11px; color: #475569; }
     .x-open {
       display: inline-flex; align-items: center; font-size: 10.5px;
       font-weight: 600; padding: 3px 9px; border-radius: 3px;
@@ -3070,6 +3078,11 @@
   }
 
   // ── Exports master list ───────────────────────────────────────────────────────
+  // ── Exports state ───────────────────────────────────────────────────────────
+  let _exFilter = 'all';
+  let _exSort   = 'deadline';
+  let _exQuery  = '';
+
   function renderExportsView() {
     const container = document.getElementById('exports-container');
     if (!_cases.length) {
@@ -3077,89 +3090,171 @@
       return;
     }
 
-    const shipMap = {};
-    _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
-
-    const prCls  = { HIGH: 'r', MEDIUM: 'o', LOW: 'g' };
-    const packCls   = { SEALED: 'g', READY_TO_SEAL: 'b', NOT_READY: 'gr' };
-    const packLabel = { SEALED: 'SEALED', READY_TO_SEAL: 'READY TO SEAL', NOT_READY: 'NOT READY' };
-
-    function exportRow(c) {
-      const ship = shipMap[c.nxp_reference] ?? {};
-      const route = (ship.port_of_loading && ship.port_of_discharge)
-        ? h(ship.port_of_loading) + ' → ' + h(ship.port_of_discharge)
-        : '—';
-      const vessel = ship.vessel_name ? h(ship.vessel_name) : '—';
-      const dLabel = c.daysLeft === null    ? '—'
-                   : c.daysLeft < 0        ? Math.abs(c.daysLeft) + 'd overdue'
-                   :                         c.daysLeft + 'd left';
-      const dCls   = c.daysLeft === null    ? 'gr'
-                   : c.daysLeft < 0        ? 'r'
-                   : c.daysLeft <= 30      ? 'o' : 'gr';
-      const stLabel = c.caseStatus === 'COMPLETE' ? 'COMPLETE' : c.priority;
-      const stCls   = c.caseStatus === 'COMPLETE' ? 'g' : (prCls[c.priority] ?? 'gr');
-      const ps = c.packStatus ?? 'NOT_READY';
-
-      return '<tr data-nxp="' + h(c.nxp_reference) + '">'
-        + '<td><div class="x-nxp">' + h(c.nxp_reference ?? '—') + '</div>'
-        +     '<div class="x-sref">' + h(c.shipment_reference ?? '—') + '</div></td>'
-        + '<td><div class="x-route">' + route + '</div>'
-        +     '<div class="x-vessel">' + vessel + '</div></td>'
-        + '<td><span class="badge ' + dCls + '">' + h(dLabel) + '</span></td>'
-        + '<td><span class="badge ' + stCls + '">' + h(stLabel) + '</span></td>'
-        + '<td class="r">' + (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</td>'
-        + '<td class="r" style="' + (c.outstanding > 0 ? 'color:#b91c1c;font-weight:600' : 'color:#94a3b8') + '">'
-        +   (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : '—') + '</td>'
-        + '<td><span class="badge ' + (packCls[ps] ?? 'gr') + '">' + h(packLabel[ps] ?? ps) + '</span></td>'
-        + '<td><button class="x-open" data-nxp="' + h(c.nxp_reference) + '">Open →</button></td>'
-        + '</tr>';
-    }
-
-    const tbody = _cases.map(exportRow).join('');
-
     container.innerHTML =
       '<div class="card">'
-      + '<div class="card-header"><h2>All Exports</h2>'
-      + '<span class="card-count">' + _cases.length + ' export' + (_cases.length !== 1 ? 's' : '') + '</span></div>'
-      + '<div class="xf-bar">'
-      + '<button class="xf-btn v-active" onclick="filterExports(\'all\',this)">All</button>'
-      + '<button class="xf-btn" onclick="filterExports(\'overdue\',this)">Overdue</button>'
-      + '<button class="xf-btn" onclick="filterExports(\'due30\',this)">Due &lt;30d</button>'
-      + '<button class="xf-btn" onclick="filterExports(\'outstanding\',this)">Outstanding Proceeds</button>'
+      + '<div class="xf-toolbar">'
+      +   '<input id="xf-search-input" class="xf-search" type="search" placeholder="Search cases, NXP, shipment…" oninput="applyExportsView()">'
+      +   '<span class="xf-divider"></span>'
+      +   '<span class="xf-group-label">Filter</span>'
+      +   '<button class="xf-btn v-active" data-xf="all"       onclick="setExFilter(\'all\',this)">All</button>'
+      +   '<button class="xf-btn"          data-xf="overdue"   onclick="setExFilter(\'overdue\',this)">Overdue</button>'
+      +   '<button class="xf-btn"          data-xf="at-risk"   onclick="setExFilter(\'at-risk\',this)">At Risk</button>'
+      +   '<button class="xf-btn"          data-xf="compliant" onclick="setExFilter(\'compliant\',this)">Compliant</button>'
+      +   '<button class="xf-btn"          data-xf="outstanding" onclick="setExFilter(\'outstanding\',this)">Outstanding Proceeds</button>'
+      +   '<span class="xf-divider"></span>'
+      +   '<span class="xf-group-label">Sort</span>'
+      +   '<button class="xf-btn v-active" data-xs="deadline"    onclick="setExSort(\'deadline\',this)">Deadline</button>'
+      +   '<button class="xf-btn"          data-xs="status"      onclick="setExSort(\'status\',this)">Status</button>'
+      +   '<button class="xf-btn"          data-xs="outstanding" onclick="setExSort(\'outstanding\',this)">Outstanding</button>'
+      +   '<button class="xf-btn"          data-xs="newest"      onclick="setExSort(\'newest\',this)">Newest</button>'
+      +   '<button class="xf-btn"          data-xs="oldest"      onclick="setExSort(\'oldest\',this)">Oldest</button>'
+      +   '<span class="xf-count" id="xf-count"></span>'
       + '</div>'
       + '<div class="table-wrap"><table id="exports-tbl">'
       + '<thead><tr>'
-      + '<th>NXP Reference</th><th>Route</th><th>CBN Deadline</th>'
-      + '<th>Compliance</th><th class="r">Proceeds Required</th>'
-      + '<th class="r">Outstanding</th><th>Pack Status</th><th></th>'
+      + '<th>Case Name</th>'
+      + '<th>NXP</th>'
+      + '<th>Shipment Ref</th>'
+      + '<th>Status</th>'
+      + '<th>Deadline</th>'
+      + '<th class="r">Outstanding</th>'
+      + '<th>Pack Status</th>'
+      + '<th></th>'
       + '</tr></thead>'
-      + '<tbody id="exports-tbody">' + tbody + '</tbody>'
+      + '<tbody id="exports-tbody"></tbody>'
       + '</table></div></div>';
 
-    document.getElementById('exports-tbody').addEventListener('click', function(e) {
+    document.getElementById('exports-tbl').addEventListener('click', function(e) {
       const btn = e.target.closest('.x-open');
       const row = e.target.closest('tr[data-nxp]');
       const nxp = btn ? btn.dataset.nxp : (row ? row.dataset.nxp : null);
       if (nxp) openExportCase(nxp);
     });
+
+    // Reset state on each render
+    _exFilter = 'all';
+    _exSort   = 'deadline';
+    _exQuery  = '';
+    applyExportsView();
   }
 
-  function filterExports(type, btn) {
-    document.querySelectorAll('.xf-btn').forEach(b => b.classList.remove('v-active'));
+  function setExFilter(type, btn) {
+    _exFilter = type;
+    document.querySelectorAll('[data-xf]').forEach(b => b.classList.remove('v-active'));
     if (btn) btn.classList.add('v-active');
-    const tbody = document.getElementById('exports-tbody');
-    if (!tbody) return;
-    Array.from(tbody.querySelectorAll('tr[data-nxp]')).forEach(row => {
-      const nxp = row.dataset.nxp;
-      const c = _cases.find(x => x.nxp_reference === nxp);
-      if (!c) return;
-      let show = true;
-      if (type === 'overdue')     show = c.daysLeft !== null && c.daysLeft < 0;
-      if (type === 'due30')       show = c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= 30;
-      if (type === 'outstanding') show = c.outstanding > 0;
-      row.style.display = show ? '' : 'none';
-    });
+    applyExportsView();
   }
+
+  function setExSort(type, btn) {
+    _exSort = type;
+    document.querySelectorAll('[data-xs]').forEach(b => b.classList.remove('v-active'));
+    if (btn) btn.classList.add('v-active');
+    applyExportsView();
+  }
+
+  function applyExportsView() {
+    const tbody = document.getElementById('exports-tbody');
+    const countEl = document.getElementById('xf-count');
+    if (!tbody) return;
+
+    const input = document.getElementById('xf-search-input');
+    _exQuery = input ? input.value.trim().toLowerCase() : '';
+
+    const shipMap = {};
+    _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
+
+    function exCaseName(c) {
+      const s = shipMap[c.nxp_reference] ?? {};
+      const commodity = s.commodity || '';
+      const dest = s.port_of_discharge || '';
+      if (commodity && dest) return commodity + ' Export — ' + dest;
+      if (commodity) return commodity + ' Export';
+      return c.nxp_reference || c.shipment_reference || '—';
+    }
+
+    const packCls   = { SEALED: 'g', READY_TO_SEAL: 'b', NOT_READY: 'r' };
+    const packLabel = { SEALED: 'SEALED', READY_TO_SEAL: 'READY TO SEAL', NOT_READY: 'INCOMPLETE' };
+
+    const statusRank = { OVERDUE: 0, AT_RISK: 1, PARTIAL: 2, COMPLETE: 3 };
+
+    // Filter
+    let visible = _cases.filter(c => {
+      if (_exFilter === 'overdue')     return c.caseStatus === 'OVERDUE';
+      if (_exFilter === 'at-risk')     return c.caseStatus === 'AT_RISK';
+      if (_exFilter === 'compliant')   return c.caseStatus === 'COMPLETE';
+      if (_exFilter === 'outstanding') return c.outstanding > 0;
+      return true;
+    });
+
+    // Search
+    if (_exQuery) {
+      visible = visible.filter(c => {
+        const name = exCaseName(c).toLowerCase();
+        return name.includes(_exQuery)
+          || (c.nxp_reference ?? '').toLowerCase().includes(_exQuery)
+          || (c.shipment_reference ?? '').toLowerCase().includes(_exQuery);
+      });
+    }
+
+    // Sort
+    visible = visible.slice().sort((a, b) => {
+      if (_exSort === 'deadline') {
+        if (a.daysLeft === null && b.daysLeft === null) return 0;
+        if (a.daysLeft === null) return 1;
+        if (b.daysLeft === null) return -1;
+        return a.daysLeft - b.daysLeft;
+      }
+      if (_exSort === 'status') {
+        return (statusRank[a.caseStatus] ?? 9) - (statusRank[b.caseStatus] ?? 9);
+      }
+      if (_exSort === 'outstanding') return b.outstanding - a.outstanding;
+      if (_exSort === 'newest')  return (b.id ?? 0) - (a.id ?? 0);
+      if (_exSort === 'oldest')  return (a.id ?? 0) - (b.id ?? 0);
+      return 0;
+    });
+
+    // Render rows
+    tbody.innerHTML = visible.map(c => {
+      const caseName = exCaseName(c);
+      const ps = c.packStatus ?? 'NOT_READY';
+
+      const stCls   = c.caseStatus === 'OVERDUE'  ? 'r'
+                    : c.caseStatus === 'AT_RISK'   ? 'o'
+                    : c.caseStatus === 'COMPLETE'  ? 'g' : 'y';
+      const stLabel = c.caseStatus === 'OVERDUE'  ? 'OVERDUE'
+                    : c.caseStatus === 'AT_RISK'   ? 'AT RISK'
+                    : c.caseStatus === 'COMPLETE'  ? 'COMPLIANT' : 'AT RISK';
+
+      const dCls   = c.daysLeft === null ? 'gr'
+                   : c.daysLeft < 0     ? 'r'
+                   : c.daysLeft <= 14   ? 'o' : 'y';
+      const dLabel = c.daysLeft === null    ? '—'
+                   : c.daysLeft < 0        ? Math.abs(c.daysLeft) + 'd overdue'
+                   :                         c.daysLeft + 'd';
+
+      const deadline = c.repatriation_deadline ? date(c.repatriation_deadline) : '—';
+
+      return '<tr data-nxp="' + h(c.nxp_reference) + '">'
+        + '<td><div class="x-name">' + h(caseName) + '</div></td>'
+        + '<td><div class="x-nxp">' + h(c.nxp_reference ?? '—') + '</div></td>'
+        + '<td><div class="x-sref">' + h(c.shipment_reference ?? '—') + '</div></td>'
+        + '<td><span class="badge ' + stCls + '">' + h(stLabel) + '</span></td>'
+        + '<td style="white-space:nowrap">'
+        +   deadline
+        +   (c.daysLeft !== null ? ' <span class="badge ' + dCls + '" style="font-size:9px">' + h(dLabel) + '</span>' : '')
+        + '</td>'
+        + '<td class="r" style="' + (c.outstanding > 0 ? 'color:#b91c1c;font-weight:600' : 'color:#94a3b8') + '">'
+        +   (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : '—') + '</td>'
+        + '<td><span class="badge ' + (packCls[ps] ?? 'gr') + '">' + h(packLabel[ps] ?? ps.replace(/_/g,' ')) + '</span></td>'
+        + '<td><button class="x-open" data-nxp="' + h(c.nxp_reference) + '">Open →</button></td>'
+        + '</tr>';
+    }).join('');
+
+    if (countEl) countEl.textContent = visible.length + ' of ' + _cases.length + ' cases';
+  }
+
+  // filterExports kept as alias for backward compatibility
+  function filterExports(type, btn) { setExFilter(type, btn); }
 
   // ── Export Case Summary ───────────────────────────────────────────────────────
   function openExportCase(nxpRef) {
