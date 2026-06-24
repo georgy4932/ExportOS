@@ -422,59 +422,40 @@
     .ov-dl-table tr:last-child td { border-bottom: none; }
     @media (max-width: 640px) { .ov-severity-grid { grid-template-columns: 1fr 1fr; } }
 
-    /* ── Compliance Work Queue ───────────────────────────────────────── */
+    /* ── Work Queue ─────────────────────────────────────────────────── */
     #wq-section { display: none; }
-    .wq-table { width: 100%; border-collapse: collapse; min-width: 700px; }
-    .wq-table th {
-      padding: 8px 12px;
-      font-size: 9.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #6b7280;
-      background: #f9fafb;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-    }
-    .wq-table th.r { text-align: right; background: #f9fafb; }
-    .wq-table td {
-      padding: 9px 12px;
-      font-size: 12px;
-      border-bottom: 1px solid #f3f4f6;
-      vertical-align: middle;
-      color: #374151;
-      background: transparent;
-    }
-    .wq-table td.r { text-align: right; font-variant-numeric: tabular-nums; color: #111827; background: transparent; }
-    .wq-table td.mono { font-family: ui-monospace, monospace; font-size: 11.5px; color: #6b7280; }
-    .wq-table tr:last-child td { border-bottom: none; }
-    .wq-table tbody tr { position: relative; }
-    .wq-table tbody tr:hover td { background: #f8fafc !important; }
-    /* Priority left-border accent on first cell */
-    .wq-table tbody tr.wq-high td:first-child { box-shadow: inset 3px 0 0 #ef4444; }
-    .wq-table tbody tr.wq-medium td:first-child { box-shadow: inset 3px 0 0 #f97316; }
-    .wq-table tbody tr.wq-complete td:first-child { box-shadow: inset 3px 0 0 #22c55e; }
-    .wq-na { color: #9ca3af; font-size: 0.75rem; font-style: italic; }
-    .wq-card-list { display: none; }
-    .wq-item {
-      padding: 0.875rem 1rem;
-      border-bottom: 1px solid #f3f4f6;
-      display: grid;
-      gap: 0.375rem;
-    }
-    .wq-item:last-child { border-bottom: none; }
-    .wq-item-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
-    .wq-item-ref { font-weight: 700; font-size: 0.875rem; color: #0f172a; }
-    .wq-item-nxp { font-family: monospace; font-size: 0.75rem; color: #6b7280; }
-    .wq-item-issue { font-size: 0.8125rem; color: #374151; }
-    .wq-item-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; font-size: 0.75rem; color: #6b7280; }
-    .wq-item-action { font-size: 0.75rem; color: #374151; }
-    .wq-item-na { font-size: 0.75rem; color: #9ca3af; font-style: italic; }
-    .wq-pipeline { display: flex; align-items: center; gap: 1.25rem; padding: 0.625rem 1rem; border-bottom: 1px solid #e5e7eb; font-size: 0.8125rem; color: #374151; }
-    .wq-pl-item { display: flex; align-items: center; gap: 0.375rem; }
-    .wq-pl-item strong { font-weight: 700; color: #0f172a; font-size: 0.875rem; }
+    .wq-pipeline { display: flex; align-items: center; gap: 20px; padding: 12px 16px; border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; }
+    .wq-pl-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #9ca3af; }
+    .wq-pl-item { display: flex; align-items: center; gap: 6px; }
+    .wq-pl-item strong { font-weight: 700; color: #0f172a; font-size: 15px; }
     .wq-pl-sep { color: #d1d5db; }
-    .wq-pl-label { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; margin-right: 0.5rem; }
+    .wq-group { margin-bottom: 20px; }
+    .wq-group-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #6b7280; padding: 0 0 8px; }
+    .wq-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 7px; overflow: hidden; margin-bottom: 10px; }
+    .wq-card:last-child { margin-bottom: 0; }
+    .wq-card-accent { height: 3px; }
+    .wq-card.critical .wq-card-accent { background: #b91c1c; }
+    .wq-card.overdue  .wq-card-accent { background: #ef4444; }
+    .wq-card.at-risk  .wq-card-accent { background: #f97316; }
+    .wq-card-body { padding: 14px 16px; display: grid; gap: 10px; }
+    .wq-card-name { font-size: 14px; font-weight: 700; color: #0f172a; }
+    .wq-card-refs { display: flex; gap: 8px; margin-top: 2px; font-size: 10px; color: #94a3b8; font-family: ui-monospace, monospace; }
+    .wq-card-section { display: grid; gap: 2px; }
+    .wq-card-section-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #9ca3af; }
+    .wq-card-section-value { font-size: 12px; color: #374151; }
+    .wq-card-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .wq-card-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-top: 1px solid #f1f5f9; }
+    .wq-card-followup { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+    .wq-card-open {
+      display: inline-flex; align-items: center; font-size: 11px; font-weight: 600;
+      padding: 4px 10px; border-radius: 4px; border: 1px solid #e2e8f0;
+      background: #f8fafc; color: #334155; cursor: pointer; font-family: inherit;
+    }
+    .wq-card-open:hover { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+    .wq-empty-group { font-size: 12px; color: #9ca3af; padding: 6px 0; font-style: italic; }
+    @media (max-width: 640px) {
+      .wq-card-row { grid-template-columns: 1fr 1fr; }
+    }
     /* ── Next Critical Action ──────────────────────────────────────── */
     #nca-section { display: none; }
     .nca-card-body { display: flex; align-items: center; gap: 0; }
@@ -496,12 +477,6 @@
     }
     @media (max-width: 900px) {
       .ov-metric-row { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (max-width: 640px) {
-      .ov-metric-row { grid-template-columns: repeat(2, 1fr); }
-      .ov-row2       { grid-template-columns: 1fr; }
-      .wq-table-wrap { display: none !important; }
-      .wq-card-list  { display: block; }
     }
 
     /* ── ExportOS Workspace Shell ─────────────────────────────────────── */
@@ -3343,54 +3318,108 @@
       container.innerHTML = '<div class="card"><div class="state">Overview data loading—please wait.</div></div>';
       return;
     }
-    const wqItems = _cases.filter(c => c.priority !== 'LOW');
-    const highCount     = _cases.filter(c => c.priority === 'HIGH').length;
-    const mediumCount   = _cases.filter(c => c.priority === 'MEDIUM').length;
-    const completeCount = _cases.filter(c => c.caseStatus === 'COMPLETE').length;
 
-    const prCls = { HIGH: 'r', MEDIUM: 'o', LOW: 'g' };
-    const packCls = { SEALED: 'b', READY_TO_SEAL: 'y', NOT_READY: 'gr' };
+    // Build shipment lookup for case name derivation
+    const shipIdx = {};
+    _allShipments.forEach(s => { if (s.nxp_reference) shipIdx[s.nxp_reference] = s; });
+    function wqCaseName(c) {
+      const s = shipIdx[c.nxp_reference] ?? {};
+      const commodity = s.commodity || '';
+      const dest = s.port_of_discharge || '';
+      if (commodity && dest) return commodity + ' Export — ' + dest;
+      if (commodity) return commodity + ' Export';
+      return c.nxp_reference || c.shipment_reference || '—';
+    }
 
-    const rows = wqItems.map(c => {
-      const dLabel = c.daysLeft === null ? '\u2014'
-                   : c.daysLeft < 0     ? Math.abs(c.daysLeft) + 'd overdue'
-                   :                      c.daysLeft + 'd';
-      const dCls   = c.daysLeft === null ? 'gr'
-                   : c.daysLeft < 0     ? 'r'
-                   : c.daysLeft <= 30   ? 'y' : 'g';
-      const rowCls = c.priority === 'HIGH' ? 'wq-high' : c.priority === 'MEDIUM' ? 'wq-medium' : 'wq-complete';
-      return '<tr class="' + rowCls + '">'
-        + '<td><span class="badge ' + (prCls[c.priority] ?? 'gr') + '">' + h(c.priority) + '</span></td>'
-        + '<td class="mono">' + h(c.shipment_reference ?? '—') + '<br><small style="color:#9ca3af">' + h(c.nxp_reference ?? '') + '</small></td>'
-        + '<td>' + h(c.issue) + '</td>'
-        + '<td><span class="badge ' + dCls + '">' + h(dLabel) + '</span></td>'
-        + '<td style="text-align:right;font-variant-numeric:tabular-nums;color:' + (c.outstanding > 0 ? '#b91c1c;font-weight:600' : '#94a3b8') + '">'
-        +   (c.outstanding > 0 ? 'USD\u00a0' + num(c.outstanding) : '\u2014') + '</td>'
-        + '<td>' + h(c.nextAction) + '</td>'
-        + '<td><span class="badge ' + (packCls[c.packStatus] ?? 'gr') + '">' + h((c.packStatus ?? '\u2014').replace(/_/g,' ')) + '</span></td>'
-        + '</tr>';
-    }).join('');
+    // Build WHY text from available data fields
+    function whyText(c) {
+      const parts = [];
+      if (c.issue) parts.push(c.issue + '.');
+      if (c.outstanding > 0) parts.push('USD ' + num(c.outstanding) + ' outstanding.');
+      if (c.daysLeft !== null && c.daysLeft < 0)
+        parts.push(Math.abs(c.daysLeft) + 'd past deadline.');
+      else if (c.daysLeft !== null && c.daysLeft <= 30)
+        parts.push(c.daysLeft + 'd until deadline.');
+      return parts.join(' ') || '—';
+    }
+
+    // Pipeline counts
+    const criticalCount  = _cases.filter(c => c.priority === 'HIGH' && c.caseStatus !== 'OVERDUE').length;
+    const overdueCount   = _cases.filter(c => c.caseStatus === 'OVERDUE').length;
+    const atRiskCount    = _cases.filter(c => c.caseStatus === 'AT_RISK').length;
+    const compliantCount = _cases.filter(c => c.caseStatus === 'COMPLETE').length;
+
+    // Group cases into sections
+    const overdueGroup  = _cases.filter(c => c.caseStatus === 'OVERDUE');
+    const criticalGroup = _cases.filter(c => c.priority === 'HIGH' && c.caseStatus !== 'OVERDUE');
+    const atRiskGroup   = _cases.filter(c => c.caseStatus !== 'OVERDUE' && c.caseStatus !== 'COMPLETE'
+                                             && c.priority !== 'HIGH');
+
+    // Render a single queue card
+    function renderCard(c, accentCls) {
+      return '<div class="wq-card ' + accentCls + '">'
+        + '<div class="wq-card-accent"></div>'
+        + '<div class="wq-card-body">'
+        +   '<div>'
+        +     '<div class="wq-card-name">' + h(wqCaseName(c)) + '</div>'
+        +     '<div class="wq-card-refs">'
+        +       '<span>' + h(c.nxp_reference ?? '—') + '</span>'
+        +       '<span>·</span>'
+        +       '<span>' + h(c.shipment_reference ?? '—') + '</span>'
+        +     '</div>'
+        +   '</div>'
+        +   '<div class="wq-card-section">'
+        +     '<div class="wq-card-section-label">WHY</div>'
+        +     '<div class="wq-card-section-value">' + h(whyText(c)) + '</div>'
+        +   '</div>'
+        +   '<div class="wq-card-row">'
+        +     '<div class="wq-card-section">'
+        +       '<div class="wq-card-section-label">NEXT ACTION</div>'
+        +       '<div class="wq-card-section-value">' + h(c.nextAction !== 'No action' ? c.nextAction : '—') + '</div>'
+        +     '</div>'
+        +     '<div class="wq-card-section">'
+        +       '<div class="wq-card-section-label">OWNER</div>'
+        +       '<div class="wq-card-section-value">—</div>'
+        +     '</div>'
+        +     '<div class="wq-card-section">'
+        +       '<div class="wq-card-section-label">FOLLOW-UP</div>'
+        +       '<div class="wq-card-section-value">NONE</div>'
+        +     '</div>'
+        +   '</div>'
+        + '</div>'
+        + '<div class="wq-card-footer">'
+        +   '<span class="wq-card-followup">No Follow-Up</span>'
+        +   '<button class="wq-card-open" onclick="openExportCase(' + JSON.stringify(c.nxp_reference) + ')">Open Case →</button>'
+        + '</div>'
+        + '</div>';
+    }
+
+    // Render a group section
+    function renderGroup(label, cards, accentCls) {
+      return '<div class="wq-group">'
+        + '<div class="wq-group-label">' + label + '</div>'
+        + (cards.length
+          ? cards.map(c => renderCard(c, accentCls)).join('')
+          : '<div class="wq-empty-group">No items.</div>')
+        + '</div>';
+    }
 
     container.innerHTML =
-      '<div class="card">'
-      + '<div class="card-header"><h2>Compliance Work Queue</h2>'
-      + '<span class="card-count">' + wqItems.length + ' item' + (wqItems.length !== 1 ? 's' : '') + '</span></div>'
+      '<div class="card" style="margin-bottom:16px">'
       + '<div class="wq-pipeline">'
-      + '<span class="wq-pl-label">Compliance Pipeline</span>'
-      + '<span class="wq-pl-item"><span class="badge r">HIGH</span> <strong>' + highCount + '</strong></span>'
-      + ' <span class="wq-pl-sep">·</span> '
-      + '<span class="wq-pl-item"><span class="badge o">MEDIUM</span> <strong>' + mediumCount + '</strong></span>'
-      + ' <span class="wq-pl-sep">·</span> '
-      + '<span class="wq-pl-item"><span class="badge g">COMPLETE</span> <strong>' + completeCount + '</strong></span>'
+      + '<span class="wq-pl-label">Pipeline</span>'
+      + '<span class="wq-pl-item"><span class="badge r">CRITICAL</span><strong>' + criticalCount + '</strong></span>'
+      + '<span class="wq-pl-sep">·</span>'
+      + '<span class="wq-pl-item"><span class="badge r">OVERDUE</span><strong>' + overdueCount + '</strong></span>'
+      + '<span class="wq-pl-sep">·</span>'
+      + '<span class="wq-pl-item"><span class="badge o">AT RISK</span><strong>' + atRiskCount + '</strong></span>'
+      + '<span class="wq-pl-sep">·</span>'
+      + '<span class="wq-pl-item"><span class="badge g">COMPLIANT</span><strong>' + compliantCount + '</strong></span>'
       + '</div>'
-      + (wqItems.length
-        ? '<div class="table-wrap"><table class="wq-table"><thead><tr>'
-          + '<th>Priority</th><th>Shipment</th><th>Issue</th>'
-          + '<th>Days Left</th><th class="r">Unrepatriated Proceeds</th>'
-          + '<th>Next Action</th><th>Pack</th>'
-          + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
-        : '<div class="state">No HIGH or MEDIUM items in the work queue.</div>')
-      + '</div>';
+      + '</div>'
+      + renderGroup('CRITICAL', criticalGroup, 'critical')
+      + renderGroup('OVERDUE', overdueGroup, 'overdue')
+      + renderGroup('AT RISK', atRiskGroup, 'at-risk');
   }
   // ── Deadlines standalone view ─────────────────────────────────────────────────
   function renderDeadlinesView() {
