@@ -3519,10 +3519,13 @@
     t._dismiss = setTimeout(function() { t.classList.remove('show'); }, 2000);
   }
 
-  // Timeline evidence navigation — keyed by stable evidenceType, not display label.
-  // UI labels can be renamed without breaking click behavior.
-  // Placeholder messages will later be replaced by real evidence record navigation.
-  function getEvidencePlaceholderMessage(event) {
+  // ── Evidence navigation ───────────────────────────────────────────────────────
+  // openEvidence() is the single public entry point for opening any evidence record.
+  // UI components should never contain evidence-routing logic — always call openEvidence().
+  // Placeholder toasts will later become real navigation to evidence record pages.
+  function openEvidence(type, options) {
+    options = options || {};
+    // Placeholder messages — replaced by real evidence record navigation when pages ship
     const msgs = {
       nxp_approval:       'Approval record viewer coming in a future phase.',
       shipment_record:    'Shipment record viewer coming in a future phase.',
@@ -3530,13 +3533,9 @@
       payment_evidence:   'Payment evidence viewer coming in a future phase.',
       credit_advice:      'Credit Advice viewer coming in a future phase.',
       compliance_summary: 'Compliance summary coming in a future phase.',
+      cci_document:       'CCI document viewer coming in a future phase.',
     };
-    return msgs[event.evidenceType] || 'Viewer coming in a future phase.';
-  }
-
-  function ecTlClick(evidenceType) {
-    // Uses evidenceType (stable), not label text — labels can change freely
-    ecViewDoc(getEvidencePlaceholderMessage({ evidenceType: evidenceType }));
+    ecViewDoc(msgs[type] || 'Document viewer coming in a future phase.');
   }
 
   function ecUploadNav(hasPack) {
@@ -3627,10 +3626,13 @@
 
     // Checklist helper — chk-miss class for visually obvious missing state
     function eck(val, tag, label) {
-      // Temporary interactions — replace with real document flows when upload/preview ships
+      // Temporary interactions — replace with real document flows when upload/preview ships.
+      // UI components never contain evidence-routing logic; always delegate to openEvidence().
       const hasPack = !!(c.pack);
+      const tagToEvidence = { NXP: 'nxp_approval', BL: 'bill_of_lading', CCI: 'cci_document', EVD: 'payment_evidence', ADV: 'credit_advice' };
+      const evidenceType = tagToEvidence[tag] || 'document';
       const btn = val
-        ? '<button class="ec-chk-btn view"   type="button" onclick="ecViewDoc()" aria-label="View document for ' + h(label) + '">View →</button>'
+        ? '<button class="ec-chk-btn view"   type="button" onclick="openEvidence(\'' + evidenceType + '\')" aria-label="View document for ' + h(label) + '">View →</button>'
         : '<button class="ec-chk-btn upload" type="button" onclick="ecUploadNav(' + hasPack + ')" aria-label="Upload document for ' + h(label) + '">Upload →</button>';
       return '<div class="ec-chk' + (val ? '' : ' chk-miss') + '">'
         + '<span class="ec-chk-i' + (val ? '' : ' x') + '">' + (val ? '✓' : '✗') + '</span>'
@@ -3746,12 +3748,12 @@
             const note   = ev.state === 'done' ? 'Completed'
                          : ev.state === 'cur'  ? 'Current milestone' : 'Pending';
             // Temporary navigation placeholder — completed events become clickable until evidence pages exist.
-            // evidenceType is passed (not label) so renaming labels never breaks click routing.
+            // Always delegates to openEvidence(); UI components never contain evidence-routing logic.
             const isDone = ev.state === 'done';
             const bodyOpen = isDone
               ? '<div class="ec-tl-body ec-tl-body-link" tabindex="0" role="button"'
-              + ' onclick="ecTlClick(\'' + ev.evidenceType + '\')"'
-              + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){ecTlClick(\'' + ev.evidenceType + '\');event.preventDefault();}">'
+              + ' onclick="openEvidence(\'' + ev.evidenceType + '\')"'
+              + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){openEvidence(\'' + ev.evidenceType + '\');event.preventDefault();}">'
               : '<div class="ec-tl-body">';
             return '<div class="ec-tl-item">'
               + '<div class="ec-tl-spine">'
