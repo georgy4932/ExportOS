@@ -886,7 +886,7 @@
     .ec-warn-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #92400e; margin-bottom: 3px; }
     .ec-warn-txt { font-size: 11.5px; color: #78350f; line-height: 1.4; }
     /* Vertical timeline */
-    .ec-tl { padding: 12px 14px 6px; }
+    .ec-tl { padding: 10px 14px 4px; }
     .ec-tl-empty { padding: 14px; font-size: 12px; color: #94a3b8; font-style: italic; }
     .ec-tl-item { display: flex; gap: 12px; }
     .ec-tl-spine { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 16px; }
@@ -894,17 +894,14 @@
     .ec-tl-dot.tl-done { background: #16a34a; }
     .ec-tl-dot.tl-cur  { background: #d97706; box-shadow: 0 0 0 3px #fef3c7; }
     .ec-tl-dot.tl-pend { background: #f1f5f9; border: 1.5px solid #cbd5e1; }
-    .ec-tl-line { width: 2px; background: #e2e8f0; flex: 1; min-height: 14px; margin-top: 3px; }
-    .ec-tl-line.tl-done { background: #bbf7d0; }
-    .ec-tl-body { flex: 1; display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 16px; gap: 8px; }
+    .ec-tl-line { width: 2px; background: #e2e8f0; flex: 1; min-height: 8px; margin-top: 3px; }
+    .ec-tl-body { flex: 1; display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; gap: 8px; }
     .ec-tl-text { flex: 1; }
     .ec-tl-label { font-size: 12.5px; font-weight: 600; color: #0f172a; line-height: 1.3; }
     .ec-tl-label.tl-pend { color: #94a3b8; font-weight: 500; }
-    .ec-tl-label.tl-cur  { color: #92400e; }
-    .ec-tl-detail { font-size: 11px; color: #64748b; margin-top: 2px; }
-    .ec-tl-date { font-size: 11px; color: #94a3b8; white-space: nowrap; padding-top: 2px; flex-shrink: 0; }
-    .ec-tl-date.tl-done { color: #16a34a; }
-    .ec-tl-date.tl-cur  { color: #d97706; }
+    .ec-tl-detail { font-size: 11px; color: #64748b; margin-top: 1px; }
+    .ec-tl-note { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+    .ec-tl-date { font-size: 11px; color: #cbd5e1; white-space: nowrap; padding-top: 2px; flex-shrink: 0; }
     .ec-breadcrumb { font-size: 10.5px; color: #94a3b8; padding: 10px 16px 0; }
     .ec-breadcrumb button {
       background: none; border: none; font-size: 10.5px; color: #64748b;
@@ -3383,45 +3380,40 @@
       {
         label:  'NXP Approved',
         detail: c.nxp_reference || '',
-        date:   '',
         done:   !!c.nxp_approved,
       },
       {
         label:  'Shipment Created',
         detail: (ship && ship.vessel_name) ? ship.vessel_name : '',
-        date:   '',
         done:   !!(ship && ship.nxp_reference),
       },
       {
         label:  'Bill of Lading Uploaded',
-        detail: '',
-        date:   '',
+        detail: c.bl_uploaded ? '' : 'Waiting for BL upload',
         done:   !!c.bl_uploaded,
       },
       ...(pReq > 0 ? [{
         label:  'Proceeds Received',
-        detail: pRec > 0 ? 'USD ' + num(pRec) + ' of USD ' + num(pReq) : 'USD ' + num(pReq) + ' expected',
-        date:   '',
+        detail: pRec > 0 ? 'USD ' + num(pRec) + ' received' : 'USD ' + num(pReq) + ' expected',
         done:   pRec > 0 && pOut <= 0,
       }] : []),
       {
         label:  'Credit Advice Confirmed',
-        detail: '',
-        date:   '',
+        detail: c.credit_advice_confirmed ? '' : 'Waiting for ADV upload',
         done:   !!c.credit_advice_confirmed,
       },
       {
         label:  'Case Compliant',
-        detail: c.repatriation_deadline ? 'Repatriation deadline: ' + date(c.repatriation_deadline) : '',
-        date:   c.repatriation_deadline ? date(c.repatriation_deadline) : '',
+        detail: c.caseStatus === 'COMPLETE' ? 'Fully repatriated'
+               : c.repatriation_deadline    ? 'Deadline: ' + date(c.repatriation_deadline) : '',
         done:   c.caseStatus === 'COMPLETE',
       },
     ];
     let foundCur = false;
     return raw.map(function(ev) {
-      if (ev.done) return { label: ev.label, detail: ev.detail, date: ev.date, state: 'done' };
-      if (!foundCur) { foundCur = true; return { label: ev.label, detail: ev.detail, date: ev.date, state: 'cur' }; }
-      return { label: ev.label, detail: ev.detail, date: ev.date, state: 'pend' };
+      if (ev.done) return { label: ev.label, detail: ev.detail, state: 'done' };
+      if (!foundCur) { foundCur = true; return { label: ev.label, detail: ev.detail, state: 'cur' }; }
+      return { label: ev.label, detail: ev.detail, state: 'pend' };
     });
   }
 
@@ -3661,32 +3653,33 @@
           const events = getTimeline(c, ship);
           if (!events.length) {
             return '<div class="ec-card">'
-              + '<div class="ec-card-h"><span class="ec-card-t">Timeline</span></div>'
+              + '<div class="ec-card-h"><span class="ec-card-t">Case Timeline</span></div>'
               + '<div class="ec-tl-empty">No timeline events available.</div>'
               + '</div>';
           }
           const rows = events.map(function(ev, i) {
-            const isLast  = i === events.length - 1;
-            const dotCls  = 'ec-tl-dot tl-' + ev.state;
-            const lineCls = 'ec-tl-line' + (ev.state === 'done' ? ' tl-done' : '');
-            const lblCls  = 'ec-tl-label' + (ev.state !== 'done' ? ' tl-' + ev.state : '');
-            const dateCls = 'ec-tl-date'  + (ev.state !== 'pend' ? ' tl-' + ev.state : '');
+            const isLast = i === events.length - 1;
+            const dotCls = 'ec-tl-dot tl-' + ev.state;
+            const lblCls = 'ec-tl-label' + (ev.state === 'pend' ? ' tl-pend' : '');
+            const note   = ev.state === 'done' ? 'Completed'
+                         : ev.state === 'cur'  ? 'Current milestone' : 'Pending';
             return '<div class="ec-tl-item">'
               + '<div class="ec-tl-spine">'
               +   '<div class="' + dotCls + '"></div>'
-              +   (!isLast ? '<div class="' + lineCls + '"></div>' : '')
+              +   (!isLast ? '<div class="ec-tl-line"></div>' : '')
               + '</div>'
               + '<div class="ec-tl-body">'
               +   '<div class="ec-tl-text">'
               +     '<div class="' + lblCls + '">' + h(ev.label) + '</div>'
               +     (ev.detail ? '<div class="ec-tl-detail">' + h(ev.detail) + '</div>' : '')
+              +     '<div class="ec-tl-note">' + note + '</div>'
               +   '</div>'
-              +   (ev.date ? '<div class="' + dateCls + '">' + h(ev.date) + '</div>' : '')
+              +   '<div class="ec-tl-date">Date unavailable</div>'
               + '</div>'
               + '</div>';
           }).join('');
           return '<div class="ec-card">'
-            + '<div class="ec-card-h"><span class="ec-card-t">Timeline</span></div>'
+            + '<div class="ec-card-h"><span class="ec-card-t">Case Timeline</span></div>'
             + '<div class="ec-tl">' + rows + '</div>'
             + '</div>';
         })()
