@@ -874,6 +874,13 @@
     .ec-fact-v.mono { font-family: ui-monospace, monospace; font-size: 10.5px; }
     .ec-fact-v.muted { color: #94a3b8; font-weight: 400; }
     .ec-ph-body { padding: 16px 14px; font-size: 12px; color: #94a3b8; font-style: italic; }
+    /* Follow-Up section */
+    .ec-fu-ok { display: flex; align-items: flex-start; gap: 10px; padding: 14px; }
+    .ec-fu-ok-icon { font-size: 14px; color: #16a34a; flex-shrink: 0; line-height: 1.4; }
+    .ec-fu-ok-label { font-size: 12.5px; font-weight: 600; color: #15803d; }
+    .ec-fu-ok-hint { font-size: 11.5px; color: #94a3b8; margin-top: 2px; }
+    .ec-fu-btn { display: inline-flex; align-items: center; gap: 5px; margin: 4px 14px 12px; padding: 7px 14px; font-size: 12px; font-weight: 600; color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; cursor: default; white-space: nowrap; font-family: inherit; }
+    .ec-fu-btn:hover { background: #f1f5f9; }
     /* Proceeds integrity warning */
     .ec-warn { background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px; margin: 8px 14px 10px; padding: 7px 10px; }
     .ec-warn-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #92400e; margin-bottom: 3px; }
@@ -3293,6 +3300,57 @@
   // filterExports kept as alias for backward compatibility
   function filterExports(type, btn) { setExFilter(type, btn); }
 
+  // ── Follow-Up ────────────────────────────────────────────────────────────────
+  // Deterministic rule chain — first matching rule wins.
+  // Rule order: overdue deadline → outstanding proceeds → missing compliance items.
+  // No backend calls, no AI. Derived entirely from existing case record fields.
+  function getFollowUp(c) {
+    // Rule 1: repatriation overdue
+    if (c.repatriation_status === 'OVERDUE' || (c.daysLeft !== null && c.daysLeft < 0)) {
+      return {
+        required:    true,
+        status:      'Overdue',
+        reason:      'Repatriation deadline has passed',
+        nextDate:    c.repatriation_deadline ? date(c.repatriation_deadline) : 'Not scheduled',
+        owner:       'Unassigned',
+        buttonLabel: 'Schedule Follow-Up →',
+      };
+    }
+    // Rule 2: outstanding proceeds
+    if (c.outstanding > 0) {
+      return {
+        required:    true,
+        status:      'Pending',
+        reason:      'Outstanding proceeds: USD ' + num(c.outstanding),
+        nextDate:    (c.repatriation_deadline && c.daysLeft !== null && c.daysLeft <= 30)
+                       ? date(c.repatriation_deadline) : 'Not scheduled',
+        owner:       'Unassigned',
+        buttonLabel: 'Schedule Follow-Up →',
+      };
+    }
+    // Rule 3: missing compliance items
+    const _fuMissing = [
+      !c.credit_advice_confirmed,
+      !c.payment_evidence_uploaded,
+      !c.bl_uploaded,
+      !c.cci_obtained,
+      !c.nxp_approved,
+    ].filter(Boolean).length;
+    if (_fuMissing > 0) {
+      return {
+        required:    true,
+        status:      'Action Required',
+        reason:      _fuMissing + ' compliance item' + (_fuMissing !== 1 ? 's' : '') + ' outstanding',
+        nextDate:    (c.repatriation_deadline && c.daysLeft !== null && c.daysLeft <= 30)
+                       ? date(c.repatriation_deadline) : 'Not scheduled',
+        owner:       'Unassigned',
+        buttonLabel: 'Schedule Follow-Up →',
+      };
+    }
+    // Rule 4: no follow-up needed
+    return { required: false, status: '', reason: '', nextDate: '', owner: '', buttonLabel: '' };
+  }
+
   // ── Next Required Action ─────────────────────────────────────────────────────
   // Deterministic rule chain — first matching rule wins.
   // Rules are ordered: document gaps before proceeds shortfalls.
@@ -3504,11 +3562,25 @@
     // ── Content: lower sections only ─────────────────────────────────────────
     document.getElementById('ec-content').innerHTML =
 
-      // Follow-Up (placeholder)
-      '<div class="ec-card">'
-      + '<div class="ec-card-h"><span class="ec-card-t">Follow-Up</span><span class="ec-card-s">Phase 7</span></div>'
-      + '<div class="ec-ph-body">Follow-up tracking will be available in a later phase.</div>'
-      + '</div>'
+      // Follow-Up — deterministic from existing case data
+      (function() {
+        const fu = getFollowUp(c);
+        const fuStatusCls = fu.status === 'Overdue' ? 'r' : fu.status === 'Pending' ? 'o' : fu.status === 'Action Required' ? 'y' : 'gr';
+        return '<div class="ec-card">'
+          + '<div class="ec-card-h"><span class="ec-card-t">Follow-Up</span></div>'
+          + (fu.required
+              ? '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="badge ' + fuStatusCls + '">' + h(fu.status) + '</span></span></div>'
+              + '<div class="ec-row"><span class="ec-rl">Reason</span><span class="ec-rv">' + h(fu.reason) + '</span></div>'
+              + '<div class="ec-row"><span class="ec-rl">Next Follow-Up</span><span class="ec-rv">' + h(fu.nextDate) + '</span></div>'
+              + '<div class="ec-row"><span class="ec-rl">Owner</span><span class="ec-rv muted">' + h(fu.owner) + '</span></div>'
+              + '<button class="ec-fu-btn">' + h(fu.buttonLabel) + '</button>'
+              : '<div class="ec-fu-ok">'
+              + '<div class="ec-fu-ok-icon">✓</div>'
+              + '<div><div class="ec-fu-ok-label">No follow-up required.</div>'
+              + '<div class="ec-fu-ok-hint">No pending follow-up for this case.</div></div>'
+              + '</div>')
+          + '</div>';
+      })()
 
       // Timeline (placeholder)
       + '<div class="ec-card">'
