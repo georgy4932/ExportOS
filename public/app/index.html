@@ -3705,15 +3705,23 @@
       + (procBad ? '<div class="ec-warn"><div class="ec-warn-lbl">Data Integrity Warning</div><div class="ec-warn-txt">Financial totals appear inconsistent. Review source records.</div></div>' : '')
       + '</div>'
 
-      // Shipment Details — compact 2-column fact grid
+      // Shipment Details — two-group structured summary
       + '<div class="ec-card">'
-      + '<div class="ec-card-h"><span class="ec-card-t">Shipment Details</span><span class="ec-card-s">/shipments</span></div>'
+      + '<div class="ec-card-h"><span class="ec-card-t">Shipment Details</span></div>'
+      + '<div class="ec-sec-lbl" style="padding-top:7px">Shipment</div>'
       + '<div class="ec-facts">'
-      +   '<div class="ec-fact"><div class="ec-fact-l">NXP Reference</div><div class="ec-fact-v mono">' + h(c.nxp_reference ?? '—') + '</div></div>'
-      +   '<div class="ec-fact"><div class="ec-fact-l">Shipment Ref</div><div class="ec-fact-v mono">' + h(c.shipment_reference ?? '—') + '</div></div>'
-      +   '<div class="ec-fact"><div class="ec-fact-l">Route</div><div class="ec-fact-v">' + route + '</div></div>'
-      +   '<div class="ec-fact"><div class="ec-fact-l">Vessel</div><div class="ec-fact-v' + (ship.vessel_name ? '' : ' muted') + '">' + h(ship.vessel_name || '—') + '</div></div>'
-      +   (ship.shipment_value ? '<div class="ec-fact full"><div class="ec-fact-l">Shipment Value</div><div class="ec-fact-v">USD ' + num(ship.shipment_value) + '</div></div>' : '')
+      +   '<div class="ec-fact"><div class="ec-fact-l">Shipment Reference</div><div class="ec-fact-v mono">' + h(c.shipment_reference || 'Not available') + '</div></div>'
+      +   '<div class="ec-fact"><div class="ec-fact-l">NXP Reference</div><div class="ec-fact-v mono">' + h(c.nxp_reference || 'Not available') + '</div></div>'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Commodity</div><div class="ec-fact-v' + (ship.commodity ? '' : ' muted') + '">' + h(ship.commodity || 'Not available') + '</div></div>'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Vessel</div><div class="ec-fact-v' + (ship.vessel_name ? '' : ' muted') + '">' + h(ship.vessel_name || 'Not available') + '</div></div>'
+      +   '<div class="ec-fact full"><div class="ec-fact-l">Route</div><div class="ec-fact-v' + (route === '—' ? ' muted' : '') + '">' + (route === '—' ? 'Not available' : route) + '</div></div>'
+      + '</div>'
+      + '<hr class="ec-sec-sep"><div class="ec-sec-lbl">Commercial</div>'
+      + '<div class="ec-facts">'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Shipment Value</div><div class="ec-fact-v' + (ship.shipment_value ? '' : ' muted') + '">' + (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : 'Not available') + '</div></div>'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Buyer</div><div class="ec-fact-v' + (ship.buyer ? '' : ' muted') + '">' + h(ship.buyer || 'Not available') + '</div></div>'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Exporter</div><div class="ec-fact-v' + (ship.exporter ? '' : ' muted') + '">' + h(ship.exporter || 'Not available') + '</div></div>'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Current Status</div><div class="ec-fact-v"><span class="badge ' + st.cls + '">' + h(st.word) + '</span></div></div>'
       + '</div>'
       + '</div>';
 
