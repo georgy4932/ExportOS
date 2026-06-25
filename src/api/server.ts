@@ -34,6 +34,8 @@
  *   GET  /invoices[?contract_id=&shipment_id=&invoice_type=]
  *   GET  /invoices/:id
  *   POST /invoices                        create invoice (+ audit event)
+ *   GET  /export-cases/:nxp_reference/evidence
+ *   GET  /export-cases/:nxp_reference/evidence/:evidence_type
  *   GET  /health
  */
 
@@ -56,6 +58,7 @@ import { paymentEvidenceRouter } from './routes/payment-evidence'
 import { complianceRouter } from './routes/compliance'
 import { evidencePacksRouter } from './routes/evidence-packs'
 import { invoicesRouter } from './routes/invoices'
+import { exportCasesRouter } from './routes/export-cases'
 
 const dbUrl     = process.env.DATABASE_URL
 const jwtSecret = process.env.JWT_SECRET
@@ -115,6 +118,7 @@ app.use('/payment-evidence',   auth, paymentEvidenceRouter(client))
 app.use('/compliance',       auth, complianceRouter(client))
 app.use('/evidence-packs',   auth, evidencePacksRouter(client))
 app.use('/invoices',         auth, invoicesRouter(client))
+app.use('/export-cases',    auth, exportCasesRouter(client))
 
 // 404 for anything else
 app.use((_req, res) => {
