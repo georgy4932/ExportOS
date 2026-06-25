@@ -737,7 +737,7 @@
     /* ── Export Case ── */
     #ec-header {
       background: #fff; border: 1px solid #e2e8f0;
-      border-radius: 7px; margin-bottom: 14px; overflow: hidden;
+      border-radius: 7px; margin-bottom: 10px; overflow: hidden;
     }
 
     /* Band 1 — Case Identity */
@@ -806,12 +806,12 @@
 
     /* Band 3 — Next Required Action */
     .nra {
-      background: #fff9f9; border-bottom: 1px solid #fde8e8;
+      background: #fff9f9;
       padding: 14px 16px;
       display: flex; align-items: center;
       justify-content: space-between; gap: 24px;
     }
-    .nra.compliant { background: #f8fffe; border-bottom: none; }
+    .nra.compliant { background: #f8fffe; }
     .nra-lbl {
       font-size: 9px; font-weight: 800; text-transform: uppercase;
       letter-spacing: 0.09em; color: #b91c1c; margin-bottom: 4px;
@@ -844,7 +844,7 @@
     /* Compliance checklist */
     .ec-chk { display: flex; align-items: center; gap: 9px; padding: 7px 14px; border-bottom: 1px solid #f8fafc; font-size: 12px; }
     .ec-chk:last-child { border-bottom: none; }
-    .ec-chk.chk-miss { background: #fff5f5; border-left: 3px solid #ef4444; padding-left: 11px; }
+    .ec-chk.chk-miss { background: #fef2f2; border-left: 2px solid #fca5a5; padding-left: 12px; }
     .ec-chk-i { font-size: 11px; line-height: 1; flex-shrink: 0; color: #16a34a; }
     .ec-chk-i.x { color: #dc2626; }
     .ec-chk-l { flex: 1; color: #475569; }
@@ -947,6 +947,8 @@
       .fs-col + .fs-col { border-left: none; border-top: 1px solid #e2e8f0; }
       .nra { flex-direction: column; align-items: flex-start; gap: 12px; }
       .nra-btn { width: 100%; justify-content: center; }
+      .ec-facts { grid-template-columns: 1fr; }
+      .ec-fact:nth-child(odd) { border-right: none; }
     }
 
   </style>
@@ -3384,7 +3386,7 @@
       + '<div class="ec-card-h"><span class="ec-card-t">Proceeds &amp; Repatriation</span><span class="ec-card-s">/compliance</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Required</span><span class="ec-rv">' + (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Received</span><span class="ec-rv' + (Number(c.proceeds_received) > 0 ? ' green' : '') + '">' + (c.proceeds_received != null ? 'USD ' + num(c.proceeds_received) : '—') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Outstanding</span><span class="ec-rv' + (c.outstanding > 0 ? ' red' : ' green') + '">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : 'Nil') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Outstanding</span><span class="ec-rv' + (c.outstanding > 0 ? ' red' : '') + '">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : 'USD 0') + '</span></div>'
       + '<hr class="ec-sec-sep"><div class="ec-sec-lbl">Compliance</div>'
       + '<div class="ec-row"><span class="ec-rl">CBN Deadline</span><span class="ec-rv' + (daysLeft !== null && daysLeft < 0 ? ' red' : '') + '">' + h(deadlineStr) + '</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></span></div>'
