@@ -854,6 +854,11 @@
     .ec-chk-n { font-size: 10.5px; flex-shrink: 0; }
     .ec-chk-n.ok { color: #15803d; }
     .ec-chk-n.bad { color: #b91c1c; font-weight: 600; }
+    /* Compliance Progress grouping */
+    .ec-chk-prog { font-size: 11px; color: #64748b; font-weight: 500; }
+    .ec-grp-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; padding: 5px 14px 4px; }
+    .ec-grp-lbl.ec-grp-sep { border-top: 1px solid #f1f5f9; padding-top: 8px; margin-top: 2px; }
+    .ec-grp-lbl.ec-grp-done { color: #15803d; }
     /* Proceeds section divider */
     .ec-sec-sep { border: none; border-top: 1px solid #f1f5f9; margin: 0; }
     .ec-sec-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; padding: 5px 14px 3px; }
@@ -3346,6 +3351,17 @@
       ? h(ship.port_of_loading) + ' → ' + h(ship.port_of_discharge)
       : '—';
 
+    // Compliance progress grouping
+    const chkItems = [
+      { val: c.nxp_approved,              tag: 'NXP', label: 'NXP Approved by CBN' },
+      { val: c.bl_uploaded,               tag: 'BL',  label: 'Bill of Lading Uploaded' },
+      { val: c.cci_obtained,              tag: 'CCI', label: 'CCI Obtained' },
+      { val: c.payment_evidence_uploaded, tag: 'EVD', label: 'Payment Evidence Uploaded' },
+      { val: c.credit_advice_confirmed,   tag: 'ADV', label: 'Credit Advice Confirmed' },
+    ];
+    const chkBlocking = chkItems.filter(i => !i.val);
+    const chkDone     = chkItems.filter(i =>  i.val);
+
     // Checklist helper — chk-miss class for visually obvious missing state
     function eck(val, tag, label) {
       return '<div class="ec-chk' + (val ? '' : ' chk-miss') + '">'
@@ -3371,14 +3387,11 @@
       + '<div class="ec-ph-body">Case timeline will be available in a later phase.</div>'
       + '</div>'
 
-      // Compliance Checklist
+      // Compliance Progress — blocking items first, completed second
       + '<div class="ec-card">'
-      + '<div class="ec-card-h"><span class="ec-card-t">Compliance Checklist</span><span class="ec-card-s">/compliance</span></div>'
-      + eck(c.nxp_approved,              'NXP', 'NXP Approved by CBN')
-      + eck(c.bl_uploaded,               'BL',  'Bill of Lading Uploaded')
-      + eck(c.cci_obtained,              'CCI', 'CCI Obtained')
-      + eck(c.payment_evidence_uploaded, 'EVD', 'Payment Evidence Uploaded')
-      + eck(c.credit_advice_confirmed,   'ADV', 'Credit Advice Confirmed')
+      + '<div class="ec-card-h"><span class="ec-card-t">Compliance Progress</span><span class="ec-chk-prog">' + chkDone.length + ' of ' + chkItems.length + ' complete</span></div>'
+      + (chkBlocking.length ? '<div class="ec-grp-lbl">Blocking completion</div>' + chkBlocking.map(i => eck(i.val, i.tag, i.label)).join('') : '')
+      + (chkDone.length     ? '<div class="ec-grp-lbl ec-grp-done' + (chkBlocking.length ? ' ec-grp-sep' : '') + '">Completed</div>' + chkDone.map(i => eck(i.val, i.tag, i.label)).join('') : '')
       + '</div>'
 
       // Proceeds & Repatriation — primary rows first, secondary below divider
