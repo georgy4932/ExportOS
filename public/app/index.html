@@ -818,7 +818,9 @@
     }
     .nra.compliant .nra-lbl { color: #94a3b8; }
     .nra-text { font-size: 13px; font-weight: 600; color: #7f1d1d; line-height: 1.4; }
+    .nra-detail { font-size: 11px; color: #b45309; margin-top: 2px; }
     .nra.compliant .nra-text { color: #14532d; font-weight: 500; }
+    .nra.compliant .nra-detail { color: #6b7280; }
     .nra-btn {
       display: inline-flex; align-items: center; gap: 5px;
       padding: 7px 16px; font-size: 12px; font-weight: 600;
@@ -3291,6 +3293,62 @@
   // filterExports kept as alias for backward compatibility
   function filterExports(type, btn) { setExFilter(type, btn); }
 
+  // ── Next Required Action ─────────────────────────────────────────────────────
+  // Deterministic rule chain — first matching rule wins.
+  // Rules are ordered: document gaps before proceeds shortfalls.
+  // No AI, no inference, no backend calls. Reads only fields already on the record.
+  function getNextRequiredAction(c) {
+    if (!c.credit_advice_confirmed) return {
+      actionLabel:  'Upload credit advice',
+      actionDetail: 'ADV · Document required',
+      actionType:   'upload',
+      buttonLabel:  'Upload ADV →',
+      severity:     'action',
+    };
+    if (!c.payment_evidence_uploaded) return {
+      actionLabel:  'Upload payment evidence',
+      actionDetail: 'EVD · Document required',
+      actionType:   'upload',
+      buttonLabel:  'Upload EVD →',
+      severity:     'action',
+    };
+    if (!c.bl_uploaded) return {
+      actionLabel:  'Upload bill of lading',
+      actionDetail: 'BL · Document required',
+      actionType:   'upload',
+      buttonLabel:  'Upload BL →',
+      severity:     'action',
+    };
+    if (!c.cci_obtained) return {
+      actionLabel:  'Upload CCI',
+      actionDetail: 'CCI · Document required',
+      actionType:   'upload',
+      buttonLabel:  'Upload CCI →',
+      severity:     'action',
+    };
+    if (!c.nxp_approved) return {
+      actionLabel:  'Resolve NXP approval',
+      actionDetail: 'NXP · Pending CBN approval',
+      actionType:   'resolve',
+      buttonLabel:  'Resolve NXP →',
+      severity:     'action',
+    };
+    if (c.outstanding > 0) return {
+      actionLabel:  'Confirm outstanding proceeds',
+      actionDetail: 'Proceeds · Follow up required',
+      actionType:   'follow-up',
+      buttonLabel:  'Follow up →',
+      severity:     'action',
+    };
+    return {
+      actionLabel:  'No action required',
+      actionDetail: 'All compliance requirements met',
+      actionType:   'none',
+      buttonLabel:  '',
+      severity:     'none',
+    };
+  }
+
   // ── Export Case ─────────────────────────────────────────────────────────────
   function openExportCase(nxpRef) {
     const c = _cases.find(x => x.nxp_reference === nxpRef);
@@ -3348,8 +3406,9 @@
                  : c.repatriation_status === 'COMPLETE' ? 'g'
                  : c.repatriation_status === 'PARTIAL'  ? 'o' : 'gr';
 
-    // NRA state
-    const ncaOk = c.nextAction === 'No action' || c.caseStatus === 'COMPLETE';
+    // NRA — deterministic function replaces static c.nextAction
+    const nra   = getNextRequiredAction(c);
+    const nraOk = nra.severity === 'none';
 
     const route = (ship.port_of_loading && ship.port_of_discharge)
       ? h(ship.port_of_loading) + ' → ' + h(ship.port_of_discharge)
@@ -3381,6 +3440,66 @@
     const _pRec = Number(c.proceeds_received) || 0;
     const _pOut = Number(c.outstanding)       || 0;
     const procBad = (_pReq > 0 || _pRec > 0) && Math.abs(_pOut - (_pReq - _pRec)) > 0.01;
+
+    // ── Header: breadcrumb + 3 bands ─────────────────────────────────────────
+    document.getElementById('ec-tabs').innerHTML = '';
+    document.getElementById('ec-header').innerHTML =
+
+      // Breadcrumb
+      '<div class="ec-breadcrumb">'
+      + '<button onclick="showView(\'view-exports\',\'Exports\',\'view-exports\')">Exports</button>'
+      + '<span class="ec-breadcrumb-sep">›</span>'
+      + '<span>' + h(c.nxp_reference ?? '—') + '</span>'
+      + '</div>'
+
+      // Band 1 — Case Identity
+      + '<div class="ci"><div class="ci-inner">'
+      +   '<div class="ci-title-row">'
+      +     '<div class="ci-name">' + h(caseName) + '</div>'
+      +     '<div class="ci-status ' + st.cls + '">'
+      +       '<div class="ci-status-dot-row">'
+      +         '<div class="ci-dot"></div>'
+      +         '<div class="ci-status-word">' + h(st.word) + '</div>'
+      +       '</div>'
+      +       '<div class="ci-status-sub">' + h(st.sub) + '</div>'
+      +     '</div>'
+      +   '</div>'
+      +   '<div class="ci-ids"><span>' + h(c.nxp_reference ?? '—') + '</span><span>' + h(c.shipment_reference ?? '—') + '</span></div>'
+      +   '<div class="ci-meta">'
+      +     (commodity ? '<span>' + h(commodity) + '</span>' : '')
+      +     (commodity && ship.shipment_value ? '<span class="ci-meta-sep">·</span>' : '')
+      +     (ship.shipment_value ? '<span>USD ' + num(ship.shipment_value) + '</span>' : '')
+      +   '</div>'
+      + '</div></div>'
+
+      // Band 2 — Fact Strip
+      + '<div class="fs-strip">'
+      +   '<div class="fs-col">'
+      +     '<div class="fs-lbl">CBN Deadline</div>'
+      +     '<div class="fs-val' + (dlOverdue ? ' red' : '') + '">' + h(deadlineStr) + '</div>'
+      +     '<div class="fs-sub' + (dlOverdue ? ' red' : ' muted') + '">' + h(dlSub) + '</div>'
+      +   '</div>'
+      +   '<div class="fs-col">'
+      +     '<div class="fs-lbl">Shipment Value</div>'
+      +     '<div class="fs-val">' + (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : '—') + '</div>'
+      +     (ship.shipment_value && c.outstanding > 0 ? '<div class="fs-sub muted">Outstanding: USD ' + num(c.outstanding) + '</div>' : '')
+      +   '</div>'
+      +   '<div class="fs-col">'
+      +     '<div class="fs-lbl">Evidence Pack</div>'
+      +     '<div class="fs-val ' + (packCls[ps] ?? 'fs-pack-not') + '">' + h(packLbl[ps] ?? ps) + '</div>'
+      +     '<div class="fs-sub muted">' + h(packSub) + '</div>'
+      +   '</div>'
+      + '</div>'
+
+      // Band 3 — Next Required Action (deterministic)
+      + '<div class="nra' + (nraOk ? ' compliant' : '') + '">'
+      +   '<div class="nra-left">'
+      +     '<div class="nra-lbl">Next Required Action</div>'
+      +     '<div class="nra-text">' + h(nra.actionLabel) + '</div>'
+      +     '<div class="nra-detail">' + h(nra.actionDetail) + '</div>'
+      +   '</div>'
+      +   (nraOk ? '' : '<button class="nra-btn">' + h(nra.buttonLabel) + '</button>')
+      + '</div>';
 
     // ── Content: lower sections only ─────────────────────────────────────────
     document.getElementById('ec-content').innerHTML =
