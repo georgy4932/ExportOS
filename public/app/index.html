@@ -785,7 +785,11 @@
     .ec-chk-n.ok { color: #15803d; }
     .ec-chk-n.bad { color: #b91c1c; }
 
-    /* ── Export Case: breadcrumb, tab row, NCA pill ── */
+    /* ── Export Case: identity, NCA pill, placeholder sections ── */
+    .ec-case-name {
+      font-size: 18px; font-weight: 700; color: #0f172a;
+      letter-spacing: -0.01em; line-height: 1.2; margin-bottom: 3px;
+    }
     .ec-breadcrumb { font-size: 10.5px; color: #94a3b8; padding: 10px 16px 0; }
     .ec-breadcrumb a, .ec-breadcrumb button {
       background: none; border: none; font-size: 10.5px; color: #64748b;
@@ -793,46 +797,20 @@
     }
     .ec-breadcrumb a:hover, .ec-breadcrumb button:hover { color: #15803d; }
     .ec-breadcrumb-sep { margin: 0 5px; color: #cbd5e1; }
-    .ec-tabs {
-      display: flex;
-      border-top: 1px solid #e2e8f0;
-      background: #fff;
-      padding: 0 16px;
-      overflow-x: auto;
-      flex-shrink: 0;
-      margin: 0 -1px;
+    .ec-status-banner {
+      display: flex; align-items: center; gap: 14px;
+      padding: 13px 16px; margin-bottom: 12px; border-radius: 7px;
+      border: 1px solid #e2e8f0; background: #fff;
     }
-    .ec-tab {
-      padding: 10px 16px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #64748b;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      white-space: nowrap;
-      background: none;
-      border-left: none;
-      border-right: none;
-      border-top: none;
-      border-radius: 0;
-      font-family: inherit;
-      min-height: auto;
-      box-shadow: none;
-    }
-    .ec-tab:hover { color: #334155; background: transparent; }
-    .ec-tab.active { color: #15803d; border-bottom-color: #16a34a; }
-    .ec-tab.disabled { color: #cbd5e1; cursor: default; }
-    .ec-tab.disabled:hover { background: transparent; color: #cbd5e1; }
+    .ec-status-banner.overdue  { background: #fef2f2; border-color: #fecaca; }
+    .ec-status-banner.at-risk  { background: #fff7ed; border-color: #fed7aa; }
+    .ec-status-banner.complete { background: #f0fdf4; border-color: #bbf7d0; }
+    .ec-sb-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #94a3b8; margin-bottom: 2px; }
+    .ec-sb-value { font-size: 13px; font-weight: 700; color: #0f172a; }
     .ec-nca {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      border-radius: 6px;
-      padding: 11px 14px;
-      margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; background: #fef2f2; border: 1px solid #fecaca;
+      border-radius: 6px; padding: 11px 14px; margin-bottom: 12px;
     }
     .ec-nca.ok { background: #f0fdf4; border-color: #bbf7d0; }
     .ec-nca-left { display: flex; flex-direction: column; }
@@ -841,22 +819,17 @@
     .ec-nca-t { font-size: 12.5px; font-weight: 600; color: #7f1d1d; }
     .ec-nca.ok .ec-nca-t { color: #14532d; }
     .ec-nca-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: #fff;
-      border: 1px solid #fca5a5;
-      border-radius: 4px;
-      padding: 5px 12px;
-      font-size: 11.5px;
-      font-weight: 600;
-      color: #b91c1c;
-      cursor: default;
-      white-space: nowrap;
-      flex-shrink: 0;
-      font-family: inherit;
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #fff; border: 1px solid #fca5a5; border-radius: 4px;
+      padding: 5px 12px; font-size: 11.5px; font-weight: 600;
+      color: #b91c1c; cursor: default; white-space: nowrap;
+      flex-shrink: 0; font-family: inherit;
     }
     .ec-nca.ok .ec-nca-pill { border-color: #86efac; color: #15803d; }
+    .ec-ph-body {
+      padding: 16px 14px; font-size: 12px; color: #94a3b8;
+      font-style: italic;
+    }
 
     /* ── Evidence Packs list ── */
     .ep-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -3256,7 +3229,7 @@
   // filterExports kept as alias for backward compatibility
   function filterExports(type, btn) { setExFilter(type, btn); }
 
-  // ── Export Case Summary ───────────────────────────────────────────────────────
+  // ── Export Case ─────────────────────────────────────────────────────────────
   function openExportCase(nxpRef) {
     const c = _cases.find(x => x.nxp_reference === nxpRef);
     if (!c) return;
@@ -3264,6 +3237,13 @@
     const shipMap = {};
     _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
     const ship = shipMap[nxpRef] ?? {};
+
+    // Case name
+    const commodity = ship.commodity || '';
+    const dest      = ship.port_of_discharge || '';
+    const caseName  = commodity && dest ? commodity + ' Export — ' + dest
+                    : commodity ? commodity + ' Export'
+                    : c.nxp_reference ?? '—';
 
     const dLabel = c.daysLeft === null ? '—'
                  : c.daysLeft < 0     ? Math.abs(c.daysLeft) + 'd overdue'
@@ -3280,51 +3260,54 @@
                  : c.repatriation_status === 'COMPLETE' ? 'g'
                  : c.repatriation_status === 'PARTIAL'  ? 'o' : 'gr';
 
-    const deadlineStr = c.repatriation_deadline
-      ? date(c.repatriation_deadline) : '—';
+    const deadlineStr = c.repatriation_deadline ? date(c.repatriation_deadline) : '—';
 
-    // Header
+    // Badges
     let badges = '';
-    if (c.caseStatus === 'OVERDUE')    badges += '<span class="badge r">OVERDUE</span> ';
-    if (c.priority === 'HIGH')         badges += '<span class="badge r">HIGH</span> ';
-    if (c.priority === 'MEDIUM')       badges += '<span class="badge o">MEDIUM</span> ';
-    if (c.caseStatus === 'COMPLETE')   badges += '<span class="badge g">COMPLETE</span> ';
+    if (c.caseStatus === 'OVERDUE')  badges += '<span class="badge r">OVERDUE</span> ';
+    if (c.priority === 'HIGH')       badges += '<span class="badge r">HIGH</span> ';
+    if (c.priority === 'MEDIUM')     badges += '<span class="badge o">MEDIUM</span> ';
+    if (c.caseStatus === 'COMPLETE') badges += '<span class="badge g">COMPLETE</span> ';
     badges += '<span class="badge ' + dCls + '">' + h(dLabel) + '</span> ';
     badges += '<span class="badge ' + (packCls[ps] ?? 'gr') + '">PACK: ' + h(packLabel[ps] ?? ps) + '</span>';
 
-    document.getElementById('ec-tabs').innerHTML =
-      '<div class="ec-tabs">'
-      + '<button class="ec-tab active">Summary</button>'
-      + '<button class="ec-tab disabled" disabled>Shipment</button>'
-      + '<button class="ec-tab disabled" disabled>Documents</button>'
-      + '<button class="ec-tab disabled" disabled>Payments</button>'
-      + '<button class="ec-tab disabled" disabled>Compliance</button>'
-      + '<button class="ec-tab disabled" disabled>Evidence Pack</button>'
-      + '</div>';
+    // Clear tab row — tabs removed in Phase 5A
+    document.getElementById('ec-tabs').innerHTML = '';
 
+    // ── 1. Case Identity ──────────────────────────────────────────────────────
     document.getElementById('ec-header').innerHTML =
       '<div class="ec-breadcrumb"><button onclick="showView(\'view-exports\',\'Exports\',\'view-exports\')">Exports</button>'
       + '<span class="ec-breadcrumb-sep">›</span>'
       + '<span>' + h(c.nxp_reference ?? '—') + '</span></div>'
       + '<div class="ec-ta">'
-      +   '<div class="ec-nxp">' + h(c.nxp_reference ?? '—') + '</div>'
+      +   '<div class="ec-case-name">' + h(caseName) + '</div>'
+      +   '<div class="ec-nxp" style="font-size:13px;margin-top:2px">' + h(c.nxp_reference ?? '—') + '</div>'
       +   '<div class="ec-sref">' + h(c.shipment_reference ?? '—') + '</div>'
       +   '<div class="ec-bdg">' + badges + '</div>'
       + '</div>'
       + '<div class="ec-meta">'
       +   '<div class="ec-mc"><div class="ec-ml">Shipment Value</div><div class="ec-mv">'
-      +     (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : '—') + '</div></div>'
+      +     (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : '—') + '</div></div>'
       +   '<div class="ec-mc"><div class="ec-ml">Proceeds Required</div><div class="ec-mv">'
-      +     (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</div></div>'
+      +     (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</div></div>'
       +   '<div class="ec-mc"><div class="ec-ml">Outstanding</div><div class="ec-mv' + (c.outstanding > 0 ? ' red' : '') + '">'
-      +     (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : '—') + '</div></div>'
+      +     (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : '—') + '</div></div>'
       +   '<div class="ec-mc"><div class="ec-ml">CBN Deadline</div><div class="ec-mv' + (c.daysLeft !== null && c.daysLeft < 0 ? ' red' : '') + '">' + deadlineStr + '</div></div>'
       +   '<div class="ec-mc"><div class="ec-ml">Repatriation</div><div class="ec-mv"><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></div></div>'
       + '</div>';
 
-    // NCA banner
-    const ncaOk = c.nextAction === 'No action' || c.caseStatus === 'COMPLETE';
+    // NCA state
+    const ncaOk    = c.nextAction === 'No action' || c.caseStatus === 'COMPLETE';
     const ncaClass = ncaOk ? 'ec-nca ok' : 'ec-nca';
+
+    // Status banner class
+    const sbCls = c.caseStatus === 'OVERDUE'  ? 'overdue'
+                : c.caseStatus === 'AT_RISK'  ? 'at-risk'
+                : c.caseStatus === 'COMPLETE' ? 'complete' : '';
+
+    const sbStatus = c.caseStatus === 'OVERDUE'  ? 'Overdue'
+                   : c.caseStatus === 'AT_RISK'  ? 'At Risk'
+                   : c.caseStatus === 'COMPLETE' ? 'Compliant' : 'Pending';
 
     // Checklist helper
     function eck(val, tag, label) {
@@ -3336,55 +3319,51 @@
         + '</div>';
     }
 
-    // Route
     const route = (ship.port_of_loading && ship.port_of_discharge)
       ? h(ship.port_of_loading) + ' → ' + h(ship.port_of_discharge)
       : '—';
 
-    // Missing checklist items for pack blocking
     const missing = [
-      !c.nxp_approved             && 'NXP',
-      !c.bl_uploaded              && 'BL',
-      !c.cci_obtained             && 'CCI',
+      !c.nxp_approved              && 'NXP',
+      !c.bl_uploaded               && 'BL',
+      !c.cci_obtained              && 'CCI',
       !c.payment_evidence_uploaded && 'EVD',
-      !c.credit_advice_confirmed  && 'ADV',
+      !c.credit_advice_confirmed   && 'ADV',
     ].filter(Boolean);
 
     document.getElementById('ec-content').innerHTML =
-      '<div class="' + ncaClass + '">'
+
+      // ── 2. Status Banner ──────────────────────────────────────────────────
+      '<div class="ec-status-banner ' + sbCls + '">'
+      + '<div><div class="ec-sb-label">Case Status</div><div class="ec-sb-value">' + h(sbStatus) + '</div></div>'
+      + (c.daysLeft !== null
+          ? '<div><div class="ec-sb-label">Days to Deadline</div><div class="ec-sb-value"><span class="badge ' + dCls + '" style="font-size:11px">' + h(dLabel) + '</span></div></div>'
+          : '')
+      + '<div><div class="ec-sb-label">CBN Deadline</div><div class="ec-sb-value">' + deadlineStr + '</div></div>'
+      + '</div>'
+
+      // ── 3. Next Required Action ───────────────────────────────────────────
+      + '<div class="' + ncaClass + '">'
       + '<div class="ec-nca-left">'
       + '<div class="ec-nca-l">Next Required Action</div>'
       + '<div class="ec-nca-t">' + h(c.nextAction ?? '—') + '</div>'
       + '</div>'
-      + (ncaOk ? '' : '<button class="ec-nca-pill">' + h(c.nextAction) + ' →</button>')
+      + (ncaOk ? '' : '<span class="ec-nca-pill">' + h(c.nextAction) + ' →</span>')
       + '</div>'
 
-      + '<div class="ec-grid">'
-
-      // Shipment card
+      // ── 4. Follow-Up (placeholder) ────────────────────────────────────────
       + '<div class="ec-card">'
-      + '<div class="ec-card-h"><span class="ec-card-t">Shipment</span><span class="ec-card-s">/shipments</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">NXP Reference</span><span class="ec-rv mono">' + h(c.nxp_reference ?? '—') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Shipment Reference</span><span class="ec-rv mono">' + h(c.shipment_reference ?? '—') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Route</span><span class="ec-rv" style="font-size:11px">' + route + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Vessel</span><span class="ec-rv' + (ship.vessel_name ? '' : ' muted') + '">' + (ship.vessel_name ? h(ship.vessel_name) : '—') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Shipment Value</span><span class="ec-rv">' + (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : '<span class="ec-rv muted">—</span>') + '</span></div>'
+      + '<div class="ec-card-h"><span class="ec-card-t">Follow-Up</span><span class="ec-card-s">Phase 7</span></div>'
+      + '<div class="ec-ph-body">Follow-up tracking will be available in a later phase.</div>'
       + '</div>'
 
-      // Proceeds card
+      // ── 5. Timeline (placeholder) ─────────────────────────────────────────
       + '<div class="ec-card">'
-      + '<div class="ec-card-h"><span class="ec-card-t">Proceeds &amp; Repatriation</span><span class="ec-card-s">/compliance</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Proceeds Required</span><span class="ec-rv">' + (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Proceeds Received</span><span class="ec-rv' + (Number(c.proceeds_received) > 0 ? ' green' : '') + '">' + (c.proceeds_received != null ? 'USD ' + num(c.proceeds_received) : '—') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Outstanding</span><span class="ec-rv' + (c.outstanding > 0 ? ' red' : ' green') + '">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : 'Nil') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Deadline</span><span class="ec-rv' + (c.daysLeft !== null && c.daysLeft < 0 ? ' red' : '') + '">' + deadlineStr + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Late Repatriation</span><span class="ec-rv' + (c.was_repatriated_late ? ' red' : '') + '">' + (c.was_repatriated_late ? 'Yes' : 'No') + '</span></div>'
+      + '<div class="ec-card-h"><span class="ec-card-t">Timeline</span><span class="ec-card-s">Phase 6</span></div>'
+      + '<div class="ec-ph-body">Case timeline will be available in a later phase.</div>'
       + '</div>'
 
-      + '</div>' // ec-grid
-
-      // Compliance checklist
+      // ── 6. Compliance Checklist ───────────────────────────────────────────
       + '<div class="ec-card">'
       + '<div class="ec-card-h"><span class="ec-card-t">Compliance Checklist</span><span class="ec-card-s">/compliance</span></div>'
       + eck(c.nxp_approved,              'NXP', 'NXP Approved by CBN')
@@ -3394,13 +3373,25 @@
       + eck(c.credit_advice_confirmed,   'ADV', 'Credit Advice Confirmed')
       + '</div>'
 
-      // Evidence pack
+      // ── 7. Proceeds & Repatriation ────────────────────────────────────────
       + '<div class="ec-card">'
-      + '<div class="ec-card-h"><span class="ec-card-t">Evidence Pack</span><span class="ec-card-s">/evidence-packs</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Pack Status</span><span class="ec-rv"><span class="badge ' + (packCls[ps] ?? 'gr') + '">' + h(packLabel[ps] ?? ps) + '</span></span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Sealed</span><span class="ec-rv' + (c.pack && c.pack.sealed ? ' green' : '') + '">' + (c.pack && c.pack.sealed ? 'Yes' : 'No') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Checklist Complete</span><span class="ec-rv ' + (c.allChecklist ? 'green' : 'red') + '">'
-      +   (c.allChecklist ? 'Yes' : 'No — ' + missing.join(', ') + ' missing') + '</span></div>'
+      + '<div class="ec-card-h"><span class="ec-card-t">Proceeds &amp; Repatriation</span><span class="ec-card-s">/compliance</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Proceeds Required</span><span class="ec-rv">' + (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Proceeds Received</span><span class="ec-rv' + (Number(c.proceeds_received) > 0 ? ' green' : '') + '">' + (c.proceeds_received != null ? 'USD ' + num(c.proceeds_received) : '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Outstanding</span><span class="ec-rv' + (c.outstanding > 0 ? ' red' : ' green') + '">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : 'Nil') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Deadline</span><span class="ec-rv' + (c.daysLeft !== null && c.daysLeft < 0 ? ' red' : '') + '">' + deadlineStr + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Late Repatriation</span><span class="ec-rv' + (c.was_repatriated_late ? ' red' : '') + '">' + (c.was_repatriated_late ? 'Yes' : 'No') + '</span></div>'
+      + '</div>'
+
+      // ── 8. Shipment Details ───────────────────────────────────────────────
+      + '<div class="ec-card">'
+      + '<div class="ec-card-h"><span class="ec-card-t">Shipment Details</span><span class="ec-card-s">/shipments</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">NXP Reference</span><span class="ec-rv mono">' + h(c.nxp_reference ?? '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Shipment Reference</span><span class="ec-rv mono">' + h(c.shipment_reference ?? '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Route</span><span class="ec-rv" style="font-size:11px">' + route + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Vessel</span><span class="ec-rv' + (ship.vessel_name ? '' : ' muted') + '">' + (ship.vessel_name ? h(ship.vessel_name) : '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Shipment Value</span><span class="ec-rv">' + (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : '<span class="ec-rv muted">—</span>') + '</span></div>'
       + '</div>';
 
     showView('view-export-case', h(c.nxp_reference ?? ''), 'view-exports');
