@@ -3386,48 +3386,63 @@
   // ── Timeline ─────────────────────────────────────────────────────────────────
   // Returns ordered timeline events derived only from existing case/shipment data.
   // State is sequential: first incomplete event is 'cur', all subsequent are 'pend'.
+  // Each event carries stable evidenceType metadata so click behavior is decoupled
+  // from display labels — labels can be renamed without breaking evidence navigation.
   function getTimeline(c, ship) {
     const pRec = Number(c.proceeds_received) || 0;
     const pReq = Number(c.proceeds_required) || 0;
     const pOut = Number(c.outstanding)       || 0;
     const raw = [
       {
-        label:  'NXP Approved',
-        detail: c.nxp_reference || '',
-        done:   !!c.nxp_approved,
+        label:         'NXP Approved',
+        detail:        c.nxp_reference || '',
+        evidenceType:  'nxp_approval',
+        evidenceLabel: 'NXP Approval',
+        done:          !!c.nxp_approved,
       },
       {
-        label:  'Shipment Created',
-        detail: (ship && ship.vessel_name) ? ship.vessel_name : '',
-        done:   !!(ship && ship.nxp_reference),
+        label:         'Shipment Created',
+        detail:        (ship && ship.vessel_name) ? ship.vessel_name : '',
+        evidenceType:  'shipment_record',
+        evidenceLabel: 'Shipment Record',
+        done:          !!(ship && ship.nxp_reference),
       },
       {
-        label:  'Bill of Lading Uploaded',
-        detail: c.bl_uploaded ? '' : 'Waiting for BL upload',
-        done:   !!c.bl_uploaded,
+        label:         'Bill of Lading Uploaded',
+        detail:        c.bl_uploaded ? '' : 'Waiting for BL upload',
+        evidenceType:  'bill_of_lading',
+        evidenceLabel: 'Bill of Lading',
+        done:          !!c.bl_uploaded,
       },
       ...(pReq > 0 ? [{
-        label:  'Proceeds Received',
-        detail: pRec > 0 ? 'USD ' + num(pRec) + ' received' : 'USD ' + num(pReq) + ' expected',
-        done:   pRec > 0 && pOut <= 0,
+        label:         'Proceeds Received',
+        detail:        pRec > 0 ? 'USD ' + num(pRec) + ' received' : 'USD ' + num(pReq) + ' expected',
+        evidenceType:  'payment_evidence',
+        evidenceLabel: 'Payment Evidence',
+        done:          pRec > 0 && pOut <= 0,
       }] : []),
       {
-        label:  'Credit Advice Confirmed',
-        detail: c.credit_advice_confirmed ? '' : 'Waiting for ADV upload',
-        done:   !!c.credit_advice_confirmed,
+        label:         'Credit Advice Confirmed',
+        detail:        c.credit_advice_confirmed ? '' : 'Waiting for ADV upload',
+        evidenceType:  'credit_advice',
+        evidenceLabel: 'Credit Advice',
+        done:          !!c.credit_advice_confirmed,
       },
       {
-        label:  'Case Compliant',
-        detail: c.caseStatus === 'COMPLETE' ? 'Fully repatriated'
-               : c.repatriation_deadline    ? 'Deadline: ' + date(c.repatriation_deadline) : '',
-        done:   c.caseStatus === 'COMPLETE',
+        label:         'Case Compliant',
+        detail:        c.caseStatus === 'COMPLETE' ? 'Fully repatriated'
+                      : c.repatriation_deadline    ? 'Deadline: ' + date(c.repatriation_deadline) : '',
+        evidenceType:  'compliance_summary',
+        evidenceLabel: 'Compliance Summary',
+        done:          c.caseStatus === 'COMPLETE',
       },
     ];
     let foundCur = false;
     return raw.map(function(ev) {
-      if (ev.done) return { label: ev.label, detail: ev.detail, state: 'done' };
-      if (!foundCur) { foundCur = true; return { label: ev.label, detail: ev.detail, state: 'cur' }; }
-      return { label: ev.label, detail: ev.detail, state: 'pend' };
+      const base = { label: ev.label, detail: ev.detail, evidenceType: ev.evidenceType, evidenceLabel: ev.evidenceLabel };
+      if (ev.done) return { ...base, state: 'done' };
+      if (!foundCur) { foundCur = true; return { ...base, state: 'cur' }; }
+      return { ...base, state: 'pend' };
     });
   }
 
@@ -3504,18 +3519,24 @@
     t._dismiss = setTimeout(function() { t.classList.remove('show'); }, 2000);
   }
 
-  // Temporary navigation placeholders — replace when evidence record pages exist.
-  const TL_TOAST_MSGS = {
-    'NXP Approved':            'Approval record viewer coming in a future phase.',
-    'Shipment Created':        'Shipment record viewer coming in a future phase.',
-    'Bill of Lading Uploaded': 'Bill of Lading viewer coming in a future phase.',
-    'Proceeds Received':       'Payment evidence viewer coming in a future phase.',
-    'Credit Advice Confirmed': 'Credit Advice viewer coming in a future phase.',
-    'Case Compliant':          'Compliance summary coming in a future phase.',
-  };
+  // Timeline evidence navigation — keyed by stable evidenceType, not display label.
+  // UI labels can be renamed without breaking click behavior.
+  // Placeholder messages will later be replaced by real evidence record navigation.
+  function getEvidencePlaceholderMessage(event) {
+    const msgs = {
+      nxp_approval:       'Approval record viewer coming in a future phase.',
+      shipment_record:    'Shipment record viewer coming in a future phase.',
+      bill_of_lading:     'Bill of Lading viewer coming in a future phase.',
+      payment_evidence:   'Payment evidence viewer coming in a future phase.',
+      credit_advice:      'Credit Advice viewer coming in a future phase.',
+      compliance_summary: 'Compliance summary coming in a future phase.',
+    };
+    return msgs[event.evidenceType] || 'Viewer coming in a future phase.';
+  }
 
-  function ecTlClick(label) {
-    ecViewDoc(TL_TOAST_MSGS[label] || 'Viewer coming in a future phase.');
+  function ecTlClick(evidenceType) {
+    // Uses evidenceType (stable), not label text — labels can change freely
+    ecViewDoc(getEvidencePlaceholderMessage({ evidenceType: evidenceType }));
   }
 
   function ecUploadNav(hasPack) {
@@ -3724,12 +3745,13 @@
             const lblCls = 'ec-tl-label' + (ev.state === 'pend' ? ' tl-pend' : '');
             const note   = ev.state === 'done' ? 'Completed'
                          : ev.state === 'cur'  ? 'Current milestone' : 'Pending';
-            // Temporary navigation placeholder — completed events become clickable until evidence pages exist
+            // Temporary navigation placeholder — completed events become clickable until evidence pages exist.
+            // evidenceType is passed (not label) so renaming labels never breaks click routing.
             const isDone = ev.state === 'done';
             const bodyOpen = isDone
               ? '<div class="ec-tl-body ec-tl-body-link" tabindex="0" role="button"'
-              + ' onclick="ecTlClick(\'' + ev.label + '\')"'
-              + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){ecTlClick(\'' + ev.label + '\');event.preventDefault();}">'
+              + ' onclick="ecTlClick(\'' + ev.evidenceType + '\')"'
+              + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){ecTlClick(\'' + ev.evidenceType + '\');event.preventDefault();}">'
               : '<div class="ec-tl-body">';
             return '<div class="ec-tl-item">'
               + '<div class="ec-tl-spine">'
