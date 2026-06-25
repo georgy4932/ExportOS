@@ -60,7 +60,7 @@ Seven evidence types are recognised by ExportOS. Each type maps to exactly one e
 **Source definitions:**
 
 - **User-uploaded** — the exporter or their agent uploads a file. The evidence item exists as a row from case creation; its lifecycle state begins as `missing` until a file is attached.
-- **System-derived** — the record is created or confirmed by ExportOS from its own data (e.g. the shipment record is derived from the shipments table). No user upload is required; the evidence item transitions to `uploaded` automatically when the source data is present.
+- **System-derived** — the record is created or confirmed by ExportOS from its own data (e.g. the shipment record is derived from the shipments table). No user upload is required; the evidence item transitions to `uploaded` automatically when the source data is present. System-derived types still appear in the evidence model as first-class rows.
 
 The five compliance-required types are the gate for evidence pack readiness. `shipment_record` and `compliance_summary` are informational — they appear in the evidence workspace but do not block pack sealing.
 
@@ -97,20 +97,34 @@ The document was reviewed and found unacceptable (wrong document, unreadable, in
 
 ### Transition rules
 
+Allowed:
+
 - `missing` → `uploaded`: triggered by successful file attachment or source data confirmation.
 - `uploaded` → `under_review`: triggered by reviewer workflow initiation (future).
 - `under_review` → `validated` or `rejected`: triggered by reviewer decision (future).
 - `rejected` → `missing`: automatic on rejection; clears the attached file reference.
-- No backward transitions except via rejection.
-- System-derived types (`shipment_record`, `compliance_summary`) skip `under_review` and transition directly from `uploaded` to `validated` once confirmed.
+- System-derived types skip `under_review` and transition directly from `uploaded` to `validated` once confirmed.
+
+Explicitly disallowed:
+
+- `missing → validated` — an item cannot be validated without first being uploaded. Any transition that skips `uploaded` is rejected.
+- `missing → under_review`, `missing → rejected` — no review or rejection can occur without an uploaded document.
+- Silent validation — `validation_status` cannot advance to `passed` while `lifecycle_state` is `missing`. A backend check must enforce this.
+- Delete as reset — required evidence items must not be hard-deleted to reset state. Rejection (`under_review → rejected → missing`) is the only valid reset path. Soft-delete is out of scope until an audit log is introduced.
 
 ---
 
 ## 5. Validation Status
 
-Validation status is a separate concept from lifecycle state. Lifecycle state answers "where is this document in its journey?" Validation status answers "what do we know about its accuracy and completeness?"
+Validation status is a separate concept from lifecycle state. The two axes answer different questions:
 
-A document can be `uploaded` (lifecycle) but `pending` (validation) — it arrived but has not been checked. It can be `validated` (lifecycle) and `passed` (validation) — fully confirmed. These two axes are independent and should not be collapsed.
+- **Does this evidence exist?** → `lifecycle_state` (`missing` vs `uploaded` and beyond)
+- **Is this evidence valid?** → `validation_status` (`not_validated`, `pending`, `passed`, `failed`)
+- **Is this evidence required?** → `required_for_compliance` (a property of the type, not a state)
+
+These three must not be collapsed. A document can exist (`uploaded`) but be unvalidated (`not_validated`). A document can be required (`required_for_compliance = true`) but absent (`missing`). A document can be present and required but have a failing validation (`failed`). Each combination is meaningful and drives different UI states and workflow actions.
+
+Lifecycle state answers "where is this document in its journey?" Validation status answers "what do we know about its accuracy and completeness?" They are independent axes and should never be inferred from each other.
 
 | Status | Meaning |
 |---|---|
@@ -124,7 +138,35 @@ The frontend currently shows `validationStatus: 'Not validated'` as a hardcoded 
 
 ---
 
-## 6. Data Model Draft
+## 6. Evidence Invariants
+
+These invariants must hold at all times and must be enforced in application logic. They are not optional optimisations — violating any of them produces an inconsistent evidence record that cannot be trusted for compliance reporting.
+
+1. **One current record per `(export_case_id, evidence_type)`.** The `evidence_items` table has a unique constraint on `(export_case_id, evidence_type)`. There is exactly one active evidence item per type per case at any time. History is preserved in a future audit/history table, not by adding rows to `evidence_items`.
+
+2. **`evidence_type` is immutable after creation.** The type is set at row creation and never updated. If a user uploads the wrong document type, the correction is a replacement on the correct row, not a reclassification of an existing row.
+
+3. **`validation_status` cannot be `passed` when `lifecycle_state` is `missing`.** An item that does not exist cannot be valid. This combination must be rejected at the application layer before any write.
+
+4. **Required evidence must not be hard-deleted.** Rows with `required_for_compliance = true` are permanent for the life of the case. The reset path is rejection → `missing`, not deletion. If a case is fully cancelled (out of scope for this RFC), soft-deletion rules apply and are defined separately.
+
+5. **Replacing uploaded evidence preserves prior history.** Overwriting a file reference updates the existing row but does not erase it silently. The previous state, timestamps, and metadata must be captured in a future `evidence_item_history` table before the replacement is written. Until that table exists, the `updated_at` timestamp and `metadata_json` field serve as a minimal record.
+
+6. **Lifecycle state and validation status are separate axes.** No code should infer one from the other. `lifecycle_state = 'validated'` does not imply `validation_status = 'passed'` (a reviewer may validate the lifecycle without the document content passing automated checks). `validation_status = 'failed'` does not imply `lifecycle_state = 'rejected'` (a human decision is required).
+
+7. **System-derived evidence appears in the evidence model as rows.** `shipment_record` and `compliance_summary` are not special-cased in the API or frontend. They are evidence items with `source_system = 'system'` and `validation_status = 'not_applicable'`. The evidence workspace renders them identically to user-uploaded types, with the source surfaced as a display property.
+
+---
+
+## 7. Data Model Draft
+
+### Identity decision
+
+Database relationships use `export_case_id` (a surrogate UUID) as the foreign key. The `nxp_reference` string is denormalised onto the row for API exposure and display, but all joins and constraints use the internal ID.
+
+Rationale: `nxp_reference` is issued by the CBN and its format, stability, and correction behaviour are outside ExportOS's control. Using it as a join key risks cascading updates if a reference is corrected or reissued. The public API continues to accept and expose `nxp_reference` in URL paths and response bodies; the backend resolves it to `export_case_id` at the controller layer.
+
+This decision is not open to re-evaluation during implementation. See §10 for the gate on this.
 
 ### Table: `evidence_items`
 
@@ -132,28 +174,30 @@ One row per evidence type per export case. Rows are created at case creation tim
 
 ```sql
 CREATE TABLE evidence_items (
-  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  nxp_reference         TEXT NOT NULL,
-  evidence_type         TEXT NOT NULL,
-  evidence_code         TEXT NOT NULL,
-  lifecycle_state       TEXT NOT NULL DEFAULT 'missing',
-  validation_status     TEXT NOT NULL DEFAULT 'not_validated',
+  id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  export_case_id          UUID NOT NULL REFERENCES export_cases(id),
+  nxp_reference           TEXT NOT NULL,  -- denormalised; do not join on this field
+  evidence_type           TEXT NOT NULL,
+  evidence_code           TEXT NOT NULL,
+  lifecycle_state         TEXT NOT NULL DEFAULT 'missing',
+  validation_status       TEXT NOT NULL DEFAULT 'not_validated',
   required_for_compliance BOOLEAN NOT NULL DEFAULT TRUE,
-  uploaded_at           TIMESTAMPTZ,
-  last_checked_at       TIMESTAMPTZ,
-  source_system         TEXT NOT NULL DEFAULT 'user',
-  metadata_json         JSONB,
-  created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+  uploaded_at             TIMESTAMPTZ,
+  last_checked_at         TIMESTAMPTZ,
+  source_system           TEXT NOT NULL DEFAULT 'user',
+  metadata_json           JSONB,
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-  UNIQUE (nxp_reference, evidence_type)
+  UNIQUE (export_case_id, evidence_type)
 );
 ```
 
 **Field notes:**
 
-- `nxp_reference` — foreign key to the export case, using the CBN reference as the join key. See Open Questions §9 for risks.
-- `evidence_type` — one of the seven keys defined in §3.
+- `export_case_id` — foreign key to the export cases table. Primary relationship key; all joins use this.
+- `nxp_reference` — denormalised copy of the CBN reference for API responses and display. Kept in sync with the case record; never used as a join key inside the database.
+- `evidence_type` — one of the seven keys defined in §3. Immutable after creation (see §6, invariant 2).
 - `evidence_code` — denormalised short code (NXP, BL, CCI, etc.) for display without lookup.
 - `lifecycle_state` — constrained to values in §4: `missing`, `uploaded`, `under_review`, `validated`, `rejected`.
 - `validation_status` — constrained to values in §5: `not_validated`, `pending`, `passed`, `failed`, `not_applicable`.
@@ -165,19 +209,20 @@ CREATE TABLE evidence_items (
 
 **Constraints to enforce in application logic (not DDL):**
 
-- `lifecycle_state` transitions follow the rules in §4.
+- `lifecycle_state` transitions follow the allowed rules in §4; disallowed transitions (including `missing → validated`) are rejected before write.
+- `validation_status` cannot be `passed` when `lifecycle_state` is `missing` (see §6, invariant 3).
 - `validation_status` is `not_applicable` for all system-derived types.
 - `uploaded_at` must be non-null when `lifecycle_state` is `uploaded`, `under_review`, or `validated`.
 
 ---
 
-## 7. API Draft
+## 8. API Draft
 
-Three endpoints cover the minimum the frontend needs. No upload endpoint is included in this RFC.
+Three endpoints cover the minimum the frontend needs. No upload endpoint is included in this RFC. GET endpoints must be implemented and validated before PATCH behaviour is finalised.
 
 ### `GET /export-cases/{nxp_reference}/evidence`
 
-Returns all evidence items for a case in a single response.
+Returns all evidence items for a case in a single response. The `{nxp_reference}` path parameter is resolved to `export_case_id` at the controller layer.
 
 ```json
 {
@@ -230,7 +275,7 @@ Returns the evidence item for a single type. Used by the Evidence Item detail vi
 
 ### `PATCH /export-cases/{nxp_reference}/evidence/{evidence_type}`
 
-Updates the lifecycle state or validation status of an evidence item. The request body contains only the fields being changed. Transitions are validated server-side against the rules in §4 and §5.
+Updates the lifecycle state or validation status of an evidence item. The request body contains only the fields being changed. Transitions are validated server-side against the rules in §4 and §5, including the disallowed transitions defined in §4 and the invariants in §6.
 
 Request:
 ```json
@@ -241,11 +286,11 @@ Request:
 
 Response: the updated evidence item (same shape as the GET single response).
 
-Invalid transitions return `422 Unprocessable Entity` with an error body describing the rejected transition.
+Invalid transitions return `422 Unprocessable Entity` with an error body naming the rejected transition and the reason. PATCH behaviour must not be finalised or implemented until the GET endpoints have been validated against a live backend (see §10).
 
 ---
 
-## 8. Frontend Contract
+## 9. Frontend Contract
 
 The current frontend helper in `public/app/index.html`:
 
@@ -273,47 +318,39 @@ This function is the seam the backend plugs into. No other part of the frontend 
 
 **Migration path:**
 
-1. The compliance API response currently includes boolean fields (`nxp_approved`, `bl_uploaded`, etc.) alongside case data. The backend should continue to include these during the transition period so existing screens do not break.
+1. **Boolean fields remain during migration.** The compliance API response continues to include `nxp_approved`, `bl_uploaded`, etc. alongside case data for the duration of the transition. No frontend screen should break during the cutover.
 
-2. When the `GET /export-cases/{nxp_reference}/evidence` endpoint is live, the frontend fetches evidence items per case on case open and caches them in a `_evidenceItems` map keyed by `nxp_reference`.
+2. **Backend records become source of truth when present.** When `GET /export-cases/{nxp_reference}/evidence` is live, the frontend fetches evidence items per case on case open and caches them in a `_evidenceItems` map keyed by `nxp_reference`.
 
-3. `getEvidenceState(caseRecord, evidenceType, shipRecord)` is updated to look up `_evidenceItems[caseRecord.nxp_reference]?.[evidenceType]` first. If a backend record is found, its `lifecycle_state` and `validation_status` are returned directly. If not found (during the transition), the existing boolean fallback remains.
+3. **`getEvidenceState()` uses backend records first, boolean fallback second.** The function is updated to look up `_evidenceItems[caseRecord.nxp_reference]?.[evidenceType]` first. If a backend record is found, its `lifecycle_state` and `validation_status` are returned directly. If no backend record is found (case not yet migrated), the existing boolean fallback applies. All callers pick up backend data automatically — no screen-level changes are required.
 
-4. Once all clients consume the evidence endpoint, the boolean fields are deprecated from the compliance response and eventually removed.
-
-This approach means no frontend screen changes are required at migration time — only `getEvidenceState()` itself changes, and all callers pick up the backend data automatically.
+4. **The fallback is temporary and must be removed.** Once all cases have evidence rows and all clients consume the evidence endpoint, the boolean switch inside `getEvidenceState()` is deleted and the boolean fields are removed from the compliance API response. This removal should be treated as a migration milestone, not left as permanent dead code.
 
 ---
 
-## 9. Risks and Open Questions
+## 10. Backend Implementation Gate
 
-**1. Is `nxp_reference` stable enough as a foreign key?**  
-The NXP reference is issued by the CBN and used as the primary identifier throughout ExportOS. It appears in compliance records, shipment records, and evidence items. However, it is a string assigned by an external authority: format changes, re-issuance, or correction procedures could make it unstable as a join key. Risk is low given the current scale, but the data model should eventually introduce a surrogate `export_case_id` UUID if the system grows. For this RFC, `nxp_reference` is acceptable.
+Backend implementation must not begin until the following decisions are accepted in writing (approval of this RFC constitutes acceptance):
 
-**2. Should evidence records be generated at case creation?**  
-Yes. Evidence items for all seven types should be created as rows with `lifecycle_state = 'missing'` when an export case is first registered. This makes the "what is outstanding" query straightforward (filter by `lifecycle_state = 'missing' AND required_for_compliance = true`) and avoids the need to infer missing evidence from absent rows. Absent rows are ambiguous: does a missing row mean the evidence doesn't exist, or that it was never initialised?
+- **Identity decision accepted** — `export_case_id` UUID is the database relationship key; `nxp_reference` is denormalised for API exposure only. This is resolved and not open during implementation.
+- **Invariants accepted** — all seven invariants in §6 are enforced in application logic from day one, not added later.
+- **Lifecycle transitions accepted** — the allowed and disallowed transitions in §4 are implemented as a state machine in the backend. No transition outside the allowed set reaches the database.
+- **GET endpoints agreed before PATCH** — `GET /export-cases/{nxp_reference}/evidence` and `GET /export-cases/{nxp_reference}/evidence/{evidence_type}` are implemented, deployed, and validated against real data before PATCH behaviour is finalised or shipped.
 
-**3. How should system-derived evidence be represented?**  
-`shipment_record` and `compliance_summary` have `source_system = 'system'` and `validation_status = 'not_applicable'`. Their `lifecycle_state` should be set to `uploaded` automatically when the underlying source data exists (i.e. a shipment row is linked to the case). A background job or trigger handles this transition; no user action is required. These types should never appear in an upload prompt.
-
-**4. How does validation differ from user upload?**  
-Upload is a user action: the user provides a file. Validation is a system or reviewer action: a check confirms the file's content is correct. A file can be uploaded but invalid (wrong document type, unreadable scan, mismatched reference numbers). Treating these as a single boolean — as the current system does — collapses two independent concerns. Keeping them separate allows the system to prompt the user for a re-upload without discarding the validation history.
-
-**5. Should missing required evidence exist as rows or be inferred?**  
-As rows (see question 2). Inferring missing evidence from the type list at read time is simpler to implement initially but produces inconsistent query behaviour: some evidence queries hit the database, others are computed in application code. A row per type per case keeps the query surface uniform and allows attaching timestamps, metadata, and history to the "missing" state itself.
+If any of the above is not accepted, implementation stops and the RFC is revised before proceeding.
 
 ---
 
-## 10. Recommendation
+## 11. Recommendation
 
 The smallest viable next step after RFC approval is:
 
-1. **Create the `evidence_items` table** as specified in §6, with `nxp_reference`, `evidence_type`, `lifecycle_state`, `validation_status`, and the remaining fields. Apply as a migration.
+1. **Create the `evidence_items` table** as specified in §7, with `export_case_id` as the FK, `nxp_reference` denormalised, and the UNIQUE constraint on `(export_case_id, evidence_type)`. Apply as a migration.
 
 2. **Seed evidence rows at case creation.** When a compliance record is created, insert one row per evidence type (all seven) with `lifecycle_state = 'missing'`. For system-derived types, immediately check whether the source data exists and advance to `uploaded` if so.
 
-3. **Implement `GET /export-cases/{nxp_reference}/evidence`** only. This is the one endpoint the frontend needs to begin consuming real evidence state. The PATCH and single-item GET endpoints can follow once the list endpoint is validated.
+3. **Implement `GET /export-cases/{nxp_reference}/evidence`** only. This is the one endpoint the frontend needs to begin consuming real evidence state. The PATCH and single-item GET endpoints follow once the list endpoint is validated (see §10).
 
-4. **Update `getEvidenceState()` to read from the evidence endpoint** with the boolean fallback retained during the transition period.
+4. **Update `getEvidenceState()` to read from the evidence endpoint** with the boolean fallback retained during the transition period. Schedule a milestone to remove the fallback once migration is complete.
 
 This sequence delivers a working evidence domain without implementing upload, review, or validation logic. It replaces the boolean fields as the source of truth for evidence state and establishes the API contract all future evidence features build on.
