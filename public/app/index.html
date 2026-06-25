@@ -3127,6 +3127,7 @@
   let _cases = [];
   let _allShipments = [];
   let _currentNxpRef = null; // tracks the active case for evidence navigation
+  let _evidenceCache = {}; // { [nxpRef]: { [evidenceType]: EvidenceItemRow } } — populated on case open
 
   // ── View switching ────────────────────────────────────────────────────────────
   const VIEW_TITLES = {
@@ -3542,6 +3543,35 @@
   // callers that already use this helper will pick them up automatically.
   function getEvidenceState(caseRecord, evidenceType, shipRecord) {
     shipRecord = shipRecord || {};
+
+    // ── Backend evidence record (Phase 1B) ──────────────────────────────────
+    // Check _evidenceCache first; populated by fetchEvidenceItems() on case open.
+    // Falls back to boolean compliance fields when cache is empty or fetch failed.
+    var nxpRef = caseRecord && caseRecord.nxp_reference;
+    var cached = nxpRef && _evidenceCache[nxpRef] && _evidenceCache[nxpRef][evidenceType];
+    if (cached) {
+      var lcState   = cached.lifecycle_state || 'missing';
+      var isPresent = lcState !== 'missing';
+      var lcLabel   = isPresent ? lcState.charAt(0).toUpperCase() + lcState.slice(1).replace(/_/g, ' ') : 'Missing';
+      var valRaw    = cached.validation_status || 'not_validated';
+      var valLabel  = valRaw.charAt(0).toUpperCase() + valRaw.slice(1).replace(/_/g, ' ');
+      var lastChk   = cached.last_checked_at ? date(cached.last_checked_at)
+                    : cached.uploaded_at     ? date(cached.uploaded_at)
+                    : 'Unavailable';
+      return {
+        state:            lcState,
+        label:            lcLabel,
+        badgeClass:       isPresent ? 'on-file' : 'missing',
+        required:         cached.required_for_compliance !== false,
+        validationStatus: valLabel,
+        lastChecked:      lastChk,
+        sourceSystem:     cached.source_system  || 'user',
+        uploadedAt:       cached.uploaded_at    || null,
+        metadataJson:     cached.metadata_json  || null,
+      };
+    }
+
+    // ── Fallback: derive from boolean compliance record fields ───────────────
     var present;
     switch (evidenceType) {
       case 'nxp_approval':       present = !!caseRecord.nxp_approved;               break;
@@ -3563,6 +3593,7 @@
       required:         true,
       validationStatus: 'Not validated',
       lastChecked:      'Unavailable',
+      uploadedAt:       null,
     };
   }
 
@@ -3578,6 +3609,22 @@
   // Returns the shipment record matching nxpRef, or {} if not found.
   function getShipForCase(nxpRef) {
     return _allShipments.find(function(s) { return s.nxp_reference === nxpRef; }) || {};
+  }
+
+  // Fetches all 7 evidence items for the given NXP reference and stores them in
+  // _evidenceCache keyed by evidence_type. Silently ignored on failure so the
+  // boolean fallback in getEvidenceState() remains active.
+  function fetchEvidenceItems(nxpRef) {
+    return apiFetch('/export-cases/' + encodeURIComponent(nxpRef) + '/evidence')
+      .then(function(body) {
+        var items = (body && Array.isArray(body.data)) ? body.data : [];
+        var byType = {};
+        items.forEach(function(item) { if (item.evidence_type) byType[item.evidence_type] = item; });
+        _evidenceCache[nxpRef] = byType;
+      })
+      .catch(function(err) {
+        console.warn('[evidence] fetch failed for ' + nxpRef + ':', err && err.message || String(err));
+      });
   }
 
   // Derives the human-readable case display name from available shipment fields.
@@ -3664,7 +3711,7 @@
       +   '<div class="ec-row"><span class="ec-rl">NXP Reference</span><span class="ec-rv mono">' + h(c.nxp_reference || '—') + '</span></div>'
       +   '<div class="ec-row"><span class="ec-rl">Shipment Reference</span><span class="ec-rv mono">' + h(c.shipment_reference || '—') + '</span></div>'
       +   '<div class="ec-row"><span class="ec-rl">Source System</span><span class="ec-rv">ExportOS</span></div>'
-      +   '<div class="ec-row"><span class="ec-rl">Uploaded Date</span><span class="ec-rv muted">Unavailable</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Uploaded Date</span><span class="ec-rv muted">' + (evState.uploadedAt ? date(evState.uploadedAt) : 'Unavailable') + '</span></div>'
       +   '<div class="ec-row"><span class="ec-rl">Validation Status</span><span class="ec-rv muted">' + h(evState.validationStatus) + '</span></div>'
       + '</div>'
       // Evidence Metadata card — compliance context and validation state
@@ -3685,11 +3732,11 @@
       + '<div class="ec-card">'
       +   '<div class="ec-card-h"><span class="ec-card-t">Evidence History</span></div>'
       +   '<div class="ec-row"><span class="ec-rl">Created</span><span class="ec-rv">'
-      +     (present ? '<span class="ev-st-badge recorded">Recorded</span><span class="ev-row-date">Date unavailable</span>'
+      +     (present ? '<span class="ev-st-badge recorded">Recorded</span><span class="ev-row-date">' + (evState.uploadedAt ? date(evState.uploadedAt) : 'Date unavailable') + '</span>'
                      : '<span class="ev-st-badge pending">Pending</span>')
       +   '</span></div>'
       +   '<div class="ec-row"><span class="ec-rl">Uploaded</span><span class="ec-rv">'
-      +     (present ? '<span class="ev-st-badge recorded">Recorded</span><span class="ev-row-date">Date unavailable</span>'
+      +     (present ? '<span class="ev-st-badge recorded">Recorded</span><span class="ev-row-date">' + (evState.uploadedAt ? date(evState.uploadedAt) : 'Date unavailable') + '</span>'
                      : '<span class="ev-st-badge pending">Pending</span>')
       +   '</span></div>'
       +   '<div class="ec-row"><span class="ec-rl">Replaced</span><span class="ec-rv"><span class="ev-st-badge na">N/A</span></span></div>'
@@ -3730,8 +3777,9 @@
   }
 
   // ── Evidence Pack Workspace ──────────────────────────────────────────────────
-  function openEvidencePackWorkspace(nxpRef) {
+  async function openEvidencePackWorkspace(nxpRef) {
     _currentNxpRef = nxpRef;
+    await fetchEvidenceItems(nxpRef);
     const c = _cases.find(x => x.nxp_reference === nxpRef);
     if (!c) return;
     const ship     = getShipForCase(nxpRef);
@@ -3791,8 +3839,9 @@
   }
 
   // ── Export Case ─────────────────────────────────────────────────────────────
-  function openExportCase(nxpRef) {
+  async function openExportCase(nxpRef) {
     _currentNxpRef = nxpRef;
+    await fetchEvidenceItems(nxpRef);
     const c = _cases.find(x => x.nxp_reference === nxpRef);
     if (!c) return;
 
