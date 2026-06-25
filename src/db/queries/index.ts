@@ -10,7 +10,8 @@ export { createPaymentReceiptWithAudit, getPaymentReceipt, listPaymentReceipts }
 export { createPaymentAllocationWithAudit, getPaymentAllocation, listPaymentAllocations } from './payment-allocations'
 export { createPaymentEvidenceWithAudit, getPaymentEvidence, listPaymentEvidence, supersedePaymentEvidence } from './payment-evidence'
 export { createInvoiceWithAudit, getInvoice, listInvoices } from './invoices'
-export { listEvidenceItems, getEvidenceItem } from './evidence-items'
+export { listEvidenceItems, getEvidenceItem, markEvidenceUploaded } from './evidence-items'
+export type { MarkUploadedResult, MarkUploadedError } from './evidence-items'
 
 export type { ListContractSummariesOptions, CreateContractInput } from './contracts'
 export type { ListShipmentReconciliationOptions, CreateShipmentInput } from './shipments'
