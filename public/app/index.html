@@ -2295,8 +2295,7 @@
           ? Math.ceil((new Date(c.repatriation_deadline) - now) / 86400000)
           : null;
         const outstanding = Number(c.proceeds_outstanding) || 0;
-        const allChecklist = c.nxp_approved && c.cci_obtained && c.bl_uploaded
-          && c.payment_evidence_uploaded && c.credit_advice_confirmed;
+        const allChecklist = isEvidenceSetComplete(c);
 
         // Case status (ring / deadlines)
         let caseStatus;
@@ -3591,6 +3590,15 @@
       validationStatus: 'Not validated',
       lastChecked:      'Unavailable',
     };
+  }
+
+  // Returns true only when every required evidence type is uploaded, using the shared model.
+  // All completeness checks must route through here — never use raw boolean field literals.
+  function isEvidenceSetComplete(caseRecord, shipRecord) {
+    var required = ['nxp_approval', 'bill_of_lading', 'cci_document', 'payment_evidence', 'credit_advice'];
+    return required.every(function(t) {
+      return getEvidenceState(caseRecord, t, shipRecord).state === 'uploaded';
+    });
   }
 
   // ── Evidence navigation ───────────────────────────────────────────────────────
