@@ -862,6 +862,10 @@
     .ec-chk-btn.upload:hover { background: #fff1f1; }
     .ec-chk-btn.view { color: #475569; border-color: #e2e8f0; background: #f8fafc; }
     .ec-chk-btn.view:hover { background: #f1f5f9; }
+    .ec-chk-btn:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+    /* Temporary doc-viewer toast — replaced when document workflows ship */
+    #doc-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #f8fafc; font-size: 12px; font-weight: 500; padding: 9px 18px; border-radius: 6px; box-shadow: 0 4px 16px rgba(15,23,42,0.22); z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.18s; white-space: nowrap; }
+    #doc-toast.show { opacity: 1; }
     /* Compliance Progress grouping */
     .ec-chk-prog { font-size: 11px; color: #64748b; font-weight: 500; }
     .ec-grp-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; padding: 5px 14px 4px; }
@@ -3479,6 +3483,33 @@
     };
   }
 
+  // ── Compliance Progress button handlers ──────────────────────────────────────
+  // Temporary interactions — replace when document upload/preview workflows ship.
+
+  function ecViewDoc() {
+    // Show a transient toast until a real document viewer is implemented
+    let t = document.getElementById('doc-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'doc-toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = 'Document viewer coming in a future phase.';
+    clearTimeout(t._dismiss);
+    t.classList.add('show');
+    t._dismiss = setTimeout(function() { t.classList.remove('show'); }, 2000);
+  }
+
+  function ecUploadNav(hasPack) {
+    // Navigate to Evidence Packs if one exists; otherwise scroll to the Next Required Action band
+    if (hasPack) {
+      showView('view-packs');
+    } else {
+      const nra = document.querySelector('.nra');
+      if (nra) nra.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
   // ── Export Case ─────────────────────────────────────────────────────────────
   function openExportCase(nxpRef) {
     const c = _cases.find(x => x.nxp_reference === nxpRef);
@@ -3557,10 +3588,11 @@
 
     // Checklist helper — chk-miss class for visually obvious missing state
     function eck(val, tag, label) {
-      // Placeholder buttons — to be wired to document upload/preview flows in a later phase
+      // Temporary interactions — replace with real document flows when upload/preview ships
+      const hasPack = !!(c.pack);
       const btn = val
-        ? '<button class="ec-chk-btn view" type="button">View →</button>'
-        : '<button class="ec-chk-btn upload" type="button">Upload →</button>';
+        ? '<button class="ec-chk-btn view"   type="button" onclick="ecViewDoc()" aria-label="View document for ' + h(label) + '">View →</button>'
+        : '<button class="ec-chk-btn upload" type="button" onclick="ecUploadNav(' + hasPack + ')" aria-label="Upload document for ' + h(label) + '">Upload →</button>';
       return '<div class="ec-chk' + (val ? '' : ' chk-miss') + '">'
         + '<span class="ec-chk-i' + (val ? '' : ' x') + '">' + (val ? '✓' : '✗') + '</span>'
         + '<span class="ec-chk-l">' + h(label) + '</span>'
