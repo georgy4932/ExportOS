@@ -856,6 +856,12 @@
     .ec-chk-n { font-size: 10.5px; flex-shrink: 0; }
     .ec-chk-n.ok { color: #15803d; }
     .ec-chk-n.bad { color: #b91c1c; font-weight: 600; }
+    /* Compliance row action buttons — visual placeholders for future document flows */
+    .ec-chk-btn { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 3px; border: 1px solid; cursor: default; white-space: nowrap; font-family: inherit; line-height: 1; flex-shrink: 0; }
+    .ec-chk-btn.upload { color: #b91c1c; border-color: #fca5a5; background: #fff; }
+    .ec-chk-btn.upload:hover { background: #fff1f1; }
+    .ec-chk-btn.view { color: #475569; border-color: #e2e8f0; background: #f8fafc; }
+    .ec-chk-btn.view:hover { background: #f1f5f9; }
     /* Compliance Progress grouping */
     .ec-chk-prog { font-size: 11px; color: #64748b; font-weight: 500; }
     .ec-grp-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; padding: 5px 14px 4px; }
@@ -3551,11 +3557,16 @@
 
     // Checklist helper — chk-miss class for visually obvious missing state
     function eck(val, tag, label) {
+      // Placeholder buttons — to be wired to document upload/preview flows in a later phase
+      const btn = val
+        ? '<button class="ec-chk-btn view" type="button">View →</button>'
+        : '<button class="ec-chk-btn upload" type="button">Upload →</button>';
       return '<div class="ec-chk' + (val ? '' : ' chk-miss') + '">'
         + '<span class="ec-chk-i' + (val ? '' : ' x') + '">' + (val ? '✓' : '✗') + '</span>'
         + '<span class="ec-chk-l">' + h(label) + '</span>'
         + '<span class="ec-chk-t">' + h(tag) + '</span>'
         + '<span class="ec-chk-n ' + (val ? 'ok' : 'bad') + '">' + (val ? 'On file' : 'Missing') + '</span>'
+        + btn
         + '</div>';
     }
 
