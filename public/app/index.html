@@ -874,6 +874,12 @@
     .ep-ws-rdy.sealed    { color: #15803d; border-color: #86efac; background: #f0fdf4; }
     .ep-ws-rdy.ready     { color: #b45309; border-color: #fcd34d; background: #fffbeb; }
     .ep-ws-rdy.not-ready { color: #b91c1c; border-color: #fca5a5; background: #fff1f1; }
+    /* Evidence Item view — reusable for all evidence types */
+    .ev-item-status { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 10px; border-radius: 12px; border: 1px solid; }
+    .ev-item-status.on-file { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    .ev-item-status.missing { color: #b91c1c; border-color: #fca5a5; background: #fff1f1; }
+    .ev-item-code { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 2px; }
+    .ev-item-ph { margin: 0 14px 14px; padding: 32px 20px; text-align: center; font-size: 12px; color: #94a3b8; background: #f8fafc; border: 1px dashed #e2e8f0; border-radius: 6px; }
     /* Temporary doc-viewer toast — replaced when document workflows ship */
     #doc-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #f8fafc; font-size: 12px; font-weight: 500; padding: 9px 18px; border-radius: 6px; box-shadow: 0 4px 16px rgba(15,23,42,0.22); z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.18s; white-space: nowrap; }
     #doc-toast.show { opacity: 1; }
@@ -1291,6 +1297,13 @@
         <!-- VIEW: Evidence Pack Workspace ──────────────────────────────── -->
         <div id="view-ep-workspace" class="app-view">
           <div id="ep-ws-content"></div>
+        </div>
+
+        <!-- VIEW: Evidence Item ─────────────────────────────────────────── -->
+        <!-- Reusable destination for all evidence/document types.           -->
+        <!-- Real document rendering and metadata replace placeholder later. -->
+        <div id="view-ev-item" class="app-view">
+          <div id="ev-item-content"></div>
         </div>
 
       </div><!-- /#app-content -->
@@ -3117,6 +3130,7 @@
   // ── RFC-011: Global data (populated by loadOverview) ─────────────────────────
   let _cases = [];
   let _allShipments = [];
+  let _currentNxpRef = null; // tracks the active case for evidence navigation
 
   // ── View switching ────────────────────────────────────────────────────────────
   const VIEW_TITLES = {
@@ -3133,6 +3147,7 @@
     'view-compliance':   'Compliance Records',
     'view-packs':        'Evidence Packs',
     'view-ep-workspace': 'Evidence Pack',
+    'view-ev-item':      '',
     'view-settings':     'Settings',
   };
 
@@ -3539,10 +3554,15 @@
   // ── Evidence navigation ───────────────────────────────────────────────────────
   // openEvidence() is the single public entry point for opening any evidence record.
   // UI components should never contain evidence-routing logic — always call openEvidence().
-  // Placeholder toasts will later become real navigation to evidence record pages.
+  // Routes to the Evidence Item view when a case is active; falls back to a toast otherwise.
   function openEvidence(type, options) {
     options = options || {};
-    // Placeholder messages — replaced by real evidence record navigation when pages ship
+    // If a case is active, navigate to the Evidence Item detail view
+    if (_currentNxpRef) {
+      openEvidenceItem(type, _currentNxpRef);
+      return;
+    }
+    // Fallback placeholder toast when no case context is available
     const msgs = {
       nxp_approval:       'Approval record viewer coming in a future phase.',
       shipment_record:    'Shipment record viewer coming in a future phase.',
@@ -3553,6 +3573,82 @@
       cci_document:       'CCI document viewer coming in a future phase.',
     };
     ecViewDoc(msgs[type] || 'Document viewer coming in a future phase.');
+  }
+
+  // ── Evidence Item ────────────────────────────────────────────────────────────
+  // Reusable detail view for any evidence/document type.
+  // Real document rendering and metadata will replace the placeholder panel later.
+  function openEvidenceItem(type, nxpRef) {
+    const c = _cases.find(x => x.nxp_reference === nxpRef);
+    if (!c) return;
+    const shipMap = {};
+    _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
+    const ship = shipMap[nxpRef] ?? {};
+
+    const commodity = ship.commodity || '';
+    const dest      = ship.port_of_discharge || '';
+    const caseName  = commodity && dest ? commodity + ' Export — ' + dest
+                    : commodity         ? commodity + ' Export'
+                    : c.nxp_reference ?? '—';
+
+    // Evidence type metadata — title and short code for each supported type
+    const evMeta = {
+      nxp_approval:       { title: 'NXP Approval',      code: 'NXP' },
+      bill_of_lading:     { title: 'Bill of Lading',     code: 'BL'  },
+      cci_document:       { title: 'CCI Document',       code: 'CCI' },
+      payment_evidence:   { title: 'Payment Evidence',   code: 'EVD' },
+      credit_advice:      { title: 'Credit Advice',      code: 'ADV' },
+      shipment_record:    { title: 'Shipment Record',    code: 'SHP' },
+      compliance_summary: { title: 'Compliance Summary', code: 'CMP' },
+    };
+    const meta = evMeta[type] || { title: 'Document', code: '—' };
+
+    // Derive on-file status from case fields
+    const onFile = {
+      nxp_approval:       !!c.nxp_approved,
+      bill_of_lading:     !!c.bl_uploaded,
+      cci_document:       !!c.cci_obtained,
+      payment_evidence:   !!c.payment_evidence_uploaded,
+      credit_advice:      !!c.credit_advice_confirmed,
+      shipment_record:    !!(ship && ship.nxp_reference),
+      compliance_summary: c.caseStatus === 'COMPLETE',
+    };
+    const present = !!(onFile[type]);
+    const statusLabel = present ? 'On file' : 'Missing';
+    const statusCls   = present ? 'on-file' : 'missing';
+
+    document.getElementById('ev-item-content').innerHTML =
+      // Back navigation
+      '<div style="padding:12px 4px 4px">'
+      +   '<button class="ec-chk-btn view" type="button"'
+      +     ' onclick="openEvidencePackWorkspace(\'' + h(nxpRef) + '\')"'
+      +     ' aria-label="Back to Evidence Pack">← Back to Evidence Pack</button>'
+      + '</div>'
+      // Identity card — title, code, status
+      + '<div class="ec-card">'
+      +   '<div class="ec-card-h">'
+      +     '<span class="ec-card-t">' + h(meta.title) + '</span>'
+      +     '<span class="ev-item-code">' + h(meta.code) + '</span>'
+      +   '</div>'
+      +   '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="ev-item-status ' + statusCls + '">' + statusLabel + '</span></span></div>'
+      + '</div>'
+      // Case context card
+      + '<div class="ec-card">'
+      +   '<div class="ec-card-h"><span class="ec-card-t">Record Details</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Case</span><span class="ec-rv">' + h(caseName) + '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">NXP Reference</span><span class="ec-rv mono">' + h(c.nxp_reference || '—') + '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Shipment Reference</span><span class="ec-rv mono">' + h(c.shipment_reference || '—') + '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Source System</span><span class="ec-rv">ExportOS</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Uploaded Date</span><span class="ec-rv muted">Unavailable</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Validation Status</span><span class="ec-rv muted">Not validated</span></div>'
+      + '</div>'
+      // Placeholder panel — replaced by real document rendering in a future phase
+      + '<div class="ec-card">'
+      +   '<div class="ec-card-h"><span class="ec-card-t">Document</span></div>'
+      +   '<div class="ev-item-ph">Document viewer coming in a future phase.</div>'
+      + '</div>';
+
+    showView('view-ev-item', h(meta.title), 'view-exports');
   }
 
   function ecUploadNav(hasPack) {
@@ -3567,6 +3663,7 @@
 
   // ── Evidence Pack Workspace ──────────────────────────────────────────────────
   function openEvidencePackWorkspace(nxpRef) {
+    _currentNxpRef = nxpRef;
     const c = _cases.find(x => x.nxp_reference === nxpRef);
     if (!c) return;
     const shipMap = {};
@@ -3632,6 +3729,7 @@
 
   // ── Export Case ─────────────────────────────────────────────────────────────
   function openExportCase(nxpRef) {
+    _currentNxpRef = nxpRef;
     const c = _cases.find(x => x.nxp_reference === nxpRef);
     if (!c) return;
 
