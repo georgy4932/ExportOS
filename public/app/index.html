@@ -739,29 +739,96 @@
       background: #fff; border: 1px solid #e2e8f0;
       border-radius: 7px; margin-bottom: 14px; overflow: hidden;
     }
-    .ec-bc { font-size: 10.5px; color: #94a3b8; padding: 10px 16px 0; }
-    .ec-bc button {
-      background: none; border: none; font-size: 10.5px; color: #64748b;
-      cursor: pointer; padding: 0; font-family: inherit;
-    }
-    .ec-bc button:hover { color: #15803d; }
-    .ec-ta { padding: 8px 16px 10px; }
-    .ec-nxp {
-      font-size: 22px; font-weight: 700; color: #0f172a;
-      letter-spacing: -0.02em; font-family: ui-monospace, monospace; line-height: 1;
-    }
-    .ec-sref { font-size: 11px; color: #64748b; margin-top: 4px; font-family: ui-monospace, monospace; }
-    .ec-bdg { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 7px; }
-    .ec-meta { display: flex; align-items: stretch; border-top: 1px solid #f1f5f9; overflow-x: auto; }
-    .ec-mc { display: flex; flex-direction: column; padding: 11px 20px; border-right: 1px solid #f1f5f9; flex-shrink: 0; }
-    .ec-mc:last-child { border-right: none; }
-    .ec-ml { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #94a3b8; margin-bottom: 3px; }
-    .ec-mv { font-size: 12px; font-weight: 600; color: #1e293b; white-space: nowrap; }
-    .ec-mv.red { color: #b91c1c; }
-    .ec-mv.mono { font-family: ui-monospace, monospace; font-size: 11px; }
 
+    /* Band 1 — Case Identity */
+    .ci { background: #fff; padding: 14px 16px 16px; }
+    .ci-inner { max-width: 720px; }
+    .ci-title-row {
+      display: flex; align-items: center;
+      gap: 16px; margin-bottom: 6px;
+    }
+    .ci-name {
+      font-size: 19px; font-weight: 700; color: #0f172a;
+      letter-spacing: -0.02em; line-height: 1.2;
+      flex: 1;
+    }
+    .ci-status {
+      display: flex; flex-direction: column; align-items: flex-end;
+      gap: 2px; flex-shrink: 0; padding-top: 3px;
+    }
+    .ci-status-dot-row { display: flex; align-items: center; gap: 6px; }
+    .ci-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .ci-status-word { font-size: 11.5px; font-weight: 700; letter-spacing: 0.01em; }
+    .ci-status-sub { font-size: 11px; font-weight: 500; text-align: right; }
+    .s-overdue  .ci-dot { background: #b91c1c; }
+    .s-overdue  .ci-status-word { color: #b91c1c; }
+    .s-overdue  .ci-status-sub  { color: #b91c1c; }
+    .s-atrisk   .ci-dot { background: #f97316; }
+    .s-atrisk   .ci-status-word { color: #c2410c; }
+    .s-atrisk   .ci-status-sub  { color: #c2410c; }
+    .s-action   .ci-dot { background: #f59e0b; }
+    .s-action   .ci-status-word { color: #b45309; }
+    .s-action   .ci-status-sub  { color: #b45309; }
+    .s-compliant .ci-dot { background: #16a34a; }
+    .s-compliant .ci-status-word { color: #15803d; }
+    .s-compliant .ci-status-sub  { color: #15803d; }
+    .ci-ids {
+      font-family: ui-monospace, monospace; font-size: 11.5px;
+      color: #64748b; margin-bottom: 5px; letter-spacing: 0.01em;
+    }
+    .ci-ids span + span::before { content: ' · '; color: #e2e8f0; }
+    .ci-meta {
+      font-size: 12px; color: #475569;
+      display: flex; align-items: center; flex-wrap: wrap;
+    }
+    .ci-meta-sep { margin: 0 8px; color: #e2e8f0; font-size: 14px; line-height: 1; }
 
-    .ec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    /* Band 2 — Fact strip */
+    .fs-strip {
+      background: #f8fafc; border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+    }
+    .fs-col { padding: 12px 16px; display: flex; flex-direction: column; gap: 3px; }
+    .fs-col + .fs-col { border-left: 1px solid #e2e8f0; }
+    .fs-lbl {
+      font-size: 9px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.09em; color: #94a3b8;
+    }
+    .fs-val { font-size: 13px; font-weight: 600; color: #0f172a; line-height: 1.3; }
+    .fs-sub { font-size: 11px; font-weight: 500; line-height: 1.3; }
+    .fs-val.red { color: #b91c1c; }
+    .fs-sub.red { color: #b91c1c; }
+    .fs-sub.muted { color: #64748b; }
+    .fs-pack-ready  { color: #1d4ed8; }
+    .fs-pack-sealed { color: #15803d; }
+    .fs-pack-not    { color: #64748b; }
+
+    /* Band 3 — Next Required Action */
+    .nra {
+      background: #fff9f9; border-bottom: 1px solid #fde8e8;
+      padding: 14px 16px;
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 24px;
+    }
+    .nra.compliant { background: #f8fffe; border-bottom: none; }
+    .nra-lbl {
+      font-size: 9px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.09em; color: #b91c1c; margin-bottom: 4px;
+    }
+    .nra.compliant .nra-lbl { color: #94a3b8; }
+    .nra-text { font-size: 13px; font-weight: 600; color: #7f1d1d; line-height: 1.4; }
+    .nra.compliant .nra-text { color: #14532d; font-weight: 500; }
+    .nra-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 16px; font-size: 12px; font-weight: 600;
+      color: #b91c1c; background: #fff; border: 1.5px solid #fca5a5;
+      border-radius: 5px; cursor: default; white-space: nowrap;
+      font-family: inherit; flex-shrink: 0; line-height: 1;
+    }
+    .nra-btn:hover { background: #fff1f1; }
+
+    /* Lower section cards */
     .ec-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 7px; margin-bottom: 12px; }
     .ec-card-h { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid #f1f5f9; }
     .ec-card-t { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #0f172a; }
@@ -774,7 +841,6 @@
     .ec-rv.red { color: #b91c1c; font-weight: 600; }
     .ec-rv.green { color: #15803d; font-weight: 600; }
     .ec-rv.muted { color: #94a3b8; font-weight: 400; }
-
     .ec-chk { display: flex; align-items: center; gap: 9px; padding: 8px 14px; border-bottom: 1px solid #f8fafc; font-size: 12px; }
     .ec-chk:last-child { border-bottom: none; }
     .ec-chk-i { font-size: 13px; line-height: 1; flex-shrink: 0; color: #16a34a; }
@@ -784,52 +850,14 @@
     .ec-chk-n { font-size: 10.5px; }
     .ec-chk-n.ok { color: #15803d; }
     .ec-chk-n.bad { color: #b91c1c; }
-
-    /* ── Export Case: identity, NCA pill, placeholder sections ── */
-    .ec-case-name {
-      font-size: 18px; font-weight: 700; color: #0f172a;
-      letter-spacing: -0.01em; line-height: 1.2; margin-bottom: 3px;
-    }
+    .ec-ph-body { padding: 16px 14px; font-size: 12px; color: #94a3b8; font-style: italic; }
     .ec-breadcrumb { font-size: 10.5px; color: #94a3b8; padding: 10px 16px 0; }
-    .ec-breadcrumb a, .ec-breadcrumb button {
+    .ec-breadcrumb button {
       background: none; border: none; font-size: 10.5px; color: #64748b;
-      cursor: pointer; padding: 0; font-family: inherit; text-decoration: none;
+      cursor: pointer; padding: 0; font-family: inherit;
     }
-    .ec-breadcrumb a:hover, .ec-breadcrumb button:hover { color: #15803d; }
+    .ec-breadcrumb button:hover { color: #15803d; }
     .ec-breadcrumb-sep { margin: 0 5px; color: #cbd5e1; }
-    .ec-status-banner {
-      display: flex; align-items: center; gap: 14px;
-      padding: 13px 16px; margin-bottom: 12px; border-radius: 7px;
-      border: 1px solid #e2e8f0; background: #fff;
-    }
-    .ec-status-banner.overdue  { background: #fef2f2; border-color: #fecaca; }
-    .ec-status-banner.at-risk  { background: #fff7ed; border-color: #fed7aa; }
-    .ec-status-banner.complete { background: #f0fdf4; border-color: #bbf7d0; }
-    .ec-sb-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #94a3b8; margin-bottom: 2px; }
-    .ec-sb-value { font-size: 13px; font-weight: 700; color: #0f172a; }
-    .ec-nca {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; background: #fef2f2; border: 1px solid #fecaca;
-      border-radius: 6px; padding: 11px 14px; margin-bottom: 12px;
-    }
-    .ec-nca.ok { background: #f0fdf4; border-color: #bbf7d0; }
-    .ec-nca-left { display: flex; flex-direction: column; }
-    .ec-nca-l { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #b91c1c; margin-bottom: 2px; }
-    .ec-nca.ok .ec-nca-l { color: #15803d; }
-    .ec-nca-t { font-size: 12.5px; font-weight: 600; color: #7f1d1d; }
-    .ec-nca.ok .ec-nca-t { color: #14532d; }
-    .ec-nca-pill {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: #fff; border: 1px solid #fca5a5; border-radius: 4px;
-      padding: 5px 12px; font-size: 11.5px; font-weight: 600;
-      color: #b91c1c; cursor: default; white-space: nowrap;
-      flex-shrink: 0; font-family: inherit;
-    }
-    .ec-nca.ok .ec-nca-pill { border-color: #86efac; color: #15803d; }
-    .ec-ph-body {
-      padding: 16px 14px; font-size: 12px; color: #94a3b8;
-      font-style: italic;
-    }
 
     /* ── Evidence Packs list ── */
     .ep-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -896,6 +924,13 @@
       .ov-metric-card { min-height: 112px; padding: 1rem; }
       .ec-grid { grid-template-columns: 1fr; }
       .ec-meta { flex-wrap: wrap; }
+      .ci-title-row { flex-direction: column; gap: 8px; }
+      .ci-status { flex-direction: row; align-items: center; gap: 10px; }
+      .ci-status-sub { text-align: left; }
+      .fs-strip { grid-template-columns: 1fr; }
+      .fs-col + .fs-col { border-left: none; border-top: 1px solid #e2e8f0; }
+      .nra { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .nra-btn { width: 100%; justify-content: center; }
     }
 
   </style>
@@ -3242,72 +3277,52 @@
     const commodity = ship.commodity || '';
     const dest      = ship.port_of_discharge || '';
     const caseName  = commodity && dest ? commodity + ' Export — ' + dest
-                    : commodity ? commodity + ' Export'
+                    : commodity         ? commodity + ' Export'
                     : c.nxp_reference ?? '—';
 
-    const dLabel = c.daysLeft === null ? '—'
-                 : c.daysLeft < 0     ? Math.abs(c.daysLeft) + 'd overdue'
-                 :                      c.daysLeft + 'd left';
-    const dCls   = c.daysLeft === null ? 'gr'
-                 : c.daysLeft < 0     ? 'r'
-                 : c.daysLeft <= 30   ? 'o' : 'gr';
+    // Status indicator
+    const daysLeft = c.daysLeft;
+    const stMap = {
+      OVERDUE:  { cls: 's-overdue',   word: 'OVERDUE',        sub: daysLeft !== null ? Math.abs(daysLeft) + 'd past CBN deadline' : 'Past deadline' },
+      AT_RISK:  { cls: 's-atrisk',    word: 'AT RISK',         sub: daysLeft !== null ? daysLeft + 'd to CBN deadline' : '—' },
+      PARTIAL:  { cls: 's-action',    word: 'ACTION REQUIRED', sub: daysLeft !== null ? daysLeft + 'd to CBN deadline' : '—' },
+      COMPLETE: { cls: 's-compliant', word: 'COMPLIANT',       sub: 'Fully repatriated' },
+    };
+    const st = stMap[c.caseStatus] ?? { cls: 's-action', word: c.caseStatus ?? '—', sub: '—' };
 
-    const packCls   = { SEALED: 'g', READY_TO_SEAL: 'b', NOT_READY: 'gr' };
-    const packLabel = { SEALED: 'SEALED', READY_TO_SEAL: 'READY TO SEAL', NOT_READY: 'NOT READY' };
+    // Pack
+    const packLbl = { SEALED: 'Sealed', READY_TO_SEAL: 'Ready to seal', NOT_READY: 'Not ready' };
+    const packCls = { SEALED: 'fs-pack-sealed', READY_TO_SEAL: 'fs-pack-ready', NOT_READY: 'fs-pack-not' };
     const ps = c.packStatus ?? 'NOT_READY';
 
+    // Missing checklist items
+    const missing = [
+      !c.nxp_approved              && 'NXP',
+      !c.bl_uploaded               && 'BL',
+      !c.cci_obtained              && 'CCI',
+      !c.payment_evidence_uploaded && 'EVD',
+      !c.credit_advice_confirmed   && 'ADV',
+    ].filter(Boolean);
+
+    const packSub = ps === 'SEALED'        ? 'Pack sealed'
+                  : ps === 'READY_TO_SEAL' ? 'Checklist complete'
+                  : missing.length         ? missing.length + ' document' + (missing.length !== 1 ? 's' : '') + ' missing'
+                  :                          'Incomplete';
+
+    // Fact strip — deadline
+    const deadlineStr = c.repatriation_deadline ? date(c.repatriation_deadline) : '—';
+    const dlOverdue   = daysLeft !== null && daysLeft < 0;
+    const dlSub       = daysLeft === null ? '—'
+                      : daysLeft < 0     ? Math.abs(daysLeft) + 'd overdue'
+                      :                    daysLeft + 'd remaining';
+
+    // Repatriation badge
     const repCls = c.repatriation_status === 'OVERDUE'  ? 'r'
                  : c.repatriation_status === 'COMPLETE' ? 'g'
                  : c.repatriation_status === 'PARTIAL'  ? 'o' : 'gr';
 
-    const deadlineStr = c.repatriation_deadline ? date(c.repatriation_deadline) : '—';
-
-    // Badges
-    let badges = '';
-    if (c.caseStatus === 'OVERDUE')  badges += '<span class="badge r">OVERDUE</span> ';
-    if (c.priority === 'HIGH')       badges += '<span class="badge r">HIGH</span> ';
-    if (c.priority === 'MEDIUM')     badges += '<span class="badge o">MEDIUM</span> ';
-    if (c.caseStatus === 'COMPLETE') badges += '<span class="badge g">COMPLETE</span> ';
-    badges += '<span class="badge ' + dCls + '">' + h(dLabel) + '</span> ';
-    badges += '<span class="badge ' + (packCls[ps] ?? 'gr') + '">PACK: ' + h(packLabel[ps] ?? ps) + '</span>';
-
-    // Clear tab row — tabs removed in Phase 5A
-    document.getElementById('ec-tabs').innerHTML = '';
-
-    // ── 1. Case Identity ──────────────────────────────────────────────────────
-    document.getElementById('ec-header').innerHTML =
-      '<div class="ec-breadcrumb"><button onclick="showView(\'view-exports\',\'Exports\',\'view-exports\')">Exports</button>'
-      + '<span class="ec-breadcrumb-sep">›</span>'
-      + '<span>' + h(c.nxp_reference ?? '—') + '</span></div>'
-      + '<div class="ec-ta">'
-      +   '<div class="ec-case-name">' + h(caseName) + '</div>'
-      +   '<div class="ec-nxp" style="font-size:13px;margin-top:2px">' + h(c.nxp_reference ?? '—') + '</div>'
-      +   '<div class="ec-sref">' + h(c.shipment_reference ?? '—') + '</div>'
-      +   '<div class="ec-bdg">' + badges + '</div>'
-      + '</div>'
-      + '<div class="ec-meta">'
-      +   '<div class="ec-mc"><div class="ec-ml">Shipment Value</div><div class="ec-mv">'
-      +     (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : '—') + '</div></div>'
-      +   '<div class="ec-mc"><div class="ec-ml">Proceeds Required</div><div class="ec-mv">'
-      +     (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</div></div>'
-      +   '<div class="ec-mc"><div class="ec-ml">Outstanding</div><div class="ec-mv' + (c.outstanding > 0 ? ' red' : '') + '">'
-      +     (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : '—') + '</div></div>'
-      +   '<div class="ec-mc"><div class="ec-ml">CBN Deadline</div><div class="ec-mv' + (c.daysLeft !== null && c.daysLeft < 0 ? ' red' : '') + '">' + deadlineStr + '</div></div>'
-      +   '<div class="ec-mc"><div class="ec-ml">Repatriation</div><div class="ec-mv"><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></div></div>'
-      + '</div>';
-
-    // NCA state
-    const ncaOk    = c.nextAction === 'No action' || c.caseStatus === 'COMPLETE';
-    const ncaClass = ncaOk ? 'ec-nca ok' : 'ec-nca';
-
-    // Status banner class
-    const sbCls = c.caseStatus === 'OVERDUE'  ? 'overdue'
-                : c.caseStatus === 'AT_RISK'  ? 'at-risk'
-                : c.caseStatus === 'COMPLETE' ? 'complete' : '';
-
-    const sbStatus = c.caseStatus === 'OVERDUE'  ? 'Overdue'
-                   : c.caseStatus === 'AT_RISK'  ? 'At Risk'
-                   : c.caseStatus === 'COMPLETE' ? 'Compliant' : 'Pending';
+    // NRA state
+    const ncaOk = c.nextAction === 'No action' || c.caseStatus === 'COMPLETE';
 
     // Checklist helper
     function eck(val, tag, label) {
@@ -3323,47 +3338,81 @@
       ? h(ship.port_of_loading) + ' → ' + h(ship.port_of_discharge)
       : '—';
 
-    const missing = [
-      !c.nxp_approved              && 'NXP',
-      !c.bl_uploaded               && 'BL',
-      !c.cci_obtained              && 'CCI',
-      !c.payment_evidence_uploaded && 'EVD',
-      !c.credit_advice_confirmed   && 'ADV',
-    ].filter(Boolean);
+    // ── Header: breadcrumb + 3 bands ─────────────────────────────────────────
+    document.getElementById('ec-tabs').innerHTML = '';
+    document.getElementById('ec-header').innerHTML =
 
+      // Breadcrumb
+      '<div class="ec-breadcrumb">'
+      + '<button onclick="showView(\'view-exports\',\'Exports\',\'view-exports\')">Exports</button>'
+      + '<span class="ec-breadcrumb-sep">›</span>'
+      + '<span>' + h(c.nxp_reference ?? '—') + '</span>'
+      + '</div>'
+
+      // Band 1 — Case Identity
+      + '<div class="ci"><div class="ci-inner">'
+      +   '<div class="ci-title-row">'
+      +     '<div class="ci-name">' + h(caseName) + '</div>'
+      +     '<div class="ci-status ' + st.cls + '">'
+      +       '<div class="ci-status-dot-row">'
+      +         '<div class="ci-dot"></div>'
+      +         '<div class="ci-status-word">' + h(st.word) + '</div>'
+      +       '</div>'
+      +       '<div class="ci-status-sub">' + h(st.sub) + '</div>'
+      +     '</div>'
+      +   '</div>'
+      +   '<div class="ci-ids"><span>' + h(c.nxp_reference ?? '—') + '</span><span>' + h(c.shipment_reference ?? '—') + '</span></div>'
+      +   '<div class="ci-meta">'
+      +     (commodity ? '<span>' + h(commodity) + '</span>' : '')
+      +     (commodity && ship.shipment_value ? '<span class="ci-meta-sep">·</span>' : '')
+      +     (ship.shipment_value ? '<span>USD ' + num(ship.shipment_value) + '</span>' : '')
+      +   '</div>'
+      + '</div></div>'
+
+      // Band 2 — Fact Strip
+      + '<div class="fs-strip">'
+      +   '<div class="fs-col">'
+      +     '<div class="fs-lbl">CBN Deadline</div>'
+      +     '<div class="fs-val' + (dlOverdue ? ' red' : '') + '">' + h(deadlineStr) + '</div>'
+      +     '<div class="fs-sub' + (dlOverdue ? ' red' : ' muted') + '">' + h(dlSub) + '</div>'
+      +   '</div>'
+      +   '<div class="fs-col">'
+      +     '<div class="fs-lbl">Shipment Value</div>'
+      +     '<div class="fs-val">' + (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : '—') + '</div>'
+      +     (ship.shipment_value && c.outstanding > 0 ? '<div class="fs-sub muted">Outstanding: USD ' + num(c.outstanding) + '</div>' : '')
+      +   '</div>'
+      +   '<div class="fs-col">'
+      +     '<div class="fs-lbl">Evidence Pack</div>'
+      +     '<div class="fs-val ' + (packCls[ps] ?? 'fs-pack-not') + '">' + h(packLbl[ps] ?? ps) + '</div>'
+      +     '<div class="fs-sub muted">' + h(packSub) + '</div>'
+      +   '</div>'
+      + '</div>'
+
+      // Band 3 — Next Required Action
+      + '<div class="nra' + (ncaOk ? ' compliant' : '') + '">'
+      +   '<div class="nra-left">'
+      +     '<div class="nra-lbl">Next Required Action</div>'
+      +     '<div class="nra-text">' + h(c.nextAction ?? '—') + '</div>'
+      +   '</div>'
+      +   (ncaOk ? '' : '<button class="nra-btn">' + h(c.nextAction) + ' →</button>')
+      + '</div>';
+
+    // ── Content: lower sections only ─────────────────────────────────────────
     document.getElementById('ec-content').innerHTML =
 
-      // ── 2. Status Banner ──────────────────────────────────────────────────
-      '<div class="ec-status-banner ' + sbCls + '">'
-      + '<div><div class="ec-sb-label">Case Status</div><div class="ec-sb-value">' + h(sbStatus) + '</div></div>'
-      + (c.daysLeft !== null
-          ? '<div><div class="ec-sb-label">Days to Deadline</div><div class="ec-sb-value"><span class="badge ' + dCls + '" style="font-size:11px">' + h(dLabel) + '</span></div></div>'
-          : '')
-      + '<div><div class="ec-sb-label">CBN Deadline</div><div class="ec-sb-value">' + deadlineStr + '</div></div>'
-      + '</div>'
-
-      // ── 3. Next Required Action ───────────────────────────────────────────
-      + '<div class="' + ncaClass + '">'
-      + '<div class="ec-nca-left">'
-      + '<div class="ec-nca-l">Next Required Action</div>'
-      + '<div class="ec-nca-t">' + h(c.nextAction ?? '—') + '</div>'
-      + '</div>'
-      + (ncaOk ? '' : '<span class="ec-nca-pill">' + h(c.nextAction) + ' →</span>')
-      + '</div>'
-
-      // ── 4. Follow-Up (placeholder) ────────────────────────────────────────
-      + '<div class="ec-card">'
+      // Follow-Up (placeholder)
+      '<div class="ec-card">'
       + '<div class="ec-card-h"><span class="ec-card-t">Follow-Up</span><span class="ec-card-s">Phase 7</span></div>'
       + '<div class="ec-ph-body">Follow-up tracking will be available in a later phase.</div>'
       + '</div>'
 
-      // ── 5. Timeline (placeholder) ─────────────────────────────────────────
+      // Timeline (placeholder)
       + '<div class="ec-card">'
       + '<div class="ec-card-h"><span class="ec-card-t">Timeline</span><span class="ec-card-s">Phase 6</span></div>'
       + '<div class="ec-ph-body">Case timeline will be available in a later phase.</div>'
       + '</div>'
 
-      // ── 6. Compliance Checklist ───────────────────────────────────────────
+      // Compliance Checklist
       + '<div class="ec-card">'
       + '<div class="ec-card-h"><span class="ec-card-t">Compliance Checklist</span><span class="ec-card-s">/compliance</span></div>'
       + eck(c.nxp_approved,              'NXP', 'NXP Approved by CBN')
@@ -3373,18 +3422,18 @@
       + eck(c.credit_advice_confirmed,   'ADV', 'Credit Advice Confirmed')
       + '</div>'
 
-      // ── 7. Proceeds & Repatriation ────────────────────────────────────────
+      // Proceeds & Repatriation
       + '<div class="ec-card">'
       + '<div class="ec-card-h"><span class="ec-card-t">Proceeds &amp; Repatriation</span><span class="ec-card-s">/compliance</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Proceeds Required</span><span class="ec-rv">' + (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Proceeds Received</span><span class="ec-rv' + (Number(c.proceeds_received) > 0 ? ' green' : '') + '">' + (c.proceeds_received != null ? 'USD ' + num(c.proceeds_received) : '—') + '</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Outstanding</span><span class="ec-rv' + (c.outstanding > 0 ? ' red' : ' green') + '">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : 'Nil') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Deadline</span><span class="ec-rv' + (c.daysLeft !== null && c.daysLeft < 0 ? ' red' : '') + '">' + deadlineStr + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Deadline</span><span class="ec-rv' + (daysLeft !== null && daysLeft < 0 ? ' red' : '') + '">' + h(deadlineStr) + '</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></span></div>'
       + '<div class="ec-row"><span class="ec-rl">Late Repatriation</span><span class="ec-rv' + (c.was_repatriated_late ? ' red' : '') + '">' + (c.was_repatriated_late ? 'Yes' : 'No') + '</span></div>'
       + '</div>'
 
-      // ── 8. Shipment Details ───────────────────────────────────────────────
+      // Shipment Details
       + '<div class="ec-card">'
       + '<div class="ec-card-h"><span class="ec-card-t">Shipment Details</span><span class="ec-card-s">/shipments</span></div>'
       + '<div class="ec-row"><span class="ec-rl">NXP Reference</span><span class="ec-rv mono">' + h(c.nxp_reference ?? '—') + '</span></div>'
