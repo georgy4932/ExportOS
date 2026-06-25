@@ -883,6 +883,14 @@
     .ev-item-notice { margin: 0 14px 12px; padding: 9px 12px; font-size: 11px; line-height: 1.5; border-radius: 4px; border: 1px solid; }
     .ev-item-notice.amber { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
     .ev-item-notice.neutral { background: #f8fafc; border-color: #e2e8f0; color: #64748b; }
+    /* Evidence History and Validation Checks row badges */
+    .ev-st-badge { display: inline-flex; align-items: center; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 10px; border: 1px solid; white-space: nowrap; }
+    .ev-st-badge.pass     { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    .ev-st-badge.fail     { color: #b91c1c; border-color: #fca5a5; background: #fff1f1; }
+    .ev-st-badge.pending  { color: #64748b; border-color: #e2e8f0; background: #f8fafc; }
+    .ev-st-badge.recorded { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
+    .ev-st-badge.na       { color: #94a3b8; border-color: #f1f5f9; background: #fafafa; }
+    .ev-row-date { font-size: 10px; color: #94a3b8; margin-left: 6px; }
     /* Temporary doc-viewer toast — replaced when document workflows ship */
     #doc-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #f8fafc; font-size: 12px; font-weight: 500; padding: 9px 18px; border-radius: 6px; box-shadow: 0 4px 16px rgba(15,23,42,0.22); z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.18s; white-space: nowrap; }
     #doc-toast.show { opacity: 1; }
@@ -3681,6 +3689,36 @@
           ? '<div class="ev-item-notice neutral">Document metadata is not available yet.<br>Metadata extraction will be added in a future phase.</div>'
           : '<div class="ev-item-notice amber">Evidence has not been uploaded yet.<br>Upload flow will be added in a future phase.</div>')
       + '</div>'
+
+      // Evidence History card — read-only lifecycle events; dates added when backend supplies them
+      + '<div class="ec-card">'
+      +   '<div class="ec-card-h"><span class="ec-card-t">Evidence History</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Created</span><span class="ec-rv">'
+      +     (present ? '<span class="ev-st-badge recorded">Recorded</span><span class="ev-row-date">Date unavailable</span>'
+                     : '<span class="ev-st-badge pending">Pending</span>')
+      +   '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Uploaded</span><span class="ec-rv">'
+      +     (present ? '<span class="ev-st-badge recorded">Recorded</span><span class="ev-row-date">Date unavailable</span>'
+                     : '<span class="ev-st-badge pending">Pending</span>')
+      +   '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Replaced</span><span class="ec-rv"><span class="ev-st-badge na">N/A</span></span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Validated</span><span class="ec-rv"><span class="ev-st-badge pending">Pending</span></span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Rejected</span><span class="ec-rv"><span class="ev-st-badge na">N/A</span></span></div>'
+      + '</div>'
+
+      // Validation Checks card — automated checks will replace placeholders in a future phase
+      + '<div class="ec-card">'
+      +   '<div class="ec-card-h"><span class="ec-card-t">Validation Checks</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">File present</span><span class="ec-rv">'
+      +     (present ? '<span class="ev-st-badge pass">Passed</span>'
+                     : '<span class="ev-st-badge fail">Failed</span>')
+      +   '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Format check</span><span class="ec-rv"><span class="ev-st-badge pending">Pending</span></span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Required fields</span><span class="ec-rv"><span class="ev-st-badge pending">Pending</span></span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Regulatory validation</span><span class="ec-rv"><span class="ev-st-badge pending">Pending</span></span></div>'
+      +   '<div class="ev-item-notice neutral">Automated validation will be added in a future phase.</div>'
+      + '</div>'
+
       // Placeholder panel — replaced by real document rendering in a future phase
       + '<div class="ec-card">'
       +   '<div class="ec-card-h"><span class="ec-card-t">Document</span></div>'
