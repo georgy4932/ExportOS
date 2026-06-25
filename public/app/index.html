@@ -737,126 +737,220 @@
     /* ── Export Case ── */
     #ec-header {
       background: #fff; border: 1px solid #e2e8f0;
-      border-radius: 7px; margin-bottom: 14px; overflow: hidden;
+      border-radius: 7px; margin-bottom: 10px; overflow: hidden;
     }
-    .ec-bc { font-size: 10.5px; color: #94a3b8; padding: 10px 16px 0; }
-    .ec-bc button {
-      background: none; border: none; font-size: 10.5px; color: #64748b;
-      cursor: pointer; padding: 0; font-family: inherit;
-    }
-    .ec-bc button:hover { color: #15803d; }
-    .ec-ta { padding: 8px 16px 10px; }
-    .ec-nxp {
-      font-size: 22px; font-weight: 700; color: #0f172a;
-      letter-spacing: -0.02em; font-family: ui-monospace, monospace; line-height: 1;
-    }
-    .ec-sref { font-size: 11px; color: #64748b; margin-top: 4px; font-family: ui-monospace, monospace; }
-    .ec-bdg { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 7px; }
-    .ec-meta { display: flex; align-items: stretch; border-top: 1px solid #f1f5f9; overflow-x: auto; }
-    .ec-mc { display: flex; flex-direction: column; padding: 11px 20px; border-right: 1px solid #f1f5f9; flex-shrink: 0; }
-    .ec-mc:last-child { border-right: none; }
-    .ec-ml { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #94a3b8; margin-bottom: 3px; }
-    .ec-mv { font-size: 12px; font-weight: 600; color: #1e293b; white-space: nowrap; }
-    .ec-mv.red { color: #b91c1c; }
-    .ec-mv.mono { font-family: ui-monospace, monospace; font-size: 11px; }
 
+    /* Band 1 — Case Identity */
+    .ci { background: #fff; padding: 14px 16px 16px; }
+    .ci-inner { max-width: 720px; }
+    .ci-title-row {
+      display: flex; align-items: center;
+      gap: 16px; margin-bottom: 6px;
+    }
+    .ci-name {
+      font-size: 19px; font-weight: 700; color: #0f172a;
+      letter-spacing: -0.02em; line-height: 1.2;
+      flex: 1;
+    }
+    .ci-status {
+      display: flex; flex-direction: column; align-items: flex-end;
+      gap: 2px; flex-shrink: 0; padding-top: 3px;
+    }
+    .ci-status-dot-row { display: flex; align-items: center; gap: 6px; }
+    .ci-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .ci-status-word { font-size: 11.5px; font-weight: 700; letter-spacing: 0.01em; }
+    .ci-status-sub { font-size: 11px; font-weight: 500; text-align: right; }
+    .s-overdue  .ci-dot { background: #b91c1c; }
+    .s-overdue  .ci-status-word { color: #b91c1c; }
+    .s-overdue  .ci-status-sub  { color: #b91c1c; }
+    .s-atrisk   .ci-dot { background: #f97316; }
+    .s-atrisk   .ci-status-word { color: #c2410c; }
+    .s-atrisk   .ci-status-sub  { color: #c2410c; }
+    .s-action   .ci-dot { background: #f59e0b; }
+    .s-action   .ci-status-word { color: #b45309; }
+    .s-action   .ci-status-sub  { color: #b45309; }
+    .s-compliant .ci-dot { background: #16a34a; }
+    .s-compliant .ci-status-word { color: #15803d; }
+    .s-compliant .ci-status-sub  { color: #15803d; }
+    .ci-ids {
+      font-family: ui-monospace, monospace; font-size: 11.5px;
+      color: #64748b; margin-bottom: 5px; letter-spacing: 0.01em;
+    }
+    .ci-ids span + span::before { content: ' · '; color: #e2e8f0; }
+    .ci-meta {
+      font-size: 12px; color: #475569;
+      display: flex; align-items: center; flex-wrap: wrap;
+    }
+    .ci-meta-sep { margin: 0 8px; color: #e2e8f0; font-size: 14px; line-height: 1; }
 
-    .ec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    /* Band 2 — Fact strip */
+    .fs-strip {
+      background: #f8fafc; border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+    }
+    .fs-col { padding: 12px 16px; display: flex; flex-direction: column; gap: 3px; }
+    .fs-col + .fs-col { border-left: 1px solid #e2e8f0; }
+    .fs-lbl {
+      font-size: 9px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.09em; color: #94a3b8;
+    }
+    .fs-val { font-size: 13px; font-weight: 600; color: #0f172a; line-height: 1.3; }
+    .fs-sub { font-size: 11px; font-weight: 500; line-height: 1.3; }
+    .fs-val.red { color: #b91c1c; }
+    .fs-sub.red { color: #b91c1c; }
+    .fs-sub.muted { color: #64748b; }
+    .fs-pack-ready  { color: #1d4ed8; }
+    .fs-pack-sealed { color: #15803d; }
+    .fs-pack-not    { color: #64748b; }
+
+    /* Band 3 — Next Required Action */
+    .nra {
+      background: #fff9f9;
+      padding: 14px 16px;
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 24px;
+    }
+    .nra.compliant { background: #f8fffe; }
+    .nra-lbl {
+      font-size: 9px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.09em; color: #b91c1c; margin-bottom: 4px;
+    }
+    .nra.compliant .nra-lbl { color: #94a3b8; }
+    .nra-text { font-size: 13px; font-weight: 600; color: #7f1d1d; line-height: 1.4; }
+    .nra-detail { font-size: 11px; color: #b45309; margin-top: 2px; }
+    .nra.compliant .nra-text { color: #14532d; font-weight: 500; }
+    .nra.compliant .nra-detail { color: #6b7280; }
+    .nra-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 16px; font-size: 12px; font-weight: 600;
+      color: #b91c1c; background: #fff; border: 1.5px solid #fca5a5;
+      border-radius: 5px; cursor: default; white-space: nowrap;
+      font-family: inherit; flex-shrink: 0; line-height: 1;
+    }
+    .nra-btn:hover { background: #fff1f1; }
+
+    /* Lower section cards */
     .ec-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 7px; margin-bottom: 12px; }
     .ec-card-h { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid #f1f5f9; }
     .ec-card-t { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #0f172a; }
     .ec-card-s { font-size: 9.5px; color: #94a3b8; font-style: italic; }
-    .ec-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; border-bottom: 1px solid #f8fafc; font-size: 12px; gap: 8px; }
+    .ec-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; border-bottom: 1px solid #f8fafc; font-size: 12px; gap: 8px; }
     .ec-row:last-child { border-bottom: none; }
-    .ec-rl { color: #64748b; flex-shrink: 0; }
+    .ec-rl { color: #64748b; flex-shrink: 0; font-size: 11.5px; }
     .ec-rv { color: #0f172a; font-weight: 500; text-align: right; }
     .ec-rv.mono { font-family: ui-monospace, monospace; font-size: 11px; }
     .ec-rv.red { color: #b91c1c; font-weight: 600; }
     .ec-rv.green { color: #15803d; font-weight: 600; }
     .ec-rv.muted { color: #94a3b8; font-weight: 400; }
-
-    .ec-chk { display: flex; align-items: center; gap: 9px; padding: 8px 14px; border-bottom: 1px solid #f8fafc; font-size: 12px; }
+    /* Compliance checklist */
+    .ec-chk { display: flex; align-items: center; gap: 9px; padding: 7px 14px; border-bottom: 1px solid #f8fafc; font-size: 12px; }
     .ec-chk:last-child { border-bottom: none; }
-    .ec-chk-i { font-size: 13px; line-height: 1; flex-shrink: 0; color: #16a34a; }
+    .ec-chk.chk-miss { background: #fef2f2; border-left: 2px solid #fca5a5; padding-left: 12px; }
+    .ec-chk-i { font-size: 11px; line-height: 1; flex-shrink: 0; color: #16a34a; }
     .ec-chk-i.x { color: #dc2626; }
-    .ec-chk-l { flex: 1; color: #334155; }
-    .ec-chk-t { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; background: #f1f5f9; padding: 1px 5px; border-radius: 2px; }
-    .ec-chk-n { font-size: 10.5px; }
+    .ec-chk-l { flex: 1; color: #475569; }
+    .ec-chk.chk-miss .ec-chk-l { color: #1e293b; font-weight: 500; }
+    .ec-chk-t { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; background: #f1f5f9; padding: 1px 5px; border-radius: 2px; flex-shrink: 0; }
+    .ec-chk.chk-miss .ec-chk-t { background: #fee2e2; color: #b91c1c; }
+    .ec-chk-n { font-size: 10.5px; flex-shrink: 0; }
     .ec-chk-n.ok { color: #15803d; }
-    .ec-chk-n.bad { color: #b91c1c; }
-
-    /* ── Export Case: breadcrumb, tab row, NCA pill ── */
+    .ec-chk-n.bad { color: #b91c1c; font-weight: 600; }
+    /* Compliance row action buttons — visual placeholders for future document flows */
+    .ec-chk-btn { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 3px; border: 1px solid; cursor: default; white-space: nowrap; font-family: inherit; line-height: 1; flex-shrink: 0; }
+    .ec-chk-btn.upload { color: #b91c1c; border-color: #fca5a5; background: #fff; }
+    .ec-chk-btn.upload:hover { background: #fff1f1; }
+    .ec-chk-btn.view { color: #475569; border-color: #e2e8f0; background: #f8fafc; }
+    .ec-chk-btn.view:hover { background: #f1f5f9; }
+    .ec-chk-btn:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+    /* Evidence Pack entry button at bottom of Export Case */
+    .ep-ws-entry { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #f8fafc; border-top: 1px solid #f1f5f9; cursor: pointer; transition: background 0.12s; font-size: 13px; font-weight: 600; color: #1e293b; border: none; width: 100%; font-family: inherit; border-radius: 0 0 8px 8px; }
+    .ep-ws-entry:hover { background: #f1f5f9; }
+    .ep-ws-entry:focus-visible { outline: 2px solid #3b82f6; outline-offset: -2px; }
+    .ep-ws-entry-lbl { display: flex; align-items: center; gap: 8px; }
+    .ep-ws-entry-arr { color: #94a3b8; font-size: 14px; }
+    /* Evidence Pack workspace readiness badge */
+    .ep-ws-rdy { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 10px; border-radius: 12px; border: 1px solid; }
+    .ep-ws-rdy.sealed    { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    .ep-ws-rdy.ready     { color: #b45309; border-color: #fcd34d; background: #fffbeb; }
+    .ep-ws-rdy.not-ready { color: #b91c1c; border-color: #fca5a5; background: #fff1f1; }
+    /* Evidence Item view — reusable for all evidence types */
+    .ev-item-status { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 10px; border-radius: 12px; border: 1px solid; }
+    .ev-item-status.on-file { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    .ev-item-status.missing { color: #b91c1c; border-color: #fca5a5; background: #fff1f1; }
+    .ev-item-code { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 2px; }
+    .ev-item-ph { margin: 0 14px 14px; padding: 32px 20px; text-align: center; font-size: 12px; color: #94a3b8; background: #f8fafc; border: 1px dashed #e2e8f0; border-radius: 6px; }
+    .ev-item-notice { margin: 0 14px 12px; padding: 9px 12px; font-size: 11px; line-height: 1.5; border-radius: 4px; border: 1px solid; }
+    .ev-item-notice.amber { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+    .ev-item-notice.neutral { background: #f8fafc; border-color: #e2e8f0; color: #64748b; }
+    /* Evidence History and Validation Checks row badges */
+    .ev-st-badge { display: inline-flex; align-items: center; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 10px; border: 1px solid; white-space: nowrap; }
+    .ev-st-badge.pass     { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    .ev-st-badge.fail     { color: #b91c1c; border-color: #fca5a5; background: #fff1f1; }
+    .ev-st-badge.pending  { color: #64748b; border-color: #e2e8f0; background: #f8fafc; }
+    .ev-st-badge.recorded { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
+    .ev-st-badge.na       { color: #94a3b8; border-color: #f1f5f9; background: #fafafa; }
+    .ev-row-date { font-size: 10px; color: #94a3b8; margin-left: 6px; }
+    /* Temporary doc-viewer toast — replaced when document workflows ship */
+    #doc-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #f8fafc; font-size: 12px; font-weight: 500; padding: 9px 18px; border-radius: 6px; box-shadow: 0 4px 16px rgba(15,23,42,0.22); z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.18s; white-space: nowrap; }
+    #doc-toast.show { opacity: 1; }
+    /* Compliance Progress grouping */
+    .ec-chk-prog { font-size: 11px; color: #64748b; font-weight: 500; }
+    .ec-grp-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; padding: 5px 14px 4px; }
+    .ec-grp-lbl.ec-grp-sep { border-top: 1px solid #f1f5f9; padding-top: 8px; margin-top: 2px; }
+    .ec-grp-lbl.ec-grp-done { color: #15803d; }
+    /* Proceeds section divider */
+    .ec-sec-sep { border: none; border-top: 1px solid #f1f5f9; margin: 0; }
+    .ec-sec-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; padding: 5px 14px 3px; }
+    /* Shipment compact facts grid */
+    .ec-facts { display: grid; grid-template-columns: 1fr 1fr; }
+    .ec-fact { padding: 8px 14px; border-bottom: 1px solid #f8fafc; }
+    .ec-fact:nth-child(odd) { border-right: 1px solid #f8fafc; }
+    .ec-fact.full { grid-column: 1 / -1; border-right: none; }
+    .ec-fact-l { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; margin-bottom: 2px; }
+    .ec-fact-v { font-size: 11.5px; color: #1e293b; font-weight: 500; }
+    .ec-fact-v.mono { font-family: ui-monospace, monospace; font-size: 10.5px; }
+    .ec-fact-v.muted { color: #94a3b8; font-weight: 400; }
+    .ec-ph-body { padding: 16px 14px; font-size: 12px; color: #94a3b8; font-style: italic; }
+    /* Follow-Up section */
+    .ec-fu-ok { display: flex; align-items: flex-start; gap: 10px; padding: 14px; }
+    .ec-fu-ok-icon { font-size: 14px; color: #16a34a; flex-shrink: 0; line-height: 1.4; }
+    .ec-fu-ok-label { font-size: 12.5px; font-weight: 600; color: #15803d; }
+    .ec-fu-ok-hint { font-size: 11.5px; color: #94a3b8; margin-top: 2px; }
+    .ec-fu-btn { display: inline-flex; align-items: center; gap: 5px; margin: 4px 14px 12px; padding: 7px 14px; font-size: 12px; font-weight: 600; color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; cursor: default; white-space: nowrap; font-family: inherit; }
+    .ec-fu-btn:hover { background: #f1f5f9; }
+    /* Proceeds integrity warning */
+    .ec-warn { background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px; margin: 8px 14px 10px; padding: 7px 10px; }
+    .ec-warn-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #92400e; margin-bottom: 3px; }
+    .ec-warn-txt { font-size: 11.5px; color: #78350f; line-height: 1.4; }
+    /* Vertical timeline */
+    .ec-tl { padding: 10px 14px 4px; }
+    .ec-tl-empty { padding: 14px; font-size: 12px; color: #94a3b8; font-style: italic; }
+    .ec-tl-item { display: flex; gap: 12px; }
+    .ec-tl-spine { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 16px; }
+    .ec-tl-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .ec-tl-dot.tl-done { background: #16a34a; }
+    .ec-tl-dot.tl-cur  { background: #d97706; box-shadow: 0 0 0 3px #fef3c7; }
+    .ec-tl-dot.tl-pend { background: #f1f5f9; border: 1.5px solid #cbd5e1; }
+    .ec-tl-line { width: 2px; background: #e2e8f0; flex: 1; min-height: 8px; margin-top: 3px; }
+    .ec-tl-body { flex: 1; display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; gap: 8px; }
+    .ec-tl-text { flex: 1; }
+    .ec-tl-label { font-size: 12.5px; font-weight: 600; color: #0f172a; line-height: 1.3; }
+    .ec-tl-label.tl-pend { color: #94a3b8; font-weight: 500; }
+    .ec-tl-detail { font-size: 11px; color: #64748b; margin-top: 1px; }
+    .ec-tl-note { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+    .ec-tl-date { font-size: 11px; color: #cbd5e1; white-space: nowrap; padding-top: 2px; flex-shrink: 0; }
+    /* Clickable completed timeline events — temporary until evidence record pages exist */
+    .ec-tl-body-link { cursor: pointer; border-radius: 4px; transition: background 0.12s; }
+    .ec-tl-body-link:hover { background: #f8fafc; }
+    .ec-tl-body-link:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
     .ec-breadcrumb { font-size: 10.5px; color: #94a3b8; padding: 10px 16px 0; }
-    .ec-breadcrumb a, .ec-breadcrumb button {
+    .ec-breadcrumb button {
       background: none; border: none; font-size: 10.5px; color: #64748b;
-      cursor: pointer; padding: 0; font-family: inherit; text-decoration: none;
+      cursor: pointer; padding: 0; font-family: inherit;
     }
-    .ec-breadcrumb a:hover, .ec-breadcrumb button:hover { color: #15803d; }
+    .ec-breadcrumb button:hover { color: #15803d; }
     .ec-breadcrumb-sep { margin: 0 5px; color: #cbd5e1; }
-    .ec-tabs {
-      display: flex;
-      border-top: 1px solid #e2e8f0;
-      background: #fff;
-      padding: 0 16px;
-      overflow-x: auto;
-      flex-shrink: 0;
-      margin: 0 -1px;
-    }
-    .ec-tab {
-      padding: 10px 16px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #64748b;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      white-space: nowrap;
-      background: none;
-      border-left: none;
-      border-right: none;
-      border-top: none;
-      border-radius: 0;
-      font-family: inherit;
-      min-height: auto;
-      box-shadow: none;
-    }
-    .ec-tab:hover { color: #334155; background: transparent; }
-    .ec-tab.active { color: #15803d; border-bottom-color: #16a34a; }
-    .ec-tab.disabled { color: #cbd5e1; cursor: default; }
-    .ec-tab.disabled:hover { background: transparent; color: #cbd5e1; }
-    .ec-nca {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      border-radius: 6px;
-      padding: 11px 14px;
-      margin-bottom: 14px;
-    }
-    .ec-nca.ok { background: #f0fdf4; border-color: #bbf7d0; }
-    .ec-nca-left { display: flex; flex-direction: column; }
-    .ec-nca-l { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #b91c1c; margin-bottom: 2px; }
-    .ec-nca.ok .ec-nca-l { color: #15803d; }
-    .ec-nca-t { font-size: 12.5px; font-weight: 600; color: #7f1d1d; }
-    .ec-nca.ok .ec-nca-t { color: #14532d; }
-    .ec-nca-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: #fff;
-      border: 1px solid #fca5a5;
-      border-radius: 4px;
-      padding: 5px 12px;
-      font-size: 11.5px;
-      font-weight: 600;
-      color: #b91c1c;
-      cursor: default;
-      white-space: nowrap;
-      flex-shrink: 0;
-      font-family: inherit;
-    }
-    .ec-nca.ok .ec-nca-pill { border-color: #86efac; color: #15803d; }
 
     /* ── Evidence Packs list ── */
     .ep-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -923,6 +1017,16 @@
       .ov-metric-card { min-height: 112px; padding: 1rem; }
       .ec-grid { grid-template-columns: 1fr; }
       .ec-meta { flex-wrap: wrap; }
+      .ci-title-row { flex-direction: column; gap: 8px; }
+      .ci-status { flex-direction: row; align-items: center; gap: 10px; }
+      .ci-status-sub { text-align: left; }
+      .fs-strip { grid-template-columns: 1fr; }
+      .fs-col + .fs-col { border-left: none; border-top: 1px solid #e2e8f0; }
+      .nra { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .nra-btn { width: 100%; justify-content: center; }
+      .ec-facts { grid-template-columns: 1fr; }
+      .ec-fact:nth-child(odd) { border-right: none; }
+      .ec-tl-body { flex-direction: column; gap: 2px; }
     }
 
   </style>
@@ -1199,6 +1303,18 @@
         </table>
       </div>
     </div>
+        </div>
+
+        <!-- VIEW: Evidence Pack Workspace ──────────────────────────────── -->
+        <div id="view-ep-workspace" class="app-view">
+          <div id="ep-ws-content"></div>
+        </div>
+
+        <!-- VIEW: Evidence Item ─────────────────────────────────────────── -->
+        <!-- Reusable destination for all evidence/document types.           -->
+        <!-- Real document rendering and metadata replace placeholder later. -->
+        <div id="view-ev-item" class="app-view">
+          <div id="ev-item-content"></div>
         </div>
 
       </div><!-- /#app-content -->
@@ -2179,8 +2295,7 @@
           ? Math.ceil((new Date(c.repatriation_deadline) - now) / 86400000)
           : null;
         const outstanding = Number(c.proceeds_outstanding) || 0;
-        const allChecklist = c.nxp_approved && c.cci_obtained && c.bl_uploaded
-          && c.payment_evidence_uploaded && c.credit_advice_confirmed;
+        const allChecklist = isEvidenceSetComplete(c);
 
         // Case status (ring / deadlines)
         let caseStatus;
@@ -2261,20 +2376,6 @@
       _cases = cases;
       _allShipments = shipments;
 
-      // ── Build shipment name map (for display name derivation) ──────────────────
-      const shipMap = {};
-      shipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
-
-      // Derive a human-readable case name from available fields (render layer only)
-      function caseName(c) {
-        const ship = shipMap[c.nxp_reference] ?? {};
-        const commodity = ship.commodity || '';
-        const dest = ship.port_of_discharge || '';
-        if (commodity && dest) return commodity + ' Export — ' + dest;
-        if (commodity) return commodity + ' Export';
-        return c.nxp_reference || c.shipment_reference || '—';
-      }
-
       // ── Section 1: Severity Summary ──────────────────────────────────────────────
       const criticalCount = cases.filter(c => c.priority === 'HIGH').length;
       const overdueCount  = cases.filter(c => c.caseStatus === 'OVERDUE').length;
@@ -2293,7 +2394,7 @@
       // ── Section 4: Attention Required ─────────────────────────────────────────
       const attItems = cases
         .filter(c => c.priority !== 'LOW' && c.blocker)
-        .map(c => ({ name: caseName(c), reason: c.blocker }));
+        .map(c => ({ name: getCaseName(c, getShipForCase(c.nxp_reference)), reason: c.blocker }));
 
       // ── Build HTML ────────────────────────────────────────────────────────────
       const sevHtml =
@@ -2307,7 +2408,7 @@
         ? ('<div class="card">'
           + '<div class="card-header"><h2>Most Urgent Case</h2></div>'
           + '<div class="ov-muc">'
-          + '<div class="ov-muc-name">' + h(caseName(topCase)) + '</div>'
+          + '<div class="ov-muc-name">' + h(getCaseName(topCase, getShipForCase(topCase.nxp_reference))) + '</div>'
           + '<div class="ov-muc-meta">'
           + '<span class="badge ' + (topCase.caseStatus === 'OVERDUE' ? 'r' : topCase.caseStatus === 'AT_RISK' ? 'o' : 'gr') + '">'
           + h(topCase.caseStatus === 'OVERDUE' ? 'OVERDUE' : topCase.caseStatus === 'AT_RISK' ? 'AT RISK' : topCase.caseStatus) + '</span>'
@@ -2329,7 +2430,7 @@
                 const dlbl  = c.daysLeft < 0 ? Math.abs(c.daysLeft) + 'd overdue' : c.daysLeft + 'd';
                 const scls  = c.repatriation_status === 'OVERDUE' ? 'r' : c.repatriation_status === 'PENDING' ? 'y' : 'g';
                 return '<tr>'
-                  + '<td><div style="font-weight:600;color:#0f172a;font-size:12px">' + h(caseName(c)) + '</div>'
+                  + '<td><div style="font-weight:600;color:#0f172a;font-size:12px">' + h(getCaseName(c, getShipForCase(c.nxp_reference))) + '</div>'
                   + '<div style="font-size:10px;color:#94a3b8;font-family:ui-monospace,monospace;margin-top:1px">' + h(c.nxp_reference ?? '') + '</div></td>'
                   + '<td style="white-space:nowrap">' + (c.repatriation_deadline ? date(c.repatriation_deadline) : '—') + '</td>'
                   + '<td><span class="badge ' + dcls + '">' + h(dlbl) + '</span></td>'
@@ -3025,6 +3126,7 @@
   // ── RFC-011: Global data (populated by loadOverview) ─────────────────────────
   let _cases = [];
   let _allShipments = [];
+  let _currentNxpRef = null; // tracks the active case for evidence navigation
 
   // ── View switching ────────────────────────────────────────────────────────────
   const VIEW_TITLES = {
@@ -3040,6 +3142,8 @@
     'view-evidence':     'Payment Evidence',
     'view-compliance':   'Compliance Records',
     'view-packs':        'Evidence Packs',
+    'view-ep-workspace': 'Evidence Pack',
+    'view-ev-item':      '',
     'view-settings':     'Settings',
   };
 
@@ -3160,18 +3264,6 @@
     const input = document.getElementById('xf-search-input');
     _exQuery = input ? input.value.trim().toLowerCase() : '';
 
-    const shipMap = {};
-    _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
-
-    function exCaseName(c) {
-      const s = shipMap[c.nxp_reference] ?? {};
-      const commodity = s.commodity || '';
-      const dest = s.port_of_discharge || '';
-      if (commodity && dest) return commodity + ' Export — ' + dest;
-      if (commodity) return commodity + ' Export';
-      return c.nxp_reference || c.shipment_reference || '—';
-    }
-
     const packCls   = { SEALED: 'g', READY_TO_SEAL: 'b', NOT_READY: 'r' };
     const packLabel = { SEALED: 'SEALED', READY_TO_SEAL: 'READY TO SEAL', NOT_READY: 'INCOMPLETE' };
 
@@ -3189,7 +3281,7 @@
     // Search
     if (_exQuery) {
       visible = visible.filter(c => {
-        const name = exCaseName(c).toLowerCase();
+        const name = getCaseName(c, getShipForCase(c.nxp_reference)).toLowerCase();
         return name.includes(_exQuery)
           || (c.nxp_reference ?? '').toLowerCase().includes(_exQuery)
           || (c.shipment_reference ?? '').toLowerCase().includes(_exQuery);
@@ -3215,7 +3307,7 @@
 
     // Render rows
     tbody.innerHTML = visible.map(c => {
-      const caseName = exCaseName(c);
+      const caseName = getCaseName(c, getShipForCase(c.nxp_reference));
       const ps = c.packStatus ?? 'NOT_READY';
 
       const stCls   = c.caseStatus === 'OVERDUE'  ? 'r'
@@ -3256,151 +3348,775 @@
   // filterExports kept as alias for backward compatibility
   function filterExports(type, btn) { setExFilter(type, btn); }
 
-  // ── Export Case Summary ───────────────────────────────────────────────────────
+  // ── Follow-Up ────────────────────────────────────────────────────────────────
+  // Deterministic rule chain — first matching rule wins.
+  // Rule order: overdue deadline → outstanding proceeds → missing compliance items.
+  // No backend calls, no AI. Derived entirely from existing case record fields.
+  function getFollowUp(c) {
+    // Rule 1: repatriation overdue
+    if (c.repatriation_status === 'OVERDUE' || (c.daysLeft !== null && c.daysLeft < 0)) {
+      return {
+        required:    true,
+        status:      'Overdue',
+        reason:      'Repatriation deadline has passed',
+        nextDate:    c.repatriation_deadline ? date(c.repatriation_deadline) : 'Not scheduled',
+        owner:       'Unassigned',
+        buttonLabel: 'Schedule Follow-Up →',
+      };
+    }
+    // Rule 2: outstanding proceeds
+    if (c.outstanding > 0) {
+      return {
+        required:    true,
+        status:      'Pending',
+        reason:      'Outstanding proceeds: USD ' + num(c.outstanding),
+        nextDate:    (c.repatriation_deadline && c.daysLeft !== null && c.daysLeft <= 30)
+                       ? date(c.repatriation_deadline) : 'Not scheduled',
+        owner:       'Unassigned',
+        buttonLabel: 'Schedule Follow-Up →',
+      };
+    }
+    // Rule 3: missing compliance items
+    const _fuMissing = [
+      !c.credit_advice_confirmed,
+      !c.payment_evidence_uploaded,
+      !c.bl_uploaded,
+      !c.cci_obtained,
+      !c.nxp_approved,
+    ].filter(Boolean).length;
+    if (_fuMissing > 0) {
+      return {
+        required:    true,
+        status:      'Action Required',
+        reason:      _fuMissing + ' compliance item' + (_fuMissing !== 1 ? 's' : '') + ' outstanding',
+        nextDate:    (c.repatriation_deadline && c.daysLeft !== null && c.daysLeft <= 30)
+                       ? date(c.repatriation_deadline) : 'Not scheduled',
+        owner:       'Unassigned',
+        buttonLabel: 'Schedule Follow-Up →',
+      };
+    }
+    // Rule 4: no follow-up needed
+    return { required: false, status: '', reason: '', nextDate: '', owner: '', buttonLabel: '' };
+  }
+
+  // ── Timeline ─────────────────────────────────────────────────────────────────
+  // Returns ordered timeline events derived only from existing case/shipment data.
+  // State is sequential: first incomplete event is 'cur', all subsequent are 'pend'.
+  // Each event carries stable evidenceType metadata so click behavior is decoupled
+  // from display labels — labels can be renamed without breaking evidence navigation.
+  function getTimeline(c, ship) {
+    const pRec = Number(c.proceeds_received) || 0;
+    const pReq = Number(c.proceeds_required) || 0;
+    const pOut = Number(c.outstanding)       || 0;
+    const raw = [
+      {
+        label:         'NXP Approved',
+        detail:        c.nxp_reference || '',
+        evidenceType:  'nxp_approval',
+        evidenceLabel: 'NXP Approval',
+        done:          !!c.nxp_approved,
+      },
+      {
+        label:         'Shipment Created',
+        detail:        (ship && ship.vessel_name) ? ship.vessel_name : '',
+        evidenceType:  'shipment_record',
+        evidenceLabel: 'Shipment Record',
+        done:          !!(ship && ship.nxp_reference),
+      },
+      {
+        label:         'Bill of Lading Uploaded',
+        detail:        c.bl_uploaded ? '' : 'Waiting for BL upload',
+        evidenceType:  'bill_of_lading',
+        evidenceLabel: 'Bill of Lading',
+        done:          !!c.bl_uploaded,
+      },
+      ...(pReq > 0 ? [{
+        label:         'Proceeds Received',
+        detail:        pRec > 0 ? 'USD ' + num(pRec) + ' received' : 'USD ' + num(pReq) + ' expected',
+        evidenceType:  'payment_evidence',
+        evidenceLabel: 'Payment Evidence',
+        done:          pRec > 0 && pOut <= 0,
+      }] : []),
+      {
+        label:         'Credit Advice Confirmed',
+        detail:        c.credit_advice_confirmed ? '' : 'Waiting for ADV upload',
+        evidenceType:  'credit_advice',
+        evidenceLabel: 'Credit Advice',
+        done:          !!c.credit_advice_confirmed,
+      },
+      {
+        label:         'Case Compliant',
+        detail:        c.caseStatus === 'COMPLETE' ? 'Fully repatriated'
+                      : c.repatriation_deadline    ? 'Deadline: ' + date(c.repatriation_deadline) : '',
+        evidenceType:  'compliance_summary',
+        evidenceLabel: 'Compliance Summary',
+        done:          c.caseStatus === 'COMPLETE',
+      },
+    ];
+    let foundCur = false;
+    return raw.map(function(ev) {
+      const base = { label: ev.label, detail: ev.detail, evidenceType: ev.evidenceType, evidenceLabel: ev.evidenceLabel };
+      if (ev.done) return { ...base, state: 'done' };
+      if (!foundCur) { foundCur = true; return { ...base, state: 'cur' }; }
+      return { ...base, state: 'pend' };
+    });
+  }
+
+  // ── Next Required Action ─────────────────────────────────────────────────────
+  // Deterministic rule chain — first matching rule wins.
+  // Rules are ordered: document gaps before proceeds shortfalls.
+  // No AI, no inference, no backend calls. Reads only fields already on the record.
+  function getNextRequiredAction(c) {
+    if (!c.credit_advice_confirmed) return {
+      actionLabel:  'Upload credit advice',
+      actionDetail: 'ADV · Document required',
+      actionType:   'upload',
+      buttonLabel:  'Upload ADV →',
+      severity:     'action',
+    };
+    if (!c.payment_evidence_uploaded) return {
+      actionLabel:  'Upload payment evidence',
+      actionDetail: 'EVD · Document required',
+      actionType:   'upload',
+      buttonLabel:  'Upload EVD →',
+      severity:     'action',
+    };
+    if (!c.bl_uploaded) return {
+      actionLabel:  'Upload bill of lading',
+      actionDetail: 'BL · Document required',
+      actionType:   'upload',
+      buttonLabel:  'Upload BL →',
+      severity:     'action',
+    };
+    if (!c.cci_obtained) return {
+      actionLabel:  'Upload CCI',
+      actionDetail: 'CCI · Document required',
+      actionType:   'upload',
+      buttonLabel:  'Upload CCI →',
+      severity:     'action',
+    };
+    if (!c.nxp_approved) return {
+      actionLabel:  'Resolve NXP approval',
+      actionDetail: 'NXP · Pending CBN approval',
+      actionType:   'resolve',
+      buttonLabel:  'Resolve NXP →',
+      severity:     'action',
+    };
+    if (c.outstanding > 0) return {
+      actionLabel:  'Confirm outstanding proceeds',
+      actionDetail: 'Proceeds · Follow up required',
+      actionType:   'follow-up',
+      buttonLabel:  'Follow up →',
+      severity:     'action',
+    };
+    return {
+      actionLabel:  'No action required',
+      actionDetail: 'All compliance requirements met',
+      actionType:   'none',
+      buttonLabel:  '',
+      severity:     'none',
+    };
+  }
+
+  // ── Compliance Progress button handlers ──────────────────────────────────────
+  // Temporary interactions — replace when document upload/preview workflows ship.
+
+  function ecViewDoc(msg) {
+    // Show a transient toast until a real document viewer is implemented
+    let t = document.getElementById('doc-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'doc-toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg || 'Document viewer coming in a future phase.';
+    clearTimeout(t._dismiss);
+    t.classList.add('show');
+    t._dismiss = setTimeout(function() { t.classList.remove('show'); }, 2000);
+  }
+
+  // ── Shared Frontend Evidence State Model ────────────────────────────────────
+  // Single source of truth for evidence presence and state across all screens.
+  // Screens must not invent their own evidence state logic — always call getEvidenceState().
+  // Future backend validation states (under_review, validated, rejected) plug in here;
+  // callers that already use this helper will pick them up automatically.
+  function getEvidenceState(caseRecord, evidenceType, shipRecord) {
+    shipRecord = shipRecord || {};
+    var present;
+    switch (evidenceType) {
+      case 'nxp_approval':       present = !!caseRecord.nxp_approved;               break;
+      case 'bill_of_lading':     present = !!caseRecord.bl_uploaded;                break;
+      case 'cci_document':       present = !!caseRecord.cci_obtained;               break;
+      case 'payment_evidence':   present = !!caseRecord.payment_evidence_uploaded;  break;
+      case 'credit_advice':      present = !!caseRecord.credit_advice_confirmed;    break;
+      case 'shipment_record':    present = !!(shipRecord && shipRecord.nxp_reference); break;
+      case 'compliance_summary': present = !!caseRecord;                            break;
+      default:                   present = false;
+    }
+    var state      = present ? 'uploaded' : 'missing';
+    var label      = present ? 'Uploaded' : 'Missing';
+    var badgeClass = present ? 'on-file'  : 'missing';
+    return {
+      state:            state,
+      label:            label,
+      badgeClass:       badgeClass,
+      required:         true,
+      validationStatus: 'Not validated',
+      lastChecked:      'Unavailable',
+    };
+  }
+
+  // Returns true only when every required evidence type is uploaded, using the shared model.
+  // All completeness checks must route through here — never use raw boolean field literals.
+  function isEvidenceSetComplete(caseRecord, shipRecord) {
+    var required = ['nxp_approval', 'bill_of_lading', 'cci_document', 'payment_evidence', 'credit_advice'];
+    return required.every(function(t) {
+      return getEvidenceState(caseRecord, t, shipRecord).state === 'uploaded';
+    });
+  }
+
+  // Returns the shipment record matching nxpRef, or {} if not found.
+  function getShipForCase(nxpRef) {
+    return _allShipments.find(function(s) { return s.nxp_reference === nxpRef; }) || {};
+  }
+
+  // Derives the human-readable case display name from available shipment fields.
+  // Single source of truth — do not inline this ternary elsewhere.
+  function getCaseName(caseRecord, shipRecord) {
+    shipRecord = shipRecord || {};
+    var commodity = shipRecord.commodity || '';
+    var dest      = shipRecord.port_of_discharge || '';
+    if (commodity && dest) return commodity + ' Export — ' + dest;
+    if (commodity)         return commodity + ' Export';
+    return caseRecord.nxp_reference || caseRecord.shipment_reference || '—';
+  }
+
+  // ── Evidence navigation ───────────────────────────────────────────────────────
+  // openEvidence() is the single public entry point for opening any evidence record.
+  // UI components should never contain evidence-routing logic — always call openEvidence().
+  // Routes to the Evidence Item view when a case is active; falls back to a toast otherwise.
+  function openEvidence(type, options) {
+    options = options || {};
+    // If a case is active, navigate to the Evidence Item detail view
+    if (_currentNxpRef) {
+      openEvidenceItem(type, _currentNxpRef);
+      return;
+    }
+    // Fallback placeholder toast when no case context is available
+    const msgs = {
+      nxp_approval:       'Approval record viewer coming in a future phase.',
+      shipment_record:    'Shipment record viewer coming in a future phase.',
+      bill_of_lading:     'Bill of Lading viewer coming in a future phase.',
+      payment_evidence:   'Payment evidence viewer coming in a future phase.',
+      credit_advice:      'Credit Advice viewer coming in a future phase.',
+      compliance_summary: 'Compliance summary coming in a future phase.',
+      cci_document:       'CCI document viewer coming in a future phase.',
+    };
+    ecViewDoc(msgs[type] || 'Document viewer coming in a future phase.');
+  }
+
+  // ── Evidence Item ────────────────────────────────────────────────────────────
+  // Reusable detail view for any evidence/document type.
+  // Real document rendering and metadata will replace the placeholder panel later.
+  function openEvidenceItem(type, nxpRef) {
+    const c = _cases.find(x => x.nxp_reference === nxpRef);
+    if (!c) return;
+    const ship     = getShipForCase(nxpRef);
+    const caseName = getCaseName(c, ship);
+
+    // Evidence type metadata — title and short code for each supported type
+    const evMeta = {
+      nxp_approval:       { title: 'NXP Approval',      code: 'NXP' },
+      bill_of_lading:     { title: 'Bill of Lading',     code: 'BL'  },
+      cci_document:       { title: 'CCI Document',       code: 'CCI' },
+      payment_evidence:   { title: 'Payment Evidence',   code: 'EVD' },
+      credit_advice:      { title: 'Credit Advice',      code: 'ADV' },
+      shipment_record:    { title: 'Shipment Record',    code: 'SHP' },
+      compliance_summary: { title: 'Compliance Summary', code: 'CMP' },
+    };
+    const meta = evMeta[type] || { title: 'Document', code: '—' };
+
+    // Derive evidence state via shared model — no ad-hoc booleans on this screen
+    const evState     = getEvidenceState(c, type, ship);
+    const present     = evState.state === 'uploaded';
+    const statusLabel = evState.label;      // 'Uploaded' | 'Missing' (canonical)
+    const statusCls   = evState.badgeClass; // 'on-file'  | 'missing'
+
+    document.getElementById('ev-item-content').innerHTML =
+      // Back navigation
+      '<div style="padding:12px 4px 4px">'
+      +   '<button class="ec-chk-btn view" type="button"'
+      +     ' onclick="openEvidencePackWorkspace(\'' + h(nxpRef) + '\')"'
+      +     ' aria-label="Back to Evidence Pack">← Back to Evidence Pack</button>'
+      + '</div>'
+      // Identity card — title, code, status
+      + '<div class="ec-card">'
+      +   '<div class="ec-card-h">'
+      +     '<span class="ec-card-t">' + h(meta.title) + '</span>'
+      +     '<span class="ev-item-code">' + h(meta.code) + '</span>'
+      +   '</div>'
+      +   '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="ev-item-status ' + statusCls + '">' + statusLabel + '</span></span></div>'
+      + '</div>'
+      // Case context card
+      + '<div class="ec-card">'
+      +   '<div class="ec-card-h"><span class="ec-card-t">Record Details</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Case</span><span class="ec-rv">' + h(caseName) + '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">NXP Reference</span><span class="ec-rv mono">' + h(c.nxp_reference || '—') + '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Shipment Reference</span><span class="ec-rv mono">' + h(c.shipment_reference || '—') + '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Source System</span><span class="ec-rv">ExportOS</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Uploaded Date</span><span class="ec-rv muted">Unavailable</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Validation Status</span><span class="ec-rv muted">' + h(evState.validationStatus) + '</span></div>'
+      + '</div>'
+      // Evidence Metadata card — compliance context and validation state
+      + '<div class="ec-card">'
+      +   '<div class="ec-card-h"><span class="ec-card-t">Evidence Metadata</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Evidence Type</span><span class="ec-rv">' + h(meta.title) + '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Evidence Code</span><span class="ec-rv"><span class="ev-item-code">' + h(meta.code) + '</span></span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Required for Compliance</span><span class="ec-rv">Yes</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Current State</span><span class="ec-rv"><span class="ev-item-status ' + statusCls + '">' + statusLabel + '</span></span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Validation Status</span><span class="ec-rv muted">' + h(evState.validationStatus) + '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Last Checked</span><span class="ec-rv muted">' + h(evState.lastChecked) + '</span></div>'
+      +   (present
+          ? '<div class="ev-item-notice neutral">Document metadata is not available yet.<br>Metadata extraction will be added in a future phase.</div>'
+          : '<div class="ev-item-notice amber">Evidence has not been uploaded yet.<br>Upload flow will be added in a future phase.</div>')
+      + '</div>'
+
+      // Evidence History card — read-only lifecycle events; dates added when backend supplies them
+      + '<div class="ec-card">'
+      +   '<div class="ec-card-h"><span class="ec-card-t">Evidence History</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Created</span><span class="ec-rv">'
+      +     (present ? '<span class="ev-st-badge recorded">Recorded</span><span class="ev-row-date">Date unavailable</span>'
+                     : '<span class="ev-st-badge pending">Pending</span>')
+      +   '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Uploaded</span><span class="ec-rv">'
+      +     (present ? '<span class="ev-st-badge recorded">Recorded</span><span class="ev-row-date">Date unavailable</span>'
+                     : '<span class="ev-st-badge pending">Pending</span>')
+      +   '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Replaced</span><span class="ec-rv"><span class="ev-st-badge na">N/A</span></span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Validated</span><span class="ec-rv"><span class="ev-st-badge pending">Pending</span></span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Rejected</span><span class="ec-rv"><span class="ev-st-badge na">N/A</span></span></div>'
+      + '</div>'
+
+      // Validation Checks card — automated checks will replace placeholders in a future phase
+      + '<div class="ec-card">'
+      +   '<div class="ec-card-h"><span class="ec-card-t">Validation Checks</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">File present</span><span class="ec-rv">'
+      +     (present ? '<span class="ev-st-badge pass">Passed</span>'
+                     : '<span class="ev-st-badge fail">Failed</span>')
+      +   '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Format check</span><span class="ec-rv"><span class="ev-st-badge pending">Pending</span></span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Required fields</span><span class="ec-rv"><span class="ev-st-badge pending">Pending</span></span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Regulatory validation</span><span class="ec-rv"><span class="ev-st-badge pending">Pending</span></span></div>'
+      +   '<div class="ev-item-notice neutral">Automated validation will be added in a future phase.</div>'
+      + '</div>'
+
+      // Placeholder panel — replaced by real document rendering in a future phase
+      + '<div class="ec-card">'
+      +   '<div class="ec-card-h"><span class="ec-card-t">Document</span></div>'
+      +   '<div class="ev-item-ph">Document viewer coming in a future phase.</div>'
+      + '</div>';
+
+    showView('view-ev-item', h(meta.title), 'view-exports');
+  }
+
+  function ecUploadNav(hasPack) {
+    // Navigate to Evidence Packs if one exists; otherwise scroll to the Next Required Action band
+    if (hasPack) {
+      showView('view-packs');
+    } else {
+      const nra = document.querySelector('.nra');
+      if (nra) nra.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  // ── Evidence Pack Workspace ──────────────────────────────────────────────────
+  function openEvidencePackWorkspace(nxpRef) {
+    _currentNxpRef = nxpRef;
+    const c = _cases.find(x => x.nxp_reference === nxpRef);
+    if (!c) return;
+    const ship     = getShipForCase(nxpRef);
+    const caseName = getCaseName(c, ship);
+
+    const rdyMap = {
+      'SEALED':        { label: 'Sealed',        cls: 'sealed'    },
+      'READY_TO_SEAL': { label: 'Ready to Seal', cls: 'ready'     },
+      'NOT_READY':     { label: 'Not Ready',     cls: 'not-ready' },
+    };
+    const rdy = rdyMap[c.packStatus] || { label: 'Not Ready', cls: 'not-ready' };
+
+    const hasPack = !!(c.pack);
+    // Evidence items — state derived via shared getEvidenceState(); no ad-hoc booleans
+    const epItems = [
+      { tag: 'NXP', label: 'NXP Approval',    evidenceType: 'nxp_approval'     },
+      { tag: 'BL',  label: 'Bill of Lading',   evidenceType: 'bill_of_lading'   },
+      { tag: 'CCI', label: 'CCI Document',     evidenceType: 'cci_document'     },
+      { tag: 'EVD', label: 'Payment Evidence', evidenceType: 'payment_evidence' },
+      { tag: 'ADV', label: 'Credit Advice',    evidenceType: 'credit_advice'    },
+    ].map(function(i) { return Object.assign({}, i, { evState: getEvidenceState(c, i.evidenceType, ship) }); });
+
+    function epRow(evState, tag, label, evidenceType) {
+      const present = evState.state === 'uploaded';
+      const btn = present
+        ? '<button class="ec-chk-btn view"   type="button" onclick="openEvidence(\'' + evidenceType + '\')" aria-label="View ' + h(label) + '">View →</button>'
+        : '<button class="ec-chk-btn upload" type="button" onclick="ecUploadNav(' + hasPack + ')" aria-label="Upload ' + h(label) + '">Upload →</button>';
+      return '<div class="ec-chk' + (present ? '' : ' chk-miss') + '">'
+        + '<span class="ec-chk-i' + (present ? '' : ' x') + '">' + (present ? '✓' : '✗') + '</span>'
+        + '<span class="ec-chk-l">' + h(label) + '</span>'
+        + '<span class="ec-chk-t">' + h(tag) + '</span>'
+        + '<span class="ec-chk-n ' + (present ? 'ok' : 'bad') + '">' + (present ? 'On file' : 'Missing') + '</span>'
+        + btn
+        + '</div>';
+    }
+
+    const onFile = epItems.filter(function(i) { return i.evState.state === 'uploaded'; }).length;
+
+    document.getElementById('ep-ws-content').innerHTML =
+      '<div class="ec-card">'
+      + '<div class="ec-card-h">'
+      +   '<span class="ec-card-t">' + h(caseName) + '</span>'
+      +   '<span class="ep-ws-rdy ' + rdy.cls + '">' + h(rdy.label) + '</span>'
+      + '</div>'
+      + '<div class="ec-row"><span class="ec-rl">NXP Reference</span><span class="ec-rv mono">' + h(c.nxp_reference || '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Shipment Reference</span><span class="ec-rv mono">' + h(c.shipment_reference || '—') + '</span></div>'
+      + '</div>'
+      + '<div class="ec-card">'
+      + '<div class="ec-card-h"><span class="ec-card-t">Evidence Items</span><span class="ec-chk-prog">' + onFile + ' of ' + epItems.length + ' on file</span></div>'
+      + epItems.map(function(i) { return epRow(i.evState, i.tag, i.label, i.evidenceType); }).join('')
+      + '</div>'
+      + '<div style="padding:12px 4px 4px">'
+      +   '<button class="ec-chk-btn view" type="button" onclick="openExportCase(\'' + h(nxpRef) + '\')" aria-label="Back to export case">← Back to Export Case</button>'
+      + '</div>';
+
+    showView('view-ep-workspace', h(caseName), 'view-exports');
+  }
+
+  // ── Export Case ─────────────────────────────────────────────────────────────
   function openExportCase(nxpRef) {
+    _currentNxpRef = nxpRef;
     const c = _cases.find(x => x.nxp_reference === nxpRef);
     if (!c) return;
 
-    const shipMap = {};
-    _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
-    const ship = shipMap[nxpRef] ?? {};
+    const ship      = getShipForCase(nxpRef);
+    const caseName  = getCaseName(c, ship);
+    const commodity = ship.commodity || '';
 
-    const dLabel = c.daysLeft === null ? '—'
-                 : c.daysLeft < 0     ? Math.abs(c.daysLeft) + 'd overdue'
-                 :                      c.daysLeft + 'd left';
-    const dCls   = c.daysLeft === null ? 'gr'
-                 : c.daysLeft < 0     ? 'r'
-                 : c.daysLeft <= 30   ? 'o' : 'gr';
+    // Status indicator
+    const daysLeft = c.daysLeft;
+    const stMap = {
+      OVERDUE:  { cls: 's-overdue',   word: 'OVERDUE',        sub: daysLeft !== null ? Math.abs(daysLeft) + 'd past CBN deadline' : 'Past deadline' },
+      AT_RISK:  { cls: 's-atrisk',    word: 'AT RISK',         sub: daysLeft !== null ? daysLeft + 'd to CBN deadline' : '—' },
+      PARTIAL:  { cls: 's-action',    word: 'ACTION REQUIRED', sub: daysLeft !== null ? daysLeft + 'd to CBN deadline' : '—' },
+      COMPLETE: { cls: 's-compliant', word: 'COMPLIANT',       sub: 'Fully repatriated' },
+    };
+    const st = stMap[c.caseStatus] ?? { cls: 's-action', word: c.caseStatus ?? '—', sub: '—' };
 
-    const packCls   = { SEALED: 'g', READY_TO_SEAL: 'b', NOT_READY: 'gr' };
-    const packLabel = { SEALED: 'SEALED', READY_TO_SEAL: 'READY TO SEAL', NOT_READY: 'NOT READY' };
+    // Pack
+    const packLbl = { SEALED: 'Sealed', READY_TO_SEAL: 'Ready to seal', NOT_READY: 'Not ready' };
+    const packCls = { SEALED: 'fs-pack-sealed', READY_TO_SEAL: 'fs-pack-ready', NOT_READY: 'fs-pack-not' };
     const ps = c.packStatus ?? 'NOT_READY';
 
+    // Missing checklist items
+    const missing = [
+      !c.nxp_approved              && 'NXP',
+      !c.bl_uploaded               && 'BL',
+      !c.cci_obtained              && 'CCI',
+      !c.payment_evidence_uploaded && 'EVD',
+      !c.credit_advice_confirmed   && 'ADV',
+    ].filter(Boolean);
+
+    const packSub = ps === 'SEALED'        ? 'Pack sealed'
+                  : ps === 'READY_TO_SEAL' ? 'Checklist complete'
+                  : missing.length         ? missing.length + ' document' + (missing.length !== 1 ? 's' : '') + ' missing'
+                  :                          'Incomplete';
+
+    // Fact strip — deadline
+    const deadlineStr = c.repatriation_deadline ? date(c.repatriation_deadline) : '—';
+    const dlOverdue   = daysLeft !== null && daysLeft < 0;
+    const dlSub       = daysLeft === null ? '—'
+                      : daysLeft < 0     ? Math.abs(daysLeft) + 'd overdue'
+                      :                    daysLeft + 'd remaining';
+
+    // Repatriation badge
     const repCls = c.repatriation_status === 'OVERDUE'  ? 'r'
                  : c.repatriation_status === 'COMPLETE' ? 'g'
                  : c.repatriation_status === 'PARTIAL'  ? 'o' : 'gr';
 
-    const deadlineStr = c.repatriation_deadline
-      ? date(c.repatriation_deadline) : '—';
+    // NRA — deterministic function replaces static c.nextAction
+    const nra   = getNextRequiredAction(c);
+    const nraOk = nra.severity === 'none';
 
-    // Header
-    let badges = '';
-    if (c.caseStatus === 'OVERDUE')    badges += '<span class="badge r">OVERDUE</span> ';
-    if (c.priority === 'HIGH')         badges += '<span class="badge r">HIGH</span> ';
-    if (c.priority === 'MEDIUM')       badges += '<span class="badge o">MEDIUM</span> ';
-    if (c.caseStatus === 'COMPLETE')   badges += '<span class="badge g">COMPLETE</span> ';
-    badges += '<span class="badge ' + dCls + '">' + h(dLabel) + '</span> ';
-    badges += '<span class="badge ' + (packCls[ps] ?? 'gr') + '">PACK: ' + h(packLabel[ps] ?? ps) + '</span>';
-
-    document.getElementById('ec-tabs').innerHTML =
-      '<div class="ec-tabs">'
-      + '<button class="ec-tab active">Summary</button>'
-      + '<button class="ec-tab disabled" disabled>Shipment</button>'
-      + '<button class="ec-tab disabled" disabled>Documents</button>'
-      + '<button class="ec-tab disabled" disabled>Payments</button>'
-      + '<button class="ec-tab disabled" disabled>Compliance</button>'
-      + '<button class="ec-tab disabled" disabled>Evidence Pack</button>'
-      + '</div>';
-
-    document.getElementById('ec-header').innerHTML =
-      '<div class="ec-breadcrumb"><button onclick="showView(\'view-exports\',\'Exports\',\'view-exports\')">Exports</button>'
-      + '<span class="ec-breadcrumb-sep">›</span>'
-      + '<span>' + h(c.nxp_reference ?? '—') + '</span></div>'
-      + '<div class="ec-ta">'
-      +   '<div class="ec-nxp">' + h(c.nxp_reference ?? '—') + '</div>'
-      +   '<div class="ec-sref">' + h(c.shipment_reference ?? '—') + '</div>'
-      +   '<div class="ec-bdg">' + badges + '</div>'
-      + '</div>'
-      + '<div class="ec-meta">'
-      +   '<div class="ec-mc"><div class="ec-ml">Shipment Value</div><div class="ec-mv">'
-      +     (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : '—') + '</div></div>'
-      +   '<div class="ec-mc"><div class="ec-ml">Proceeds Required</div><div class="ec-mv">'
-      +     (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</div></div>'
-      +   '<div class="ec-mc"><div class="ec-ml">Outstanding</div><div class="ec-mv' + (c.outstanding > 0 ? ' red' : '') + '">'
-      +     (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : '—') + '</div></div>'
-      +   '<div class="ec-mc"><div class="ec-ml">CBN Deadline</div><div class="ec-mv' + (c.daysLeft !== null && c.daysLeft < 0 ? ' red' : '') + '">' + deadlineStr + '</div></div>'
-      +   '<div class="ec-mc"><div class="ec-ml">Repatriation</div><div class="ec-mv"><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></div></div>'
-      + '</div>';
-
-    // NCA banner
-    const ncaOk = c.nextAction === 'No action' || c.caseStatus === 'COMPLETE';
-    const ncaClass = ncaOk ? 'ec-nca ok' : 'ec-nca';
-
-    // Checklist helper
-    function eck(val, tag, label) {
-      return '<div class="ec-chk">'
-        + '<span class="ec-chk-i' + (val ? '' : ' x') + '">' + (val ? '✓' : '✗') + '</span>'
-        + '<span class="ec-chk-l">' + h(label) + '</span>'
-        + '<span class="ec-chk-t">' + h(tag) + '</span>'
-        + '<span class="ec-chk-n ' + (val ? 'ok' : 'bad') + '">' + (val ? 'On file' : 'Missing') + '</span>'
-        + '</div>';
-    }
-
-    // Route
     const route = (ship.port_of_loading && ship.port_of_discharge)
       ? h(ship.port_of_loading) + ' → ' + h(ship.port_of_discharge)
       : '—';
 
-    // Missing checklist items for pack blocking
-    const missing = [
-      !c.nxp_approved             && 'NXP',
-      !c.bl_uploaded              && 'BL',
-      !c.cci_obtained             && 'CCI',
-      !c.payment_evidence_uploaded && 'EVD',
-      !c.credit_advice_confirmed  && 'ADV',
-    ].filter(Boolean);
+    // Compliance progress grouping — state derived via shared getEvidenceState()
+    const chkItems = [
+      { evidenceType: 'nxp_approval',     tag: 'NXP', label: 'NXP Approved by CBN'       },
+      { evidenceType: 'bill_of_lading',   tag: 'BL',  label: 'Bill of Lading Uploaded'    },
+      { evidenceType: 'cci_document',     tag: 'CCI', label: 'CCI Obtained'               },
+      { evidenceType: 'payment_evidence', tag: 'EVD', label: 'Payment Evidence Uploaded'  },
+      { evidenceType: 'credit_advice',    tag: 'ADV', label: 'Credit Advice Confirmed'    },
+    ].map(function(i) { return Object.assign({}, i, { evState: getEvidenceState(c, i.evidenceType) }); });
+    const chkBlocking = chkItems.filter(function(i) { return i.evState.state !== 'uploaded'; });
+    const chkDone     = chkItems.filter(function(i) { return i.evState.state === 'uploaded'; });
 
+    // Checklist helper — chk-miss class for visually obvious missing state
+    // Temporary interactions — replace with real document flows when upload/preview ships.
+    // UI components never contain evidence-routing logic; always delegate to openEvidence().
+    function eck(evidenceType, tag, label) {
+      const hasPack  = !!(c.pack);
+      const evState  = getEvidenceState(c, evidenceType);
+      const present  = evState.state === 'uploaded';
+      const btn = present
+        ? '<button class="ec-chk-btn view"   type="button" onclick="openEvidence(\'' + evidenceType + '\')" aria-label="View document for ' + h(label) + '">View →</button>'
+        : '<button class="ec-chk-btn upload" type="button" onclick="ecUploadNav(' + hasPack + ')" aria-label="Upload document for ' + h(label) + '">Upload →</button>';
+      return '<div class="ec-chk' + (present ? '' : ' chk-miss') + '">'
+        + '<span class="ec-chk-i' + (present ? '' : ' x') + '">' + (present ? '✓' : '✗') + '</span>'
+        + '<span class="ec-chk-l">' + h(label) + '</span>'
+        + '<span class="ec-chk-t">' + h(tag) + '</span>'
+        + '<span class="ec-chk-n ' + (present ? 'ok' : 'bad') + '">' + (present ? 'On file' : 'Missing') + '</span>'
+        + btn
+        + '</div>';
+    }
+
+    // Proceeds integrity — detect when displayed figures don't add up
+    const _pReq = Number(c.proceeds_required) || 0;
+    const _pRec = Number(c.proceeds_received) || 0;
+    const _pOut = Number(c.outstanding)       || 0;
+    const procBad = (_pReq > 0 || _pRec > 0) && Math.abs(_pOut - (_pReq - _pRec)) > 0.01;
+
+    // ── Header: breadcrumb + 3 bands ─────────────────────────────────────────
+    document.getElementById('ec-tabs').innerHTML = '';
+    document.getElementById('ec-header').innerHTML =
+
+      // Breadcrumb
+      '<div class="ec-breadcrumb">'
+      + '<button onclick="showView(\'view-exports\',\'Exports\',\'view-exports\')">Exports</button>'
+      + '<span class="ec-breadcrumb-sep">›</span>'
+      + '<span>' + h(c.nxp_reference ?? '—') + '</span>'
+      + '</div>'
+
+      // Band 1 — Case Identity
+      + '<div class="ci"><div class="ci-inner">'
+      +   '<div class="ci-title-row">'
+      +     '<div class="ci-name">' + h(caseName) + '</div>'
+      +     '<div class="ci-status ' + st.cls + '">'
+      +       '<div class="ci-status-dot-row">'
+      +         '<div class="ci-dot"></div>'
+      +         '<div class="ci-status-word">' + h(st.word) + '</div>'
+      +       '</div>'
+      +       '<div class="ci-status-sub">' + h(st.sub) + '</div>'
+      +     '</div>'
+      +   '</div>'
+      +   '<div class="ci-ids"><span>' + h(c.nxp_reference ?? '—') + '</span><span>' + h(c.shipment_reference ?? '—') + '</span></div>'
+      +   '<div class="ci-meta">'
+      +     (commodity ? '<span>' + h(commodity) + '</span>' : '')
+      +     (commodity && ship.shipment_value ? '<span class="ci-meta-sep">·</span>' : '')
+      +     (ship.shipment_value ? '<span>USD ' + num(ship.shipment_value) + '</span>' : '')
+      +   '</div>'
+      + '</div></div>'
+
+      // Band 2 — Fact Strip
+      + '<div class="fs-strip">'
+      +   '<div class="fs-col">'
+      +     '<div class="fs-lbl">CBN Deadline</div>'
+      +     '<div class="fs-val' + (dlOverdue ? ' red' : '') + '">' + h(deadlineStr) + '</div>'
+      +     '<div class="fs-sub' + (dlOverdue ? ' red' : ' muted') + '">' + h(dlSub) + '</div>'
+      +   '</div>'
+      +   '<div class="fs-col">'
+      +     '<div class="fs-lbl">Shipment Value</div>'
+      +     '<div class="fs-val">' + (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : '—') + '</div>'
+      +     (ship.shipment_value && c.outstanding > 0 ? '<div class="fs-sub muted">Outstanding: USD ' + num(c.outstanding) + '</div>' : '')
+      +   '</div>'
+      +   '<div class="fs-col">'
+      +     '<div class="fs-lbl">Evidence Pack</div>'
+      +     '<div class="fs-val ' + (packCls[ps] ?? 'fs-pack-not') + '">' + h(packLbl[ps] ?? ps) + '</div>'
+      +     '<div class="fs-sub muted">' + h(packSub) + '</div>'
+      +   '</div>'
+      + '</div>'
+
+      // Band 3 — Next Required Action (deterministic)
+      + '<div class="nra' + (nraOk ? ' compliant' : '') + '">'
+      +   '<div class="nra-left">'
+      +     '<div class="nra-lbl">Next Required Action</div>'
+      +     '<div class="nra-text">' + h(nra.actionLabel) + '</div>'
+      +     '<div class="nra-detail">' + h(nra.actionDetail) + '</div>'
+      +   '</div>'
+      +   (nraOk ? '' : '<button class="nra-btn">' + h(nra.buttonLabel) + '</button>')
+      + '</div>';
+
+    // ── Content: lower sections only ─────────────────────────────────────────
     document.getElementById('ec-content').innerHTML =
-      '<div class="' + ncaClass + '">'
-      + '<div class="ec-nca-left">'
-      + '<div class="ec-nca-l">Next Required Action</div>'
-      + '<div class="ec-nca-t">' + h(c.nextAction ?? '—') + '</div>'
-      + '</div>'
-      + (ncaOk ? '' : '<button class="ec-nca-pill">' + h(c.nextAction) + ' →</button>')
-      + '</div>'
 
-      + '<div class="ec-grid">'
+      // Evidence Summary — derives from the shared evidence state model via chkItems/chkDone/chkBlocking.
+      // No separate evidence logic here; all state comes from getEvidenceState() already applied above.
+      (function() {
+        const hasPack       = !!(c.pack);
+        const totalDocs     = chkItems.length;
+        const uploadedCnt   = chkDone.length;
+        const missingCnt    = chkBlocking.length;
+        const readiness     = Math.round(uploadedCnt / totalDocs * 100);
 
-      // Shipment card
+        // Deterministic priority order for first missing document
+        const nmdPriority = ['credit_advice', 'payment_evidence', 'cci_document', 'bill_of_lading', 'nxp_approval'];
+        const nmdLabels   = {
+          credit_advice:    'Credit Advice',
+          payment_evidence: 'Payment Evidence',
+          cci_document:     'CCI Document',
+          bill_of_lading:   'Bill of Lading',
+          nxp_approval:     'NXP Approval',
+        };
+        const blockingSet      = new Set(chkBlocking.map(function(i) { return i.evidenceType; }));
+        const firstMissingType = nmdPriority.find(function(t) { return blockingSet.has(t); });
+        const firstMissing     = firstMissingType ? { type: firstMissingType, label: nmdLabels[firstMissingType] } : null;
+
+        return '<div class="ec-card">'
+          + '<div class="ec-card-h"><span class="ec-card-t">Evidence Summary</span></div>'
+
+          + '<div class="ec-sec-lbl" style="padding-top:7px">Documents</div>'
+          + '<div class="ec-row"><span class="ec-rl">Required</span><span class="ec-rv">' + totalDocs + '</span></div>'
+          + '<div class="ec-row"><span class="ec-rl">Uploaded</span><span class="ec-rv' + (uploadedCnt > 0 ? ' green' : '') + '">' + uploadedCnt + '</span></div>'
+          + '<div class="ec-row"><span class="ec-rl">Missing</span><span class="ec-rv' + (missingCnt > 0 ? ' red' : '') + '">' + missingCnt + '</span></div>'
+
+          + '<hr class="ec-sec-sep"><div class="ec-sec-lbl">Validation</div>'
+          + '<div class="ec-row"><span class="ec-rl">Validated</span><span class="ec-rv">0</span></div>'
+          + '<div class="ec-row"><span class="ec-rl">Pending validation</span><span class="ec-rv">' + uploadedCnt + '</span></div>'
+          + '<div class="ec-row"><span class="ec-rl">Failed</span><span class="ec-rv">0</span></div>'
+
+          + '<hr class="ec-sec-sep"><div class="ec-sec-lbl">Pack Readiness</div>'
+          + '<div class="ec-row"><span class="ec-rl">Complete</span><span class="ec-rv">' + readiness + '%</span></div>'
+
+          + '<hr class="ec-sec-sep"><div class="ec-sec-lbl">Next Missing Document</div>'
+          + (firstMissing
+              ? '<div class="ec-chk chk-miss">'
+                + '<span class="ec-chk-i x">✗</span>'
+                + '<span class="ec-chk-l">' + h(firstMissing.label)
+                +   '<br><span style="font-size:10px;color:#94a3b8;font-weight:400">Required for compliance</span></span>'
+                + '<button class="ec-chk-btn upload" type="button" onclick="ecUploadNav(' + hasPack + ')"'
+                +   ' aria-label="Upload ' + h(firstMissing.label) + '">Upload →</button>'
+                + '</div>'
+              : '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px">'
+                + '<span style="color:#15803d;font-size:14px;line-height:1">✓</span>'
+                + '<div><div style="font-size:12px;font-weight:600;color:#15803d">No missing documents</div>'
+                + '<div style="font-size:10.5px;color:#64748b;margin-top:2px">Evidence pack is complete</div></div>'
+                + '</div>')
+          + '</div>';
+      })()
+
+      // Follow-Up — deterministic from existing case data
+      + (function() {
+        const fu = getFollowUp(c);
+        const fuStatusCls = fu.status === 'Overdue' ? 'r' : fu.status === 'Pending' ? 'o' : fu.status === 'Action Required' ? 'y' : 'gr';
+        return '<div class="ec-card">'
+          + '<div class="ec-card-h"><span class="ec-card-t">Follow-Up</span></div>'
+          + (fu.required
+              ? '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="badge ' + fuStatusCls + '">' + h(fu.status) + '</span></span></div>'
+              + '<div class="ec-row"><span class="ec-rl">Reason</span><span class="ec-rv">' + h(fu.reason) + '</span></div>'
+              + '<div class="ec-row"><span class="ec-rl">Next Follow-Up</span><span class="ec-rv">' + h(fu.nextDate) + '</span></div>'
+              + '<div class="ec-row"><span class="ec-rl">Owner</span><span class="ec-rv muted">' + h(fu.owner) + '</span></div>'
+              + '<button class="ec-fu-btn">' + h(fu.buttonLabel) + '</button>'
+              : '<div class="ec-fu-ok">'
+              + '<div class="ec-fu-ok-icon">✓</div>'
+              + '<div><div class="ec-fu-ok-label">No follow-up required.</div>'
+              + '<div class="ec-fu-ok-hint">No pending follow-up for this case.</div></div>'
+              + '</div>')
+          + '</div>';
+      })()
+
+      // Timeline — read-only vertical timeline derived from case/shipment data
+      + (function() {
+          const events = getTimeline(c, ship);
+          if (!events.length) {
+            return '<div class="ec-card">'
+              + '<div class="ec-card-h"><span class="ec-card-t">Case Timeline</span></div>'
+              + '<div class="ec-tl-empty">No timeline events available.</div>'
+              + '</div>';
+          }
+          const rows = events.map(function(ev, i) {
+            const isLast = i === events.length - 1;
+            const dotCls = 'ec-tl-dot tl-' + ev.state;
+            const lblCls = 'ec-tl-label' + (ev.state === 'pend' ? ' tl-pend' : '');
+            const note   = ev.state === 'done' ? 'Completed'
+                         : ev.state === 'cur'  ? 'Current milestone' : 'Pending';
+            // Temporary navigation placeholder — completed events become clickable until evidence pages exist.
+            // Always delegates to openEvidence(); UI components never contain evidence-routing logic.
+            const isDone = ev.state === 'done';
+            const bodyOpen = isDone
+              ? '<div class="ec-tl-body ec-tl-body-link" tabindex="0" role="button"'
+              + ' onclick="openEvidence(\'' + ev.evidenceType + '\')"'
+              + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){openEvidence(\'' + ev.evidenceType + '\');event.preventDefault();}">'
+              : '<div class="ec-tl-body">';
+            return '<div class="ec-tl-item">'
+              + '<div class="ec-tl-spine">'
+              +   '<div class="' + dotCls + '"></div>'
+              +   (!isLast ? '<div class="ec-tl-line"></div>' : '')
+              + '</div>'
+              + bodyOpen
+              +   '<div class="ec-tl-text">'
+              +     '<div class="' + lblCls + '">' + h(ev.label) + '</div>'
+              +     (ev.detail ? '<div class="ec-tl-detail">' + h(ev.detail) + '</div>' : '')
+              +     '<div class="ec-tl-note">' + note + '</div>'
+              +   '</div>'
+              +   '<div class="ec-tl-date">Date unavailable</div>'
+              + '</div>'
+              + '</div>';
+          }).join('');
+          return '<div class="ec-card">'
+            + '<div class="ec-card-h"><span class="ec-card-t">Case Timeline</span></div>'
+            + '<div class="ec-tl">' + rows + '</div>'
+            + '</div>';
+        })()
+
+      // Compliance Progress — blocking items first, completed second
       + '<div class="ec-card">'
-      + '<div class="ec-card-h"><span class="ec-card-t">Shipment</span><span class="ec-card-s">/shipments</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">NXP Reference</span><span class="ec-rv mono">' + h(c.nxp_reference ?? '—') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Shipment Reference</span><span class="ec-rv mono">' + h(c.shipment_reference ?? '—') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Route</span><span class="ec-rv" style="font-size:11px">' + route + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Vessel</span><span class="ec-rv' + (ship.vessel_name ? '' : ' muted') + '">' + (ship.vessel_name ? h(ship.vessel_name) : '—') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Shipment Value</span><span class="ec-rv">' + (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : '<span class="ec-rv muted">—</span>') + '</span></div>'
+      + '<div class="ec-card-h"><span class="ec-card-t">Compliance Progress</span><span class="ec-chk-prog">' + chkDone.length + ' of ' + chkItems.length + ' complete</span></div>'
+      + (chkBlocking.length ? '<div class="ec-grp-lbl">Blocking completion</div>' + chkBlocking.map(function(i) { return eck(i.evidenceType, i.tag, i.label); }).join('') : '')
+      + (chkDone.length     ? '<div class="ec-grp-lbl ec-grp-done' + (chkBlocking.length ? ' ec-grp-sep' : '') + '">Completed</div>' + chkDone.map(function(i) { return eck(i.evidenceType, i.tag, i.label); }).join('') : '')
       + '</div>'
 
-      // Proceeds card
+      // Proceeds & Repatriation — two logical groups + integrity warning
       + '<div class="ec-card">'
       + '<div class="ec-card-h"><span class="ec-card-t">Proceeds &amp; Repatriation</span><span class="ec-card-s">/compliance</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Proceeds Required</span><span class="ec-rv">' + (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Proceeds Received</span><span class="ec-rv' + (Number(c.proceeds_received) > 0 ? ' green' : '') + '">' + (c.proceeds_received != null ? 'USD ' + num(c.proceeds_received) : '—') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Outstanding</span><span class="ec-rv' + (c.outstanding > 0 ? ' red' : ' green') + '">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : 'Nil') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Deadline</span><span class="ec-rv' + (c.daysLeft !== null && c.daysLeft < 0 ? ' red' : '') + '">' + deadlineStr + '</span></div>'
+      + '<div class="ec-sec-lbl" style="padding-top:7px">Financial Position</div>'
+      + '<div class="ec-row"><span class="ec-rl">Required</span><span class="ec-rv">' + (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Received</span><span class="ec-rv' + (Number(c.proceeds_received) > 0 ? ' green' : '') + '">' + (c.proceeds_received != null ? 'USD ' + num(c.proceeds_received) : '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Outstanding</span><span class="ec-rv' + (c.outstanding > 0 ? ' red' : '') + '">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : 'USD 0') + '</span></div>'
+      + '<hr class="ec-sec-sep"><div class="ec-sec-lbl">Regulatory Status</div>'
+      + '<div class="ec-row"><span class="ec-rl">CBN Deadline</span><span class="ec-rv' + (daysLeft !== null && daysLeft < 0 ? ' red' : '') + '">' + h(deadlineStr) + '</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></span></div>'
       + '<div class="ec-row"><span class="ec-rl">Late Repatriation</span><span class="ec-rv' + (c.was_repatriated_late ? ' red' : '') + '">' + (c.was_repatriated_late ? 'Yes' : 'No') + '</span></div>'
+      + (procBad ? '<div class="ec-warn"><div class="ec-warn-lbl">Data Integrity Warning</div><div class="ec-warn-txt">Financial totals appear inconsistent. Review source records.</div></div>' : '')
       + '</div>'
 
-      + '</div>' // ec-grid
-
-      // Compliance checklist
+      // Shipment Details — two-group structured summary
       + '<div class="ec-card">'
-      + '<div class="ec-card-h"><span class="ec-card-t">Compliance Checklist</span><span class="ec-card-s">/compliance</span></div>'
-      + eck(c.nxp_approved,              'NXP', 'NXP Approved by CBN')
-      + eck(c.bl_uploaded,               'BL',  'Bill of Lading Uploaded')
-      + eck(c.cci_obtained,              'CCI', 'CCI Obtained')
-      + eck(c.payment_evidence_uploaded, 'EVD', 'Payment Evidence Uploaded')
-      + eck(c.credit_advice_confirmed,   'ADV', 'Credit Advice Confirmed')
+      + '<div class="ec-card-h"><span class="ec-card-t">Shipment Details</span></div>'
+      + '<div class="ec-sec-lbl" style="padding-top:7px">Shipment</div>'
+      + '<div class="ec-facts">'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Shipment Reference</div><div class="ec-fact-v mono">' + h(c.shipment_reference || 'Not available') + '</div></div>'
+      +   '<div class="ec-fact"><div class="ec-fact-l">NXP Reference</div><div class="ec-fact-v mono">' + h(c.nxp_reference || 'Not available') + '</div></div>'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Commodity</div><div class="ec-fact-v' + (ship.commodity ? '' : ' muted') + '">' + h(ship.commodity || 'Not available') + '</div></div>'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Vessel</div><div class="ec-fact-v' + (ship.vessel_name ? '' : ' muted') + '">' + h(ship.vessel_name || 'Not available') + '</div></div>'
+      +   '<div class="ec-fact full"><div class="ec-fact-l">Route</div><div class="ec-fact-v' + (route === '—' ? ' muted' : '') + '">' + (route === '—' ? 'Not available' : route) + '</div></div>'
+      + '</div>'
+      + '<hr class="ec-sec-sep"><div class="ec-sec-lbl">Commercial</div>'
+      + '<div class="ec-facts">'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Shipment Value</div><div class="ec-fact-v' + (ship.shipment_value ? '' : ' muted') + '">' + (ship.shipment_value ? 'USD ' + num(ship.shipment_value) : 'Not available') + '</div></div>'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Buyer</div><div class="ec-fact-v' + (ship.buyer ? '' : ' muted') + '">' + h(ship.buyer || 'Not available') + '</div></div>'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Exporter</div><div class="ec-fact-v' + (ship.exporter ? '' : ' muted') + '">' + h(ship.exporter || 'Not available') + '</div></div>'
+      +   '<div class="ec-fact"><div class="ec-fact-l">Current Status</div><div class="ec-fact-v"><span class="badge ' + st.cls + '">' + h(st.word) + '</span></div></div>'
+      + '</div>'
       + '</div>'
 
-      // Evidence pack
-      + '<div class="ec-card">'
-      + '<div class="ec-card-h"><span class="ec-card-t">Evidence Pack</span><span class="ec-card-s">/evidence-packs</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Pack Status</span><span class="ec-rv"><span class="badge ' + (packCls[ps] ?? 'gr') + '">' + h(packLabel[ps] ?? ps) + '</span></span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Sealed</span><span class="ec-rv' + (c.pack && c.pack.sealed ? ' green' : '') + '">' + (c.pack && c.pack.sealed ? 'Yes' : 'No') + '</span></div>'
-      + '<div class="ec-row"><span class="ec-rl">Checklist Complete</span><span class="ec-rv ' + (c.allChecklist ? 'green' : 'red') + '">'
-      +   (c.allChecklist ? 'Yes' : 'No — ' + missing.join(', ') + ' missing') + '</span></div>'
+      // Evidence Pack entry point
+      + '<div class="ec-card" style="overflow:hidden">'
+      + '<div class="ec-card-h"><span class="ec-card-t">Evidence Pack</span></div>'
+      + '<button class="ep-ws-entry" type="button"'
+      +   ' onclick="openEvidencePackWorkspace(\'' + h(c.nxp_reference) + '\')"'
+      +   ' aria-label="Open Evidence Pack for ' + h(c.nxp_reference) + '">'
+      +   '<span class="ep-ws-entry-lbl">Open Evidence Pack</span>'
+      +   '<span class="ep-ws-entry-arr">→</span>'
+      + '</button>'
       + '</div>';
 
     showView('view-export-case', h(c.nxp_reference ?? ''), 'view-exports');
@@ -3412,18 +4128,6 @@
     if (!_cases.length) {
       container.innerHTML = '<div class="card"><div class="state">Overview data loading—please wait.</div></div>';
       return;
-    }
-
-    // Build shipment lookup for case name derivation
-    const shipIdx = {};
-    _allShipments.forEach(s => { if (s.nxp_reference) shipIdx[s.nxp_reference] = s; });
-    function wqCaseName(c) {
-      const s = shipIdx[c.nxp_reference] ?? {};
-      const commodity = s.commodity || '';
-      const dest = s.port_of_discharge || '';
-      if (commodity && dest) return commodity + ' Export — ' + dest;
-      if (commodity) return commodity + ' Export';
-      return c.nxp_reference || c.shipment_reference || '—';
     }
 
     // Build WHY text from available data fields
@@ -3456,7 +4160,7 @@
         + '<div class="wq-card-accent"></div>'
         + '<div class="wq-card-body">'
         +   '<div>'
-        +     '<div class="wq-card-name">' + h(wqCaseName(c)) + '</div>'
+        +     '<div class="wq-card-name">' + h(getCaseName(c, getShipForCase(c.nxp_reference))) + '</div>'
         +     '<div class="wq-card-refs">'
         +       '<span>' + h(c.nxp_reference ?? '—') + '</span>'
         +       '<span>·</span>'
