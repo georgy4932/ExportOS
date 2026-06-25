@@ -168,6 +168,12 @@ Rationale: `nxp_reference` is issued by the CBN and its format, stability, and c
 
 This decision is not open to re-evaluation during implementation. See §10 for the gate on this.
 
+### Schema mapping: Export Case → `shipments`
+
+In the current ExportOS schema there is no `export_cases` table. The Export Case aggregate is represented by the `shipments` table, which the schema explicitly designates as the regulatory unit — each shipment has its own NXP reference, bill of lading date, compliance clock, payment allocation, and evidence pack. Consequently, `export_case_id` in this RFC maps to `shipment_id` in the implementation; the migration uses `shipment_id UUID NOT NULL REFERENCES shipments(id)` and the UNIQUE constraint is `(shipment_id, evidence_type)`.
+
+This mapping is intentional and architecturally correct for the current product. A dedicated `export_cases` table should only be introduced if a future regulatory requirement needs to group multiple partial shipments under a single regulatory case. Until that need arises, adding the table would create an identity layer that maps 1:1 with `shipments` in every real use case, adding join cost with no structural benefit.
+
 ### Table: `evidence_items`
 
 One row per evidence type per export case. Rows are created at case creation time for all known types; they begin in `missing` / `not_validated` state.
