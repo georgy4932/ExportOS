@@ -872,6 +872,10 @@
     .ec-fact-v.mono { font-family: ui-monospace, monospace; font-size: 10.5px; }
     .ec-fact-v.muted { color: #94a3b8; font-weight: 400; }
     .ec-ph-body { padding: 16px 14px; font-size: 12px; color: #94a3b8; font-style: italic; }
+    /* Proceeds integrity warning */
+    .ec-warn { background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px; margin: 8px 14px 10px; padding: 7px 10px; }
+    .ec-warn-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #92400e; margin-bottom: 3px; }
+    .ec-warn-txt { font-size: 11.5px; color: #78350f; line-height: 1.4; }
     .ec-breadcrumb { font-size: 10.5px; color: #94a3b8; padding: 10px 16px 0; }
     .ec-breadcrumb button {
       background: none; border: none; font-size: 10.5px; color: #64748b;
@@ -3372,6 +3376,12 @@
         + '</div>';
     }
 
+    // Proceeds integrity — detect when displayed figures don't add up
+    const _pReq = Number(c.proceeds_required) || 0;
+    const _pRec = Number(c.proceeds_received) || 0;
+    const _pOut = Number(c.outstanding)       || 0;
+    const procBad = (_pReq > 0 || _pRec > 0) && Math.abs(_pOut - (_pReq - _pRec)) > 0.01;
+
     // ── Content: lower sections only ─────────────────────────────────────────
     document.getElementById('ec-content').innerHTML =
 
@@ -3394,16 +3404,18 @@
       + (chkDone.length     ? '<div class="ec-grp-lbl ec-grp-done' + (chkBlocking.length ? ' ec-grp-sep' : '') + '">Completed</div>' + chkDone.map(i => eck(i.val, i.tag, i.label)).join('') : '')
       + '</div>'
 
-      // Proceeds & Repatriation — primary rows first, secondary below divider
+      // Proceeds & Repatriation — two logical groups + integrity warning
       + '<div class="ec-card">'
       + '<div class="ec-card-h"><span class="ec-card-t">Proceeds &amp; Repatriation</span><span class="ec-card-s">/compliance</span></div>'
+      + '<div class="ec-sec-lbl" style="padding-top:7px">Financial Position</div>'
       + '<div class="ec-row"><span class="ec-rl">Required</span><span class="ec-rv">' + (c.proceeds_required > 0 ? 'USD ' + num(c.proceeds_required) : '—') + '</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Received</span><span class="ec-rv' + (Number(c.proceeds_received) > 0 ? ' green' : '') + '">' + (c.proceeds_received != null ? 'USD ' + num(c.proceeds_received) : '—') + '</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Outstanding</span><span class="ec-rv' + (c.outstanding > 0 ? ' red' : '') + '">' + (c.outstanding > 0 ? 'USD ' + num(c.outstanding) : 'USD 0') + '</span></div>'
-      + '<hr class="ec-sec-sep"><div class="ec-sec-lbl">Compliance</div>'
+      + '<hr class="ec-sec-sep"><div class="ec-sec-lbl">Regulatory Status</div>'
       + '<div class="ec-row"><span class="ec-rl">CBN Deadline</span><span class="ec-rv' + (daysLeft !== null && daysLeft < 0 ? ' red' : '') + '">' + h(deadlineStr) + '</span></div>'
       + '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="badge ' + repCls + '">' + h(c.repatriation_status ?? '—') + '</span></span></div>'
       + '<div class="ec-row"><span class="ec-rl">Late Repatriation</span><span class="ec-rv' + (c.was_repatriated_late ? ' red' : '') + '">' + (c.was_repatriated_late ? 'Yes' : 'No') + '</span></div>'
+      + (procBad ? '<div class="ec-warn"><div class="ec-warn-lbl">Data Integrity Warning</div><div class="ec-warn-txt">Financial totals appear inconsistent. Review source records.</div></div>' : '')
       + '</div>'
 
       // Shipment Details — compact 2-column fact grid
