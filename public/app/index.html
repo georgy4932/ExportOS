@@ -880,6 +880,9 @@
     .ev-item-status.missing { color: #b91c1c; border-color: #fca5a5; background: #fff1f1; }
     .ev-item-code { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 2px; }
     .ev-item-ph { margin: 0 14px 14px; padding: 32px 20px; text-align: center; font-size: 12px; color: #94a3b8; background: #f8fafc; border: 1px dashed #e2e8f0; border-radius: 6px; }
+    .ev-item-notice { margin: 0 14px 12px; padding: 9px 12px; font-size: 11px; line-height: 1.5; border-radius: 4px; border: 1px solid; }
+    .ev-item-notice.amber { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+    .ev-item-notice.neutral { background: #f8fafc; border-color: #e2e8f0; color: #64748b; }
     /* Temporary doc-viewer toast — replaced when document workflows ship */
     #doc-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #f8fafc; font-size: 12px; font-weight: 500; padding: 9px 18px; border-radius: 6px; box-shadow: 0 4px 16px rgba(15,23,42,0.22); z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.18s; white-space: nowrap; }
     #doc-toast.show { opacity: 1; }
@@ -3641,6 +3644,19 @@
       +   '<div class="ec-row"><span class="ec-rl">Source System</span><span class="ec-rv">ExportOS</span></div>'
       +   '<div class="ec-row"><span class="ec-rl">Uploaded Date</span><span class="ec-rv muted">Unavailable</span></div>'
       +   '<div class="ec-row"><span class="ec-rl">Validation Status</span><span class="ec-rv muted">Not validated</span></div>'
+      + '</div>'
+      // Evidence Metadata card — compliance context and validation state
+      + '<div class="ec-card">'
+      +   '<div class="ec-card-h"><span class="ec-card-t">Evidence Metadata</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Evidence Type</span><span class="ec-rv">' + h(meta.title) + '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Evidence Code</span><span class="ec-rv"><span class="ev-item-code">' + h(meta.code) + '</span></span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Required for Compliance</span><span class="ec-rv">Yes</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Current State</span><span class="ec-rv"><span class="ev-item-status ' + statusCls + '">' + statusLabel + '</span></span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Validation Status</span><span class="ec-rv muted">Not validated</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Last Checked</span><span class="ec-rv muted">Unavailable</span></div>'
+      +   (present
+          ? '<div class="ev-item-notice neutral">Document metadata is not available yet.<br>Metadata extraction will be added in a future phase.</div>'
+          : '<div class="ev-item-notice amber">Evidence has not been uploaded yet.<br>Upload flow will be added in a future phase.</div>')
       + '</div>'
       // Placeholder panel — replaced by real document rendering in a future phase
       + '<div class="ec-card">'
