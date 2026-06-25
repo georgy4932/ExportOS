@@ -60,6 +60,21 @@ export type EvidenceType =
 
 export type BlType = 'ORIGINAL' | 'TELEX_RELEASE' | 'SEA_WAYBILL' | 'EXPRESS_BL'
 
+export type EvidenceItemType =
+  | 'nxp_approval'
+  | 'bill_of_lading'
+  | 'cci_document'
+  | 'payment_evidence'
+  | 'credit_advice'
+  | 'shipment_record'
+  | 'compliance_summary'
+
+export type EvidenceLifecycleState = 'missing' | 'uploaded' | 'under_review' | 'validated' | 'rejected'
+
+export type EvidenceValidationStatus = 'not_validated' | 'pending' | 'passed' | 'failed' | 'not_applicable'
+
+export type EvidenceSourceSystem = 'user' | 'system'
+
 export type DeadlineStatus = 'SAFE' | 'WARNING' | 'CRITICAL' | 'OVERDUE'
 
 export type CounterpartyType = 'COMPANY' | 'INDIVIDUAL' | 'GOVERNMENT_ENTITY'
@@ -338,6 +353,24 @@ export interface BankEvidencePackRow {
   notes: string | null
 }
 
+export interface EvidenceItemRow {
+  id: string
+  shipment_id: string
+  exporter_id: string
+  nxp_reference: string
+  evidence_type: EvidenceItemType
+  evidence_code: string
+  lifecycle_state: EvidenceLifecycleState
+  validation_status: EvidenceValidationStatus
+  required_for_compliance: boolean
+  uploaded_at: string | null
+  last_checked_at: string | null
+  source_system: EvidenceSourceSystem
+  metadata_json: Json | null
+  created_at: string
+  updated_at: string
+}
+
 export interface AuditEventRow {
   id: string
   exporter_id: string
@@ -397,6 +430,7 @@ export interface Database {
       payment_allocations:        T<PaymentAllocationRow>
       bank_evidence_packs:        T<BankEvidencePackRow>
       audit_events:               T<AuditEventRow>
+      evidence_items:             T<EvidenceItemRow>
     }
     Views: {
       v_export_contracts_summary: V<ContractSummaryRow>
