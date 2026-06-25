@@ -2376,20 +2376,6 @@
       _cases = cases;
       _allShipments = shipments;
 
-      // ── Build shipment name map (for display name derivation) ──────────────────
-      const shipMap = {};
-      shipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
-
-      // Derive a human-readable case name from available fields (render layer only)
-      function caseName(c) {
-        const ship = shipMap[c.nxp_reference] ?? {};
-        const commodity = ship.commodity || '';
-        const dest = ship.port_of_discharge || '';
-        if (commodity && dest) return commodity + ' Export — ' + dest;
-        if (commodity) return commodity + ' Export';
-        return c.nxp_reference || c.shipment_reference || '—';
-      }
-
       // ── Section 1: Severity Summary ──────────────────────────────────────────────
       const criticalCount = cases.filter(c => c.priority === 'HIGH').length;
       const overdueCount  = cases.filter(c => c.caseStatus === 'OVERDUE').length;
@@ -2408,7 +2394,7 @@
       // ── Section 4: Attention Required ─────────────────────────────────────────
       const attItems = cases
         .filter(c => c.priority !== 'LOW' && c.blocker)
-        .map(c => ({ name: caseName(c), reason: c.blocker }));
+        .map(c => ({ name: getCaseName(c, getShipForCase(c.nxp_reference)), reason: c.blocker }));
 
       // ── Build HTML ────────────────────────────────────────────────────────────
       const sevHtml =
@@ -2422,7 +2408,7 @@
         ? ('<div class="card">'
           + '<div class="card-header"><h2>Most Urgent Case</h2></div>'
           + '<div class="ov-muc">'
-          + '<div class="ov-muc-name">' + h(caseName(topCase)) + '</div>'
+          + '<div class="ov-muc-name">' + h(getCaseName(topCase, getShipForCase(topCase.nxp_reference))) + '</div>'
           + '<div class="ov-muc-meta">'
           + '<span class="badge ' + (topCase.caseStatus === 'OVERDUE' ? 'r' : topCase.caseStatus === 'AT_RISK' ? 'o' : 'gr') + '">'
           + h(topCase.caseStatus === 'OVERDUE' ? 'OVERDUE' : topCase.caseStatus === 'AT_RISK' ? 'AT RISK' : topCase.caseStatus) + '</span>'
@@ -2444,7 +2430,7 @@
                 const dlbl  = c.daysLeft < 0 ? Math.abs(c.daysLeft) + 'd overdue' : c.daysLeft + 'd';
                 const scls  = c.repatriation_status === 'OVERDUE' ? 'r' : c.repatriation_status === 'PENDING' ? 'y' : 'g';
                 return '<tr>'
-                  + '<td><div style="font-weight:600;color:#0f172a;font-size:12px">' + h(caseName(c)) + '</div>'
+                  + '<td><div style="font-weight:600;color:#0f172a;font-size:12px">' + h(getCaseName(c, getShipForCase(c.nxp_reference))) + '</div>'
                   + '<div style="font-size:10px;color:#94a3b8;font-family:ui-monospace,monospace;margin-top:1px">' + h(c.nxp_reference ?? '') + '</div></td>'
                   + '<td style="white-space:nowrap">' + (c.repatriation_deadline ? date(c.repatriation_deadline) : '—') + '</td>'
                   + '<td><span class="badge ' + dcls + '">' + h(dlbl) + '</span></td>'
@@ -3278,18 +3264,6 @@
     const input = document.getElementById('xf-search-input');
     _exQuery = input ? input.value.trim().toLowerCase() : '';
 
-    const shipMap = {};
-    _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
-
-    function exCaseName(c) {
-      const s = shipMap[c.nxp_reference] ?? {};
-      const commodity = s.commodity || '';
-      const dest = s.port_of_discharge || '';
-      if (commodity && dest) return commodity + ' Export — ' + dest;
-      if (commodity) return commodity + ' Export';
-      return c.nxp_reference || c.shipment_reference || '—';
-    }
-
     const packCls   = { SEALED: 'g', READY_TO_SEAL: 'b', NOT_READY: 'r' };
     const packLabel = { SEALED: 'SEALED', READY_TO_SEAL: 'READY TO SEAL', NOT_READY: 'INCOMPLETE' };
 
@@ -3307,7 +3281,7 @@
     // Search
     if (_exQuery) {
       visible = visible.filter(c => {
-        const name = exCaseName(c).toLowerCase();
+        const name = getCaseName(c, getShipForCase(c.nxp_reference)).toLowerCase();
         return name.includes(_exQuery)
           || (c.nxp_reference ?? '').toLowerCase().includes(_exQuery)
           || (c.shipment_reference ?? '').toLowerCase().includes(_exQuery);
@@ -3333,7 +3307,7 @@
 
     // Render rows
     tbody.innerHTML = visible.map(c => {
-      const caseName = exCaseName(c);
+      const caseName = getCaseName(c, getShipForCase(c.nxp_reference));
       const ps = c.packStatus ?? 'NOT_READY';
 
       const stCls   = c.caseStatus === 'OVERDUE'  ? 'r'
@@ -3601,6 +3575,22 @@
     });
   }
 
+  // Returns the shipment record matching nxpRef, or {} if not found.
+  function getShipForCase(nxpRef) {
+    return _allShipments.find(function(s) { return s.nxp_reference === nxpRef; }) || {};
+  }
+
+  // Derives the human-readable case display name from available shipment fields.
+  // Single source of truth — do not inline this ternary elsewhere.
+  function getCaseName(caseRecord, shipRecord) {
+    shipRecord = shipRecord || {};
+    var commodity = shipRecord.commodity || '';
+    var dest      = shipRecord.port_of_discharge || '';
+    if (commodity && dest) return commodity + ' Export — ' + dest;
+    if (commodity)         return commodity + ' Export';
+    return caseRecord.nxp_reference || caseRecord.shipment_reference || '—';
+  }
+
   // ── Evidence navigation ───────────────────────────────────────────────────────
   // openEvidence() is the single public entry point for opening any evidence record.
   // UI components should never contain evidence-routing logic — always call openEvidence().
@@ -3631,15 +3621,8 @@
   function openEvidenceItem(type, nxpRef) {
     const c = _cases.find(x => x.nxp_reference === nxpRef);
     if (!c) return;
-    const shipMap = {};
-    _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
-    const ship = shipMap[nxpRef] ?? {};
-
-    const commodity = ship.commodity || '';
-    const dest      = ship.port_of_discharge || '';
-    const caseName  = commodity && dest ? commodity + ' Export — ' + dest
-                    : commodity         ? commodity + ' Export'
-                    : c.nxp_reference ?? '—';
+    const ship     = getShipForCase(nxpRef);
+    const caseName = getCaseName(c, ship);
 
     // Evidence type metadata — title and short code for each supported type
     const evMeta = {
@@ -3751,15 +3734,8 @@
     _currentNxpRef = nxpRef;
     const c = _cases.find(x => x.nxp_reference === nxpRef);
     if (!c) return;
-    const shipMap = {};
-    _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
-    const ship = shipMap[nxpRef] ?? {};
-
-    const commodity = ship.commodity || '';
-    const dest      = ship.port_of_discharge || '';
-    const caseName  = commodity && dest ? commodity + ' Export — ' + dest
-                    : commodity         ? commodity + ' Export'
-                    : c.nxp_reference ?? '—';
+    const ship     = getShipForCase(nxpRef);
+    const caseName = getCaseName(c, ship);
 
     const rdyMap = {
       'SEALED':        { label: 'Sealed',        cls: 'sealed'    },
@@ -3820,16 +3796,9 @@
     const c = _cases.find(x => x.nxp_reference === nxpRef);
     if (!c) return;
 
-    const shipMap = {};
-    _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
-    const ship = shipMap[nxpRef] ?? {};
-
-    // Case name
+    const ship      = getShipForCase(nxpRef);
+    const caseName  = getCaseName(c, ship);
     const commodity = ship.commodity || '';
-    const dest      = ship.port_of_discharge || '';
-    const caseName  = commodity && dest ? commodity + ' Export — ' + dest
-                    : commodity         ? commodity + ' Export'
-                    : c.nxp_reference ?? '—';
 
     // Status indicator
     const daysLeft = c.daysLeft;
@@ -4161,18 +4130,6 @@
       return;
     }
 
-    // Build shipment lookup for case name derivation
-    const shipIdx = {};
-    _allShipments.forEach(s => { if (s.nxp_reference) shipIdx[s.nxp_reference] = s; });
-    function wqCaseName(c) {
-      const s = shipIdx[c.nxp_reference] ?? {};
-      const commodity = s.commodity || '';
-      const dest = s.port_of_discharge || '';
-      if (commodity && dest) return commodity + ' Export — ' + dest;
-      if (commodity) return commodity + ' Export';
-      return c.nxp_reference || c.shipment_reference || '—';
-    }
-
     // Build WHY text from available data fields
     function whyText(c) {
       const parts = [];
@@ -4203,7 +4160,7 @@
         + '<div class="wq-card-accent"></div>'
         + '<div class="wq-card-body">'
         +   '<div>'
-        +     '<div class="wq-card-name">' + h(wqCaseName(c)) + '</div>'
+        +     '<div class="wq-card-name">' + h(getCaseName(c, getShipForCase(c.nxp_reference))) + '</div>'
         +     '<div class="wq-card-refs">'
         +       '<span>' + h(c.nxp_reference ?? '—') + '</span>'
         +       '<span>·</span>'
