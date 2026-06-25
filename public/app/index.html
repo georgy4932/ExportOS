@@ -3409,13 +3409,18 @@
     const pRec = Number(c.proceeds_received) || 0;
     const pReq = Number(c.proceeds_required) || 0;
     const pOut = Number(c.outstanding)       || 0;
+    // Evidence-state helpers — use getEvidenceState() so _evidenceCache is preferred
+    // over boolean compliance_record fields for document-presence milestones.
+    const evNxp = getEvidenceState(c, 'nxp_approval',   ship);
+    const evBl  = getEvidenceState(c, 'bill_of_lading', ship);
+    const evAdv = getEvidenceState(c, 'credit_advice',  ship);
     const raw = [
       {
         label:         'NXP Approved',
         detail:        c.nxp_reference || '',
         evidenceType:  'nxp_approval',
         evidenceLabel: 'NXP Approval',
-        done:          !!c.nxp_approved,
+        done:          evNxp.state === 'uploaded',
       },
       {
         label:         'Shipment Created',
@@ -3426,10 +3431,10 @@
       },
       {
         label:         'Bill of Lading Uploaded',
-        detail:        c.bl_uploaded ? '' : 'Waiting for BL upload',
+        detail:        evBl.state === 'uploaded' ? '' : 'Waiting for BL upload',
         evidenceType:  'bill_of_lading',
         evidenceLabel: 'Bill of Lading',
-        done:          !!c.bl_uploaded,
+        done:          evBl.state === 'uploaded',
       },
       ...(pReq > 0 ? [{
         label:         'Proceeds Received',
@@ -3440,10 +3445,10 @@
       }] : []),
       {
         label:         'Credit Advice Confirmed',
-        detail:        c.credit_advice_confirmed ? '' : 'Waiting for ADV upload',
+        detail:        evAdv.state === 'uploaded' ? '' : 'Waiting for ADV upload',
         evidenceType:  'credit_advice',
         evidenceLabel: 'Credit Advice',
-        done:          !!c.credit_advice_confirmed,
+        done:          evAdv.state === 'uploaded',
       },
       {
         label:         'Case Compliant',
@@ -3866,12 +3871,13 @@
 
     // Missing checklist items
     const missing = [
-      !c.nxp_approved              && 'NXP',
-      !c.bl_uploaded               && 'BL',
-      !c.cci_obtained              && 'CCI',
-      !c.payment_evidence_uploaded && 'EVD',
-      !c.credit_advice_confirmed   && 'ADV',
-    ].filter(Boolean);
+      ['nxp_approval',   'NXP'],
+      ['bill_of_lading', 'BL'],
+      ['cci_document',   'CCI'],
+      ['payment_evidence','EVD'],
+      ['credit_advice',  'ADV'],
+    ].filter(function(pair) { return getEvidenceState(c, pair[0], ship).state !== 'uploaded'; })
+     .map(function(pair) { return pair[1]; });
 
     const packSub = ps === 'SEALED'        ? 'Pack sealed'
                   : ps === 'READY_TO_SEAL' ? 'Checklist complete'
