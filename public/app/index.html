@@ -863,6 +863,17 @@
     .ec-chk-btn.view { color: #475569; border-color: #e2e8f0; background: #f8fafc; }
     .ec-chk-btn.view:hover { background: #f1f5f9; }
     .ec-chk-btn:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+    /* Evidence Pack entry button at bottom of Export Case */
+    .ep-ws-entry { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #f8fafc; border-top: 1px solid #f1f5f9; cursor: pointer; transition: background 0.12s; font-size: 13px; font-weight: 600; color: #1e293b; border: none; width: 100%; font-family: inherit; border-radius: 0 0 8px 8px; }
+    .ep-ws-entry:hover { background: #f1f5f9; }
+    .ep-ws-entry:focus-visible { outline: 2px solid #3b82f6; outline-offset: -2px; }
+    .ep-ws-entry-lbl { display: flex; align-items: center; gap: 8px; }
+    .ep-ws-entry-arr { color: #94a3b8; font-size: 14px; }
+    /* Evidence Pack workspace readiness badge */
+    .ep-ws-rdy { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 10px; border-radius: 12px; border: 1px solid; }
+    .ep-ws-rdy.sealed    { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    .ep-ws-rdy.ready     { color: #b45309; border-color: #fcd34d; background: #fffbeb; }
+    .ep-ws-rdy.not-ready { color: #b91c1c; border-color: #fca5a5; background: #fff1f1; }
     /* Temporary doc-viewer toast — replaced when document workflows ship */
     #doc-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #f8fafc; font-size: 12px; font-weight: 500; padding: 9px 18px; border-radius: 6px; box-shadow: 0 4px 16px rgba(15,23,42,0.22); z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.18s; white-space: nowrap; }
     #doc-toast.show { opacity: 1; }
@@ -1275,6 +1286,11 @@
         </table>
       </div>
     </div>
+        </div>
+
+        <!-- VIEW: Evidence Pack Workspace ──────────────────────────────── -->
+        <div id="view-ep-workspace" class="app-view">
+          <div id="ep-ws-content"></div>
         </div>
 
       </div><!-- /#app-content -->
@@ -3116,6 +3132,7 @@
     'view-evidence':     'Payment Evidence',
     'view-compliance':   'Compliance Records',
     'view-packs':        'Evidence Packs',
+    'view-ep-workspace': 'Evidence Pack',
     'view-settings':     'Settings',
   };
 
@@ -3548,6 +3565,71 @@
     }
   }
 
+  // ── Evidence Pack Workspace ──────────────────────────────────────────────────
+  function openEvidencePackWorkspace(nxpRef) {
+    const c = _cases.find(x => x.nxp_reference === nxpRef);
+    if (!c) return;
+    const shipMap = {};
+    _allShipments.forEach(s => { if (s.nxp_reference) shipMap[s.nxp_reference] = s; });
+    const ship = shipMap[nxpRef] ?? {};
+
+    const commodity = ship.commodity || '';
+    const dest      = ship.port_of_discharge || '';
+    const caseName  = commodity && dest ? commodity + ' Export — ' + dest
+                    : commodity         ? commodity + ' Export'
+                    : c.nxp_reference ?? '—';
+
+    const rdyMap = {
+      'SEALED':        { label: 'Sealed',        cls: 'sealed'    },
+      'READY_TO_SEAL': { label: 'Ready to Seal', cls: 'ready'     },
+      'NOT_READY':     { label: 'Not Ready',     cls: 'not-ready' },
+    };
+    const rdy = rdyMap[c.packStatus] || { label: 'Not Ready', cls: 'not-ready' };
+
+    const hasPack = !!(c.pack);
+    const epItems = [
+      { val: c.nxp_approved,              tag: 'NXP', label: 'NXP Approval',      evidenceType: 'nxp_approval'     },
+      { val: c.bl_uploaded,               tag: 'BL',  label: 'Bill of Lading',     evidenceType: 'bill_of_lading'   },
+      { val: c.cci_obtained,              tag: 'CCI', label: 'CCI Document',        evidenceType: 'cci_document'     },
+      { val: c.payment_evidence_uploaded, tag: 'EVD', label: 'Payment Evidence',    evidenceType: 'payment_evidence' },
+      { val: c.credit_advice_confirmed,   tag: 'ADV', label: 'Credit Advice',       evidenceType: 'credit_advice'    },
+    ];
+
+    function epRow(val, tag, label, evidenceType) {
+      const btn = val
+        ? '<button class="ec-chk-btn view"   type="button" onclick="openEvidence(\'' + evidenceType + '\')" aria-label="View ' + h(label) + '">View →</button>'
+        : '<button class="ec-chk-btn upload" type="button" onclick="ecUploadNav(' + hasPack + ')" aria-label="Upload ' + h(label) + '">Upload →</button>';
+      return '<div class="ec-chk' + (val ? '' : ' chk-miss') + '">'
+        + '<span class="ec-chk-i' + (val ? '' : ' x') + '">' + (val ? '✓' : '✗') + '</span>'
+        + '<span class="ec-chk-l">' + h(label) + '</span>'
+        + '<span class="ec-chk-t">' + h(tag) + '</span>'
+        + '<span class="ec-chk-n ' + (val ? 'ok' : 'bad') + '">' + (val ? 'On file' : 'Missing') + '</span>'
+        + btn
+        + '</div>';
+    }
+
+    const onFile = epItems.filter(i => i.val).length;
+
+    document.getElementById('ep-ws-content').innerHTML =
+      '<div class="ec-card">'
+      + '<div class="ec-card-h">'
+      +   '<span class="ec-card-t">' + h(caseName) + '</span>'
+      +   '<span class="ep-ws-rdy ' + rdy.cls + '">' + h(rdy.label) + '</span>'
+      + '</div>'
+      + '<div class="ec-row"><span class="ec-rl">NXP Reference</span><span class="ec-rv mono">' + h(c.nxp_reference || '—') + '</span></div>'
+      + '<div class="ec-row"><span class="ec-rl">Shipment Reference</span><span class="ec-rv mono">' + h(c.shipment_reference || '—') + '</span></div>'
+      + '</div>'
+      + '<div class="ec-card">'
+      + '<div class="ec-card-h"><span class="ec-card-t">Evidence Items</span><span class="ec-chk-prog">' + onFile + ' of ' + epItems.length + ' on file</span></div>'
+      + epItems.map(function(i) { return epRow(i.val, i.tag, i.label, i.evidenceType); }).join('')
+      + '</div>'
+      + '<div style="padding:12px 4px 4px">'
+      +   '<button class="ec-chk-btn view" type="button" onclick="openExportCase(\'' + h(nxpRef) + '\')" aria-label="Back to export case">← Back to Export Case</button>'
+      + '</div>';
+
+    showView('view-ep-workspace', h(caseName), 'view-exports');
+  }
+
   // ── Export Case ─────────────────────────────────────────────────────────────
   function openExportCase(nxpRef) {
     const c = _cases.find(x => x.nxp_reference === nxpRef);
@@ -3815,6 +3897,17 @@
       +   '<div class="ec-fact"><div class="ec-fact-l">Exporter</div><div class="ec-fact-v' + (ship.exporter ? '' : ' muted') + '">' + h(ship.exporter || 'Not available') + '</div></div>'
       +   '<div class="ec-fact"><div class="ec-fact-l">Current Status</div><div class="ec-fact-v"><span class="badge ' + st.cls + '">' + h(st.word) + '</span></div></div>'
       + '</div>'
+      + '</div>'
+
+      // Evidence Pack entry point
+      + '<div class="ec-card" style="overflow:hidden">'
+      + '<div class="ec-card-h"><span class="ec-card-t">Evidence Pack</span></div>'
+      + '<button class="ep-ws-entry" type="button"'
+      +   ' onclick="openEvidencePackWorkspace(\'' + h(c.nxp_reference) + '\')"'
+      +   ' aria-label="Open Evidence Pack for ' + h(c.nxp_reference) + '">'
+      +   '<span class="ep-ws-entry-lbl">Open Evidence Pack</span>'
+      +   '<span class="ep-ws-entry-arr">→</span>'
+      + '</button>'
       + '</div>';
 
     showView('view-export-case', h(c.nxp_reference ?? ''), 'view-exports');
