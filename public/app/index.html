@@ -3554,6 +3554,37 @@
     t._dismiss = setTimeout(function() { t.classList.remove('show'); }, 2000);
   }
 
+  // ── Shared Frontend Evidence State Model ────────────────────────────────────
+  // Single source of truth for evidence presence and state across all screens.
+  // Screens must not invent their own evidence state logic — always call getEvidenceState().
+  // Future backend validation states (under_review, validated, rejected) plug in here;
+  // callers that already use this helper will pick them up automatically.
+  function getEvidenceState(caseRecord, evidenceType, shipRecord) {
+    shipRecord = shipRecord || {};
+    var present;
+    switch (evidenceType) {
+      case 'nxp_approval':       present = !!caseRecord.nxp_approved;               break;
+      case 'bill_of_lading':     present = !!caseRecord.bl_uploaded;                break;
+      case 'cci_document':       present = !!caseRecord.cci_obtained;               break;
+      case 'payment_evidence':   present = !!caseRecord.payment_evidence_uploaded;  break;
+      case 'credit_advice':      present = !!caseRecord.credit_advice_confirmed;    break;
+      case 'shipment_record':    present = !!(shipRecord && shipRecord.nxp_reference); break;
+      case 'compliance_summary': present = !!caseRecord;                            break;
+      default:                   present = false;
+    }
+    var state      = present ? 'uploaded' : 'missing';
+    var label      = present ? 'Uploaded' : 'Missing';
+    var badgeClass = present ? 'on-file'  : 'missing';
+    return {
+      state:            state,
+      label:            label,
+      badgeClass:       badgeClass,
+      required:         true,
+      validationStatus: 'Not validated',
+      lastChecked:      'Unavailable',
+    };
+  }
+
   // ── Evidence navigation ───────────────────────────────────────────────────────
   // openEvidence() is the single public entry point for opening any evidence record.
   // UI components should never contain evidence-routing logic — always call openEvidence().
@@ -3606,19 +3637,11 @@
     };
     const meta = evMeta[type] || { title: 'Document', code: '—' };
 
-    // Derive on-file status from case fields
-    const onFile = {
-      nxp_approval:       !!c.nxp_approved,
-      bill_of_lading:     !!c.bl_uploaded,
-      cci_document:       !!c.cci_obtained,
-      payment_evidence:   !!c.payment_evidence_uploaded,
-      credit_advice:      !!c.credit_advice_confirmed,
-      shipment_record:    !!(ship && ship.nxp_reference),
-      compliance_summary: c.caseStatus === 'COMPLETE',
-    };
-    const present = !!(onFile[type]);
-    const statusLabel = present ? 'On file' : 'Missing';
-    const statusCls   = present ? 'on-file' : 'missing';
+    // Derive evidence state via shared model — no ad-hoc booleans on this screen
+    const evState     = getEvidenceState(c, type, ship);
+    const present     = evState.state === 'uploaded';
+    const statusLabel = evState.label;      // 'Uploaded' | 'Missing' (canonical)
+    const statusCls   = evState.badgeClass; // 'on-file'  | 'missing'
 
     document.getElementById('ev-item-content').innerHTML =
       // Back navigation
@@ -3643,7 +3666,7 @@
       +   '<div class="ec-row"><span class="ec-rl">Shipment Reference</span><span class="ec-rv mono">' + h(c.shipment_reference || '—') + '</span></div>'
       +   '<div class="ec-row"><span class="ec-rl">Source System</span><span class="ec-rv">ExportOS</span></div>'
       +   '<div class="ec-row"><span class="ec-rl">Uploaded Date</span><span class="ec-rv muted">Unavailable</span></div>'
-      +   '<div class="ec-row"><span class="ec-rl">Validation Status</span><span class="ec-rv muted">Not validated</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Validation Status</span><span class="ec-rv muted">' + h(evState.validationStatus) + '</span></div>'
       + '</div>'
       // Evidence Metadata card — compliance context and validation state
       + '<div class="ec-card">'
@@ -3652,8 +3675,8 @@
       +   '<div class="ec-row"><span class="ec-rl">Evidence Code</span><span class="ec-rv"><span class="ev-item-code">' + h(meta.code) + '</span></span></div>'
       +   '<div class="ec-row"><span class="ec-rl">Required for Compliance</span><span class="ec-rv">Yes</span></div>'
       +   '<div class="ec-row"><span class="ec-rl">Current State</span><span class="ec-rv"><span class="ev-item-status ' + statusCls + '">' + statusLabel + '</span></span></div>'
-      +   '<div class="ec-row"><span class="ec-rl">Validation Status</span><span class="ec-rv muted">Not validated</span></div>'
-      +   '<div class="ec-row"><span class="ec-rl">Last Checked</span><span class="ec-rv muted">Unavailable</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Validation Status</span><span class="ec-rv muted">' + h(evState.validationStatus) + '</span></div>'
+      +   '<div class="ec-row"><span class="ec-rl">Last Checked</span><span class="ec-rv muted">' + h(evState.lastChecked) + '</span></div>'
       +   (present
           ? '<div class="ev-item-notice neutral">Document metadata is not available yet.<br>Metadata extraction will be added in a future phase.</div>'
           : '<div class="ev-item-notice amber">Evidence has not been uploaded yet.<br>Upload flow will be added in a future phase.</div>')
@@ -3700,28 +3723,30 @@
     const rdy = rdyMap[c.packStatus] || { label: 'Not Ready', cls: 'not-ready' };
 
     const hasPack = !!(c.pack);
+    // Evidence items — state derived via shared getEvidenceState(); no ad-hoc booleans
     const epItems = [
-      { val: c.nxp_approved,              tag: 'NXP', label: 'NXP Approval',      evidenceType: 'nxp_approval'     },
-      { val: c.bl_uploaded,               tag: 'BL',  label: 'Bill of Lading',     evidenceType: 'bill_of_lading'   },
-      { val: c.cci_obtained,              tag: 'CCI', label: 'CCI Document',        evidenceType: 'cci_document'     },
-      { val: c.payment_evidence_uploaded, tag: 'EVD', label: 'Payment Evidence',    evidenceType: 'payment_evidence' },
-      { val: c.credit_advice_confirmed,   tag: 'ADV', label: 'Credit Advice',       evidenceType: 'credit_advice'    },
-    ];
+      { tag: 'NXP', label: 'NXP Approval',    evidenceType: 'nxp_approval'     },
+      { tag: 'BL',  label: 'Bill of Lading',   evidenceType: 'bill_of_lading'   },
+      { tag: 'CCI', label: 'CCI Document',     evidenceType: 'cci_document'     },
+      { tag: 'EVD', label: 'Payment Evidence', evidenceType: 'payment_evidence' },
+      { tag: 'ADV', label: 'Credit Advice',    evidenceType: 'credit_advice'    },
+    ].map(function(i) { return Object.assign({}, i, { evState: getEvidenceState(c, i.evidenceType, ship) }); });
 
-    function epRow(val, tag, label, evidenceType) {
-      const btn = val
+    function epRow(evState, tag, label, evidenceType) {
+      const present = evState.state === 'uploaded';
+      const btn = present
         ? '<button class="ec-chk-btn view"   type="button" onclick="openEvidence(\'' + evidenceType + '\')" aria-label="View ' + h(label) + '">View →</button>'
         : '<button class="ec-chk-btn upload" type="button" onclick="ecUploadNav(' + hasPack + ')" aria-label="Upload ' + h(label) + '">Upload →</button>';
-      return '<div class="ec-chk' + (val ? '' : ' chk-miss') + '">'
-        + '<span class="ec-chk-i' + (val ? '' : ' x') + '">' + (val ? '✓' : '✗') + '</span>'
+      return '<div class="ec-chk' + (present ? '' : ' chk-miss') + '">'
+        + '<span class="ec-chk-i' + (present ? '' : ' x') + '">' + (present ? '✓' : '✗') + '</span>'
         + '<span class="ec-chk-l">' + h(label) + '</span>'
         + '<span class="ec-chk-t">' + h(tag) + '</span>'
-        + '<span class="ec-chk-n ' + (val ? 'ok' : 'bad') + '">' + (val ? 'On file' : 'Missing') + '</span>'
+        + '<span class="ec-chk-n ' + (present ? 'ok' : 'bad') + '">' + (present ? 'On file' : 'Missing') + '</span>'
         + btn
         + '</div>';
     }
 
-    const onFile = epItems.filter(i => i.val).length;
+    const onFile = epItems.filter(function(i) { return i.evState.state === 'uploaded'; }).length;
 
     document.getElementById('ep-ws-content').innerHTML =
       '<div class="ec-card">'
@@ -3734,7 +3759,7 @@
       + '</div>'
       + '<div class="ec-card">'
       + '<div class="ec-card-h"><span class="ec-card-t">Evidence Items</span><span class="ec-chk-prog">' + onFile + ' of ' + epItems.length + ' on file</span></div>'
-      + epItems.map(function(i) { return epRow(i.val, i.tag, i.label, i.evidenceType); }).join('')
+      + epItems.map(function(i) { return epRow(i.evState, i.tag, i.label, i.evidenceType); }).join('')
       + '</div>'
       + '<div style="padding:12px 4px 4px">'
       +   '<button class="ec-chk-btn view" type="button" onclick="openExportCase(\'' + h(nxpRef) + '\')" aria-label="Back to export case">← Back to Export Case</button>'
@@ -3809,32 +3834,32 @@
       ? h(ship.port_of_loading) + ' → ' + h(ship.port_of_discharge)
       : '—';
 
-    // Compliance progress grouping
+    // Compliance progress grouping — state derived via shared getEvidenceState()
     const chkItems = [
-      { val: c.nxp_approved,              tag: 'NXP', label: 'NXP Approved by CBN' },
-      { val: c.bl_uploaded,               tag: 'BL',  label: 'Bill of Lading Uploaded' },
-      { val: c.cci_obtained,              tag: 'CCI', label: 'CCI Obtained' },
-      { val: c.payment_evidence_uploaded, tag: 'EVD', label: 'Payment Evidence Uploaded' },
-      { val: c.credit_advice_confirmed,   tag: 'ADV', label: 'Credit Advice Confirmed' },
-    ];
-    const chkBlocking = chkItems.filter(i => !i.val);
-    const chkDone     = chkItems.filter(i =>  i.val);
+      { evidenceType: 'nxp_approval',     tag: 'NXP', label: 'NXP Approved by CBN'       },
+      { evidenceType: 'bill_of_lading',   tag: 'BL',  label: 'Bill of Lading Uploaded'    },
+      { evidenceType: 'cci_document',     tag: 'CCI', label: 'CCI Obtained'               },
+      { evidenceType: 'payment_evidence', tag: 'EVD', label: 'Payment Evidence Uploaded'  },
+      { evidenceType: 'credit_advice',    tag: 'ADV', label: 'Credit Advice Confirmed'    },
+    ].map(function(i) { return Object.assign({}, i, { evState: getEvidenceState(c, i.evidenceType) }); });
+    const chkBlocking = chkItems.filter(function(i) { return i.evState.state !== 'uploaded'; });
+    const chkDone     = chkItems.filter(function(i) { return i.evState.state === 'uploaded'; });
 
     // Checklist helper — chk-miss class for visually obvious missing state
-    function eck(val, tag, label) {
-      // Temporary interactions — replace with real document flows when upload/preview ships.
-      // UI components never contain evidence-routing logic; always delegate to openEvidence().
-      const hasPack = !!(c.pack);
-      const tagToEvidence = { NXP: 'nxp_approval', BL: 'bill_of_lading', CCI: 'cci_document', EVD: 'payment_evidence', ADV: 'credit_advice' };
-      const evidenceType = tagToEvidence[tag] || 'document';
-      const btn = val
+    // Temporary interactions — replace with real document flows when upload/preview ships.
+    // UI components never contain evidence-routing logic; always delegate to openEvidence().
+    function eck(evidenceType, tag, label) {
+      const hasPack  = !!(c.pack);
+      const evState  = getEvidenceState(c, evidenceType);
+      const present  = evState.state === 'uploaded';
+      const btn = present
         ? '<button class="ec-chk-btn view"   type="button" onclick="openEvidence(\'' + evidenceType + '\')" aria-label="View document for ' + h(label) + '">View →</button>'
         : '<button class="ec-chk-btn upload" type="button" onclick="ecUploadNav(' + hasPack + ')" aria-label="Upload document for ' + h(label) + '">Upload →</button>';
-      return '<div class="ec-chk' + (val ? '' : ' chk-miss') + '">'
-        + '<span class="ec-chk-i' + (val ? '' : ' x') + '">' + (val ? '✓' : '✗') + '</span>'
+      return '<div class="ec-chk' + (present ? '' : ' chk-miss') + '">'
+        + '<span class="ec-chk-i' + (present ? '' : ' x') + '">' + (present ? '✓' : '✗') + '</span>'
         + '<span class="ec-chk-l">' + h(label) + '</span>'
         + '<span class="ec-chk-t">' + h(tag) + '</span>'
-        + '<span class="ec-chk-n ' + (val ? 'ok' : 'bad') + '">' + (val ? 'On file' : 'Missing') + '</span>'
+        + '<span class="ec-chk-n ' + (present ? 'ok' : 'bad') + '">' + (present ? 'On file' : 'Missing') + '</span>'
         + btn
         + '</div>';
     }
@@ -3975,8 +4000,8 @@
       // Compliance Progress — blocking items first, completed second
       + '<div class="ec-card">'
       + '<div class="ec-card-h"><span class="ec-card-t">Compliance Progress</span><span class="ec-chk-prog">' + chkDone.length + ' of ' + chkItems.length + ' complete</span></div>'
-      + (chkBlocking.length ? '<div class="ec-grp-lbl">Blocking completion</div>' + chkBlocking.map(i => eck(i.val, i.tag, i.label)).join('') : '')
-      + (chkDone.length     ? '<div class="ec-grp-lbl ec-grp-done' + (chkBlocking.length ? ' ec-grp-sep' : '') + '">Completed</div>' + chkDone.map(i => eck(i.val, i.tag, i.label)).join('') : '')
+      + (chkBlocking.length ? '<div class="ec-grp-lbl">Blocking completion</div>' + chkBlocking.map(function(i) { return eck(i.evidenceType, i.tag, i.label); }).join('') : '')
+      + (chkDone.length     ? '<div class="ec-grp-lbl ec-grp-done' + (chkBlocking.length ? ' ec-grp-sep' : '') + '">Completed</div>' + chkDone.map(function(i) { return eck(i.evidenceType, i.tag, i.label); }).join('') : '')
       + '</div>'
 
       // Proceeds & Repatriation — two logical groups + integrity warning
