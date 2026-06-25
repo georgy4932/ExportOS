@@ -912,6 +912,10 @@
     .ec-tl-detail { font-size: 11px; color: #64748b; margin-top: 1px; }
     .ec-tl-note { font-size: 11px; color: #94a3b8; margin-top: 1px; }
     .ec-tl-date { font-size: 11px; color: #cbd5e1; white-space: nowrap; padding-top: 2px; flex-shrink: 0; }
+    /* Clickable completed timeline events — temporary until evidence record pages exist */
+    .ec-tl-body-link { cursor: pointer; border-radius: 4px; transition: background 0.12s; }
+    .ec-tl-body-link:hover { background: #f8fafc; }
+    .ec-tl-body-link:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
     .ec-breadcrumb { font-size: 10.5px; color: #94a3b8; padding: 10px 16px 0; }
     .ec-breadcrumb button {
       background: none; border: none; font-size: 10.5px; color: #64748b;
@@ -3486,7 +3490,7 @@
   // ── Compliance Progress button handlers ──────────────────────────────────────
   // Temporary interactions — replace when document upload/preview workflows ship.
 
-  function ecViewDoc() {
+  function ecViewDoc(msg) {
     // Show a transient toast until a real document viewer is implemented
     let t = document.getElementById('doc-toast');
     if (!t) {
@@ -3494,10 +3498,24 @@
       t.id = 'doc-toast';
       document.body.appendChild(t);
     }
-    t.textContent = 'Document viewer coming in a future phase.';
+    t.textContent = msg || 'Document viewer coming in a future phase.';
     clearTimeout(t._dismiss);
     t.classList.add('show');
     t._dismiss = setTimeout(function() { t.classList.remove('show'); }, 2000);
+  }
+
+  // Temporary navigation placeholders — replace when evidence record pages exist.
+  const TL_TOAST_MSGS = {
+    'NXP Approved':            'Approval record viewer coming in a future phase.',
+    'Shipment Created':        'Shipment record viewer coming in a future phase.',
+    'Bill of Lading Uploaded': 'Bill of Lading viewer coming in a future phase.',
+    'Proceeds Received':       'Payment evidence viewer coming in a future phase.',
+    'Credit Advice Confirmed': 'Credit Advice viewer coming in a future phase.',
+    'Case Compliant':          'Compliance summary coming in a future phase.',
+  };
+
+  function ecTlClick(label) {
+    ecViewDoc(TL_TOAST_MSGS[label] || 'Viewer coming in a future phase.');
   }
 
   function ecUploadNav(hasPack) {
@@ -3706,12 +3724,19 @@
             const lblCls = 'ec-tl-label' + (ev.state === 'pend' ? ' tl-pend' : '');
             const note   = ev.state === 'done' ? 'Completed'
                          : ev.state === 'cur'  ? 'Current milestone' : 'Pending';
+            // Temporary navigation placeholder — completed events become clickable until evidence pages exist
+            const isDone = ev.state === 'done';
+            const bodyOpen = isDone
+              ? '<div class="ec-tl-body ec-tl-body-link" tabindex="0" role="button"'
+              + ' onclick="ecTlClick(\'' + ev.label + '\')"'
+              + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){ecTlClick(\'' + ev.label + '\');event.preventDefault();}">'
+              : '<div class="ec-tl-body">';
             return '<div class="ec-tl-item">'
               + '<div class="ec-tl-spine">'
               +   '<div class="' + dotCls + '"></div>'
               +   (!isLast ? '<div class="ec-tl-line"></div>' : '')
               + '</div>'
-              + '<div class="ec-tl-body">'
+              + bodyOpen
               +   '<div class="ec-tl-text">'
               +     '<div class="' + lblCls + '">' + h(ev.label) + '</div>'
               +     (ev.detail ? '<div class="ec-tl-detail">' + h(ev.detail) + '</div>' : '')
