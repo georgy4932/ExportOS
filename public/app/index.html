@@ -3781,6 +3781,28 @@
     }
   }
 
+  // Calls PATCH /export-cases/:nxp/evidence/:type with { action: 'mark_uploaded' }.
+  // On success: re-renders the active view (which re-fetches the evidence cache).
+  // On failure: shows the error in the existing doc-toast; no local state is mutated.
+  async function markUploaded(nxpRef, evidenceType) {
+    try {
+      await apiFetch('/export-cases/' + encodeURIComponent(nxpRef) + '/evidence/' + evidenceType, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ action: 'mark_uploaded' }),
+      });
+      var active = document.querySelector('.app-view.v-active');
+      if (active && active.id === 'view-ep-workspace') {
+        await openEvidencePackWorkspace(nxpRef);
+      } else {
+        await openExportCase(nxpRef);
+      }
+      ecViewDoc('Document marked as uploaded.');
+    } catch (err) {
+      ecViewDoc((err && err.message) ? err.message : 'Upload failed. Please try again.');
+    }
+  }
+
   // ── Evidence Pack Workspace ──────────────────────────────────────────────────
   async function openEvidencePackWorkspace(nxpRef) {
     _currentNxpRef = nxpRef;
@@ -3811,7 +3833,7 @@
       const present = evState.state === 'uploaded';
       const btn = present
         ? '<button class="ec-chk-btn view"   type="button" onclick="openEvidence(\'' + evidenceType + '\')" aria-label="View ' + h(label) + '">View →</button>'
-        : '<button class="ec-chk-btn upload" type="button" onclick="ecUploadNav(' + hasPack + ')" aria-label="Upload ' + h(label) + '">Upload →</button>';
+        : '<button class="ec-chk-btn upload" type="button" onclick="markUploaded(\'' + nxpRef + '\',\'' + evidenceType + '\')" aria-label="Upload ' + h(label) + '">Upload →</button>';
       return '<div class="ec-chk' + (present ? '' : ' chk-miss') + '">'
         + '<span class="ec-chk-i' + (present ? '' : ' x') + '">' + (present ? '✓' : '✗') + '</span>'
         + '<span class="ec-chk-l">' + h(label) + '</span>'
@@ -3924,7 +3946,7 @@
       const present  = evState.state === 'uploaded';
       const btn = present
         ? '<button class="ec-chk-btn view"   type="button" onclick="openEvidence(\'' + evidenceType + '\')" aria-label="View document for ' + h(label) + '">View →</button>'
-        : '<button class="ec-chk-btn upload" type="button" onclick="ecUploadNav(' + hasPack + ')" aria-label="Upload document for ' + h(label) + '">Upload →</button>';
+        : '<button class="ec-chk-btn upload" type="button" onclick="markUploaded(\'' + nxpRef + '\',\'' + evidenceType + '\')" aria-label="Upload document for ' + h(label) + '">Upload →</button>';
       return '<div class="ec-chk' + (present ? '' : ' chk-miss') + '">'
         + '<span class="ec-chk-i' + (present ? '' : ' x') + '">' + (present ? '✓' : '✗') + '</span>'
         + '<span class="ec-chk-l">' + h(label) + '</span>'
@@ -4047,7 +4069,7 @@
                 + '<span class="ec-chk-i x">✗</span>'
                 + '<span class="ec-chk-l">' + h(firstMissing.label)
                 +   '<br><span style="font-size:10px;color:#94a3b8;font-weight:400">Required for compliance</span></span>'
-                + '<button class="ec-chk-btn upload" type="button" onclick="ecUploadNav(' + hasPack + ')"'
+                + '<button class="ec-chk-btn upload" type="button" onclick="markUploaded(\'' + nxpRef + '\',\'' + firstMissing.type + '\')"'
                 +   ' aria-label="Upload ' + h(firstMissing.label) + '">Upload →</button>'
                 + '</div>'
               : '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px">'
