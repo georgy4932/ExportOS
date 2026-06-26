@@ -3353,7 +3353,7 @@
   // Deterministic rule chain — first matching rule wins.
   // Rule order: overdue deadline → outstanding proceeds → missing compliance items.
   // No backend calls, no AI. Derived entirely from existing case record fields.
-  function getFollowUp(c) {
+  function getFollowUp(c, ship) {
     // Rule 1: repatriation overdue
     if (c.repatriation_status === 'OVERDUE' || (c.daysLeft !== null && c.daysLeft < 0)) {
       return {
@@ -3377,13 +3377,14 @@
         buttonLabel: 'Schedule Follow-Up →',
       };
     }
-    // Rule 3: missing compliance items
+    // Rule 3: missing compliance items — use getEvidenceState() so _evidenceCache is
+    // preferred over stale boolean fields after mark_uploaded in the same session.
     const _fuMissing = [
-      !c.credit_advice_confirmed,
-      !c.payment_evidence_uploaded,
-      !c.bl_uploaded,
-      !c.cci_obtained,
-      !c.nxp_approved,
+      getEvidenceState(c, 'credit_advice',    ship).state !== 'uploaded',
+      getEvidenceState(c, 'payment_evidence', ship).state !== 'uploaded',
+      getEvidenceState(c, 'bill_of_lading',   ship).state !== 'uploaded',
+      getEvidenceState(c, 'cci_document',     ship).state !== 'uploaded',
+      getEvidenceState(c, 'nxp_approval',     ship).state !== 'uploaded',
     ].filter(Boolean).length;
     if (_fuMissing > 0) {
       return {
@@ -3471,37 +3472,38 @@
   // ── Next Required Action ─────────────────────────────────────────────────────
   // Deterministic rule chain — first matching rule wins.
   // Rules are ordered: document gaps before proceeds shortfalls.
-  // No AI, no inference, no backend calls. Reads only fields already on the record.
-  function getNextRequiredAction(c) {
-    if (!c.credit_advice_confirmed) return {
+  // Uses getEvidenceState() so _evidenceCache is preferred over stale boolean
+  // fields from compliance_records after mark_uploaded in the same session.
+  function getNextRequiredAction(c, ship) {
+    if (getEvidenceState(c, 'credit_advice', ship).state !== 'uploaded') return {
       actionLabel:  'Upload credit advice',
       actionDetail: 'ADV · Document required',
       actionType:   'upload',
       buttonLabel:  'Upload ADV →',
       severity:     'action',
     };
-    if (!c.payment_evidence_uploaded) return {
+    if (getEvidenceState(c, 'payment_evidence', ship).state !== 'uploaded') return {
       actionLabel:  'Upload payment evidence',
       actionDetail: 'EVD · Document required',
       actionType:   'upload',
       buttonLabel:  'Upload EVD →',
       severity:     'action',
     };
-    if (!c.bl_uploaded) return {
+    if (getEvidenceState(c, 'bill_of_lading', ship).state !== 'uploaded') return {
       actionLabel:  'Upload bill of lading',
       actionDetail: 'BL · Document required',
       actionType:   'upload',
       buttonLabel:  'Upload BL →',
       severity:     'action',
     };
-    if (!c.cci_obtained) return {
+    if (getEvidenceState(c, 'cci_document', ship).state !== 'uploaded') return {
       actionLabel:  'Upload CCI',
       actionDetail: 'CCI · Document required',
       actionType:   'upload',
       buttonLabel:  'Upload CCI →',
       severity:     'action',
     };
-    if (!c.nxp_approved) return {
+    if (getEvidenceState(c, 'nxp_approval', ship).state !== 'uploaded') return {
       actionLabel:  'Resolve NXP approval',
       actionDetail: 'NXP · Pending CBN approval',
       actionType:   'resolve',
@@ -3919,7 +3921,7 @@
                  : c.repatriation_status === 'PARTIAL'  ? 'o' : 'gr';
 
     // NRA — deterministic function replaces static c.nextAction
-    const nra   = getNextRequiredAction(c);
+    const nra   = getNextRequiredAction(c, ship);
     const nraOk = nra.severity === 'none';
 
     const route = (ship.port_of_loading && ship.port_of_discharge)
@@ -4082,7 +4084,7 @@
 
       // Follow-Up — deterministic from existing case data
       + (function() {
-        const fu = getFollowUp(c);
+        const fu = getFollowUp(c, ship);
         const fuStatusCls = fu.status === 'Overdue' ? 'r' : fu.status === 'Pending' ? 'o' : fu.status === 'Action Required' ? 'y' : 'gr';
         return '<div class="ec-card">'
           + '<div class="ec-card-h"><span class="ec-card-t">Follow-Up</span></div>'
