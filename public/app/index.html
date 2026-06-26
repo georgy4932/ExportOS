@@ -1967,8 +1967,8 @@
   // ── Fetch helper ─────────────────────────────────────────────────────────────
   async function apiFetch(path, options) {
     const res = await fetch(path, {
-      headers: { ...authHeaders(), ...(options?.headers ?? {}) },
       ...options,
+      headers: { ...authHeaders(), ...(options?.headers ?? {}) },
     });
     if (res.status === 401) { clearToken(); showLogin(); throw new Error('Session expired. Please sign in again.'); }
     if (!res.ok) {
@@ -2333,24 +2333,24 @@
 
         // Next action (highest-priority single action)
         let nextAction;
-        if      (!c.credit_advice_confirmed)   nextAction = 'Upload credit advice';
-        else if (!c.payment_evidence_uploaded) nextAction = 'Upload payment evidence';
-        else if (!c.bl_uploaded)               nextAction = 'Upload bill of lading';
-        else if (!c.cci_obtained)              nextAction = 'Upload CCI';
-        else if (!c.nxp_approved)              nextAction = 'Resolve NXP approval';
-        else if (outstanding > 0)              nextAction = 'Follow up proceeds';
-        else                                   nextAction = 'No action';
+        if      (getEvidenceState(c, 'credit_advice').state    !== 'uploaded') nextAction = 'Upload credit advice';
+        else if (getEvidenceState(c, 'payment_evidence').state !== 'uploaded') nextAction = 'Upload payment evidence';
+        else if (getEvidenceState(c, 'bill_of_lading').state   !== 'uploaded') nextAction = 'Upload bill of lading';
+        else if (getEvidenceState(c, 'cci_document').state     !== 'uploaded') nextAction = 'Upload CCI';
+        else if (getEvidenceState(c, 'nxp_approval').state     !== 'uploaded') nextAction = 'Resolve NXP approval';
+        else if (outstanding > 0)                                               nextAction = 'Follow up proceeds';
+        else                                                                    nextAction = 'No action';
 
         // Blocker for Attention Required
         let blocker = null;
         if      (daysLeft !== null && daysLeft < 0)   blocker = 'Deadline ' + Math.abs(daysLeft) + 'd overdue';
         else if (daysLeft !== null && daysLeft <= 30)  blocker = 'Deadline in ' + daysLeft + 'd';
         else if (outstanding > 0)                      blocker = 'Outstanding proceeds';
-        else if (!c.credit_advice_confirmed)           blocker = 'Missing credit advice';
-        else if (!c.payment_evidence_uploaded)         blocker = 'Missing payment evidence';
-        else if (!c.bl_uploaded)                       blocker = 'Missing BL';
-        else if (!c.cci_obtained)                      blocker = 'Missing CCI';
-        else if (!c.nxp_approved)                      blocker = 'Missing NXP approval';
+        else if (getEvidenceState(c, 'credit_advice').state    !== 'uploaded') blocker = 'Missing credit advice';
+        else if (getEvidenceState(c, 'payment_evidence').state !== 'uploaded') blocker = 'Missing payment evidence';
+        else if (getEvidenceState(c, 'bill_of_lading').state   !== 'uploaded') blocker = 'Missing BL';
+        else if (getEvidenceState(c, 'cci_document').state     !== 'uploaded') blocker = 'Missing CCI';
+        else if (getEvidenceState(c, 'nxp_approval').state     !== 'uploaded') blocker = 'Missing NXP approval';
         else if (pack && !pack.sealed)                 blocker = 'Evidence pack not sealed';
 
         // Evidence pack readiness
