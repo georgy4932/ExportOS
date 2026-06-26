@@ -3819,7 +3819,13 @@
       'READY_TO_SEAL': { label: 'Ready to Seal', cls: 'ready'     },
       'NOT_READY':     { label: 'Not Ready',     cls: 'not-ready' },
     };
-    const rdy = rdyMap[c.packStatus] || { label: 'Not Ready', cls: 'not-ready' };
+    // Recalculate pack readiness from live evidence cache so the badge stays
+    // consistent with mark_uploaded in the same session.
+    const epFreshChecklist   = isEvidenceSetComplete(c, ship);
+    const epFreshPackStatus  = c.pack && c.pack.sealed                       ? 'SEALED'
+                             : c.pack && !c.pack.sealed && epFreshChecklist  ? 'READY_TO_SEAL'
+                             : 'NOT_READY';
+    const rdy = rdyMap[epFreshPackStatus] || { label: 'Not Ready', cls: 'not-ready' };
 
     const hasPack = !!(c.pack);
     // Evidence items — state derived via shared getEvidenceState(); no ad-hoc booleans
@@ -3888,10 +3894,14 @@
     };
     const st = stMap[c.caseStatus] ?? { cls: 's-action', word: c.caseStatus ?? '—', sub: '—' };
 
-    // Pack
+    // Pack — recalculate readiness from live evidence cache so the badge reflects
+    // mark_uploaded in the same session without waiting for loadOverview() to re-run.
     const packLbl = { SEALED: 'Sealed', READY_TO_SEAL: 'Ready to seal', NOT_READY: 'Not ready' };
     const packCls = { SEALED: 'fs-pack-sealed', READY_TO_SEAL: 'fs-pack-ready', NOT_READY: 'fs-pack-not' };
-    const ps = c.packStatus ?? 'NOT_READY';
+    const freshChecklist = isEvidenceSetComplete(c, ship);
+    const ps = c.pack && c.pack.sealed                    ? 'SEALED'
+             : c.pack && !c.pack.sealed && freshChecklist ? 'READY_TO_SEAL'
+             : 'NOT_READY';
 
     // Missing checklist items
     const missing = [
