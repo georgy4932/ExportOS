@@ -2,78 +2,68 @@
 
 **Date:** 2026-06-27
 **Tag:** `exportos-rc3-evidence-upload-fixed`
-**Tagged commit:** `f1f7efe`
+**Commit:** `f1f7efe`
 
-## Production Verification
+## Summary
 
-Upload ADV on `NXP-2026-SES-001` was tested in a production browser session.
-The PATCH request returned 200, the UI changed to "document marked as uploaded",
-and the DB row was confirmed:
+RC3 restores the end-to-end evidence upload workflow in production after resolving three independent issues discovered during deployment. Each issue presented as a distinct error at a different layer of the stack: authentication, database permissions, and missing seed data. All three had to be resolved in sequence before a successful upload could complete.
 
-| field | value |
-|---|---|
-| `lifecycle_state` | `uploaded` |
-| `uploaded_at` | `2026-06-27 23:28:27 UTC` |
-| `updated_at` | `2026-06-27 23:28:27 UTC` |
-| `validation_status` | `pending` |
+## Incident timeline
 
-## Root Cause Chain
+1. Login succeeded.
+2. Upload logged the user out.
+3. Authorization header regression identified.
+4. Upload returned "permission denied for table evidence_items".
+5. Database privileges corrected.
+6. Upload returned "Export case or evidence item not found".
+7. Root cause traced to missing evidence_items rows.
+8. Backfill migration applied.
+9. Production browser verification passed.
+10. Database persistence verified.
 
-Three layered bugs prevented evidence upload from working end-to-end.
-Each had to be fixed in order.
+## Root causes
 
-### 1. `apiFetch` Authorization header regression
+### RC3-1
 
-`apiFetch` spread `...options` after the `headers` object, so any call that
-passed `options.headers` (only `markUploaded`) silently overwrote the
-`Authorization: Bearer` token. The PATCH reached the server unauthenticated
-and returned 401, which the frontend interpreted as a session expiry and
-redirected to the sign-in screen.
+Authorization header lost during PATCH because `apiFetch` spread order overwrote headers.
 
-**Fix:** Moved `...options` before `headers` in the fetch init object so the
-auth header always wins. (`e10376d`, PR #53)
+`markUploaded` is the only caller that passes `options.headers`. The spread `{ headers: authHeaders(), ...options }` allowed `options.headers` to overwrite the `Authorization: Bearer` token, causing the server to reject the request as unauthenticated and the frontend to redirect to the sign-in screen.
 
-### 2. Missing `evidence_items` table privileges for `exportos_app`
+**Fix:** Move `...options` before `headers` so the auth header always wins.
 
-`evidence_items` was created in migration 0008 after the one-time broad
-`GRANT ALL ON ALL TABLES` had already been applied to `exportos_app`. New
-tables are not covered retroactively. `SELECT … FOR UPDATE` (used by the
-mark-uploaded write path) requires UPDATE privilege, which was never granted,
-so the first DB query on the PATCH path failed with
-`permission denied for table evidence_items`.
+### RC3-2
 
-**Fix:** New migration granting `SELECT, INSERT, UPDATE` to `exportos_app`.
+`exportos_app` lacked `SELECT`, `INSERT`, and `UPDATE` on `evidence_items`.
 
-**Migration:** `20260627000001_evidence_items_grant.sql`
+The table was created in migration 0008 after the one-time broad `GRANT ALL ON ALL TABLES` had already been applied. New tables are not covered retroactively. `SELECT … FOR UPDATE` (required by the mark-uploaded write path) requires `UPDATE` privilege, which was never granted.
 
-### 3. No `evidence_items` rows for pre-existing compliance records
+**Fix:** Migration `20260627000001_evidence_items_grant.sql`
 
-Migration 0008 seeded `evidence_items` via an `AFTER INSERT ON compliance_records`
-trigger (`seed_evidence_items()`). The production DB already had
-`compliance_records` rows from the initial seed; `AFTER INSERT` triggers do not
-fire retroactively. `evidence_items` was therefore empty for all seeded
-shipments. With permissions now fixed, the PATCH passed authentication and
-permissions but returned 404 (`Export case or evidence item not found`) because
-the `SELECT … FOR UPDATE` returned zero rows.
+### RC3-3
 
-**Fix:** New migration that backfills `evidence_items` for every existing
-`compliance_record` using the same INSERT logic as the trigger, with
-`ON CONFLICT (shipment_id, evidence_type) DO NOTHING` for idempotency.
-21 rows inserted across 3 shipments (7 evidence types each).
+Production `compliance_records` predated the `evidence_items` trigger.
 
-**Migration:** `20260627000002_backfill_evidence_items.sql`
+Migration 0008 introduced a `seed_evidence_items()` function that fires `AFTER INSERT ON compliance_records`. The production database already had `compliance_records` rows from the initial seed. `AFTER INSERT` triggers do not fire retroactively, so `evidence_items` was empty for all seeded shipments.
 
-## Migrations
+**Fix:** Migration `20260627000002_backfill_evidence_items.sql`
 
-| File | Purpose |
-|---|---|
-| `supabase/migrations/20260627000001_evidence_items_grant.sql` | Grant SELECT, INSERT, UPDATE on evidence_items to exportos_app |
-| `supabase/migrations/20260627000002_backfill_evidence_items.sql` | Backfill evidence_items rows for pre-existing compliance_records |
+## Production verification
 
-## Final Verified Result
+- Login successful
+- Upload ADV successful on NXP-2026-SES-001
+- PATCH returned success
+- UI updated to "Document marked as uploaded"
+- `lifecycle_state` changed to `uploaded`
+- `uploaded_at` populated (`2026-06-27 23:28:27 UTC`)
+- `updated_at` changed
 
-Upload ADV on `NXP-2026-SES-001` succeeded in production. The
-`evidence_items` row for `credit_advice` persisted `lifecycle_state = uploaded`
-in the database, confirming the full write path — authentication, DB
-permissions, row existence, UPDATE, and compliance_records boolean sync —
-is working end-to-end.
+## Lessons learned
+
+- New trigger-based tables require explicit backfills for existing production data.
+- Verify database grants whenever introducing new tables after an initial schema deployment.
+- End-to-end production validation is required before declaring deployment complete.
+- Data migrations should be treated as first-class release artifacts.
+
+## Status
+
+RC3 complete.
