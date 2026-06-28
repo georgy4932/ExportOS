@@ -16,13 +16,12 @@ Implement the evidence validation lifecycle defined in ADR-012. After RC4, a rev
 - API enforcement of allowed-transitions table from ADR-012
 - Actor type recorded on every transition (`exporter`, `reviewer`, `admin`, `system`)
 - Reason field required for `reviewer` and `admin` transitions
-- Compliance record boolean sync when evidence reaches `validated` (replacing current sync on `uploaded`)
+- `pending_review` auto-assignment on upload (system actor, deferred reviewer queue)
 - Frontend: reviewer action buttons (Validate / Reject) visible when `lifecycle_state = uploaded` or `pending_review`
 - Frontend: rejection reason input before submitting a rejection
 - Frontend: audit trail panel on each evidence item showing transition history
 - Frontend: exporter re-upload path when `lifecycle_state = rejected`
-- `pending_review` auto-assignment on upload (system actor, deferred reviewer queue)
-- RLS policy on `evidence_events` — read-only for exporters on their own records; read-write for reviewers and admins
+- RLS policy on `evidence_events` — exporters read their own records; reviewers read all records within scope; admins read all records
 - Verify scripts covering all new transitions and 409 conflict responses
 
 ## Out of Scope
@@ -37,7 +36,8 @@ Per ADR-012 and permanent scope constraints:
 - Payment movement, stablecoin wallets, FX trading, sanctions screening, TRMS submission
 - Multi-reviewer consensus / quorum
 - Deadline enforcement as a lifecycle state
-- Reviewer role schema changes to `exporter_users` (reviewer identity is a separate design decision per ADR-012 open question 1)
+- Bulk review actions (validate/reject all)
+- Compliance record boolean sync change from `uploaded` to `validated` — deferred; see RC4_DATABASE_DESIGN open question 5
 - Frontend: marketing sections, scope expansion, invented customer data
 
 ## User Roles Affected
@@ -53,21 +53,20 @@ Reviewer and admin role infrastructure (role storage, middleware) must be scoped
 
 ## Required Database Changes
 
-1. **`evidence_events` table** — append-only; columns per ADR-012 audit requirements: `id`, `evidence_item_id`, `previous_state`, `new_state`, `actor_type`, `actor_id`, `occurred_at`, `reason`, `note`; no UPDATE or DELETE permitted; RLS enabled
+1. **`evidence_events` table** — append-only; columns per ADR-012 audit requirements: `id`, `evidence_item_id`, `previous_lifecycle_state`, `new_lifecycle_state`, `previous_validation_status`, `new_validation_status`, `actor_role`, `actor_user_id`, `created_at`, `reason`, `metadata`; no UPDATE or DELETE permitted; RLS enabled
 2. **`lifecycle_state` CHECK constraint extension** on `evidence_items` — add `pending_review`, `rejected`, `superseded` to the allowed value set
-3. **Reviewer role storage** — decision on ADR-012 open question 1 required before migration can be written; placeholder: `reviewer_users` table with `user_id`, `exporter_id` (scoped reviewer), `role` (`REVIEWER` / `ADMIN`)
+3. **Reviewer role storage** — in scope for RC4; storage approach (extend `exporter_users.role` vs separate `reviewer_users` table) must be decided before migration RC4_005; see RC4_DATABASE_DESIGN open question 2
 4. **RLS policy on `evidence_events`** — exporters read their own records; reviewers read all records in scope; admins read/write all
-5. **Index on `evidence_events(evidence_item_id, occurred_at)`** for audit trail fetch performance
-6. **`compliance_records` boolean sync** — update sync trigger or service logic to fire on `validated` instead of (or in addition to) `uploaded`
+5. **Index on `evidence_events(evidence_item_id, created_at)`** for audit trail fetch performance
 
 ## Required API Changes
 
-1. **`PATCH /export-cases/:nxp/evidence/:type`** — extend to support additional `action` values: `validate`, `reject`, `supersede`; current `mark_uploaded` action unchanged
-2. **Transition guard** — enforce ADR-012 allowed-transitions table; return `409 CONFLICT` with `{ currentState, allowedActions }` for invalid transitions
-3. **Actor resolution middleware** — extend `requireAuth` or add `requireRole` middleware to resolve actor type (`exporter`, `reviewer`, `admin`) from the JWT and role tables; attach to `res.locals`
-4. **`reason` validation** — require non-empty `reason` in request body when actor is `reviewer` or `admin`; return `400` if absent
+1. **New dedicated sub-resource endpoints for reviewer/admin actions** — `PATCH .../submit-review`, `PATCH .../validate`, `PATCH .../reject`, `PATCH .../supersede`; the existing `PATCH /export-cases/:nxp/evidence/:type` (mark_uploaded / resubmit) is unchanged and remains the exporter-only write path
+2. **Transition guard** — enforce ADR-012 allowed-transitions table; return `409 CONFLICT` with `{ currentState, allowedFrom }` for invalid transitions
+3. **Actor resolution middleware** — extend `requireAuth` or add `requireRole` middleware to resolve `actorRole` (`exporter`, `reviewer`, `admin`) from the JWT and role tables; attach to `res.locals.actorRole`
+4. **`reason` validation** — require non-empty `reason` in request body when actor is `reviewer` or `admin`; return `400 VALIDATION_REQUIRED` if absent
 5. **`evidence_events` write** — every transition PATCH must write to `evidence_events` in the same DB transaction as the `evidence_items` UPDATE; rollback both on failure
-6. **`GET /export-cases/:nxp/evidence/:type/history`** — returns the ordered `evidence_events` rows for a single evidence item; accessible to all authenticated actors for their own records
+6. **`GET /export-cases/:nxp/evidence/:type/events`** — returns the ordered `evidence_events` rows for a single evidence item; accessible to all authenticated actors for records within their scope (exporter: own records; reviewer/admin: all within scope)
 7. **`GET /export-cases/:nxp/evidence`** — no change to response shape; `lifecycle_state` will now reflect new states naturally
 
 ## Required Frontend Changes
@@ -89,10 +88,10 @@ Reviewer and admin role infrastructure (role storage, middleware) must be scoped
    - `PATCH mark_uploaded` on rejected item → 200 (re-upload path)
    - `PATCH validate` by exporter actor → 403
    - `PATCH mark_uploaded` by reviewer actor → 403
-   - `GET .../history` → ordered event list with correct actor/state fields
+   - `GET .../events` → ordered event list with correct actor/state fields
 2. Verify script: `verify-evidence-audit-trail.ts`
    - Each transition produces exactly one `evidence_events` row
-   - `occurred_at` is set by DB, not caller
+   - `created_at` is set by DB, not caller
    - Audit rows are immutable (no UPDATE/DELETE permitted via API)
 3. Regression: `verify-mark-uploaded-api.ts` must continue to pass unchanged
 
@@ -104,13 +103,14 @@ Reviewer and admin role infrastructure (role storage, middleware) must be scoped
 - [ ] Reviewer can validate and reject; exporter cannot
 - [ ] Exporter can re-upload after rejection
 - [ ] Admin can supersede a validated item with a reason
-- [ ] `GET .../history` returns complete audit trail in order
+- [ ] `GET .../events` returns complete audit trail in order
 - [ ] Frontend shows correct action buttons per role and per state
 - [ ] Rejection reason is displayed to exporter on rejected items
 - [ ] `verify-evidence-validation-api.ts` passes 100%
 - [ ] `verify-mark-uploaded-api.ts` passes without modification
 - [ ] No frontend scope expansion beyond items listed above
-- [ ] ADR-012 open questions 1, 3, and 4 answered before migration is written
+- [ ] Reviewer role storage approach decided before migration RC4_005 is written
+- [ ] ADR-012 open questions 3 and 4 answered before migration is written
 
 ## Risks and Constraints
 

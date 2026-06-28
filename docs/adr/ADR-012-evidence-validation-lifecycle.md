@@ -1,6 +1,6 @@
 # ADR-012 — Evidence Validation Lifecycle
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-06-27
 
 ## Context
@@ -35,9 +35,10 @@ System-derived types (`shipment_record`, `compliance_summary`) are seeded direct
 |---|---|---|---|
 | `missing` | `uploaded` | exporter/operator | Document submitted via mark_uploaded |
 | `uploaded` | `pending_review` | system / reviewer | Review queue assignment |
-| `uploaded` | `rejected` | reviewer | Immediate rejection without full review |
-| `pending_review` | `validated` | reviewer | Document confirmed accurate and complete |
-| `pending_review` | `rejected` | reviewer | Document found unacceptable |
+| `uploaded` | `validated` | reviewer / admin | Direct validation without formal review queue assignment |
+| `uploaded` | `rejected` | reviewer / admin | Immediate rejection without full review |
+| `pending_review` | `validated` | reviewer / admin | Document confirmed accurate and complete |
+| `pending_review` | `rejected` | reviewer / admin | Document found unacceptable |
 | `rejected` | `uploaded` | exporter/operator | Exporter re-submits after rejection |
 | `validated` | `superseded` | admin / system | Newer version accepted for same evidence type |
 | Any | `superseded` | admin | Manual supersession by administrator |
@@ -64,23 +65,25 @@ Each audit record must capture:
 | Field | Required | Notes |
 |---|---|---|
 | `evidence_item_id` | yes | FK to `evidence_items.id` |
-| `previous_state` | yes | `lifecycle_state` before the transition |
-| `new_state` | yes | `lifecycle_state` after the transition |
-| `actor_type` | yes | One of: `exporter`, `reviewer`, `admin`, `system` |
-| `actor_id` | yes | UUID of the acting user or `null` for system |
-| `occurred_at` | yes | Transaction timestamp; set by the database, not the caller |
+| `previous_lifecycle_state` | yes | `lifecycle_state` before the transition |
+| `new_lifecycle_state` | yes | `lifecycle_state` after the transition |
+| `previous_validation_status` | yes | `validation_status` before the transition |
+| `new_validation_status` | yes | `validation_status` after the transition |
+| `actor_role` | yes | One of: `exporter`, `reviewer`, `admin`, `system` |
+| `actor_user_id` | yes | UUID of the acting user or `null` for system |
+| `created_at` | yes | Transaction timestamp; set by the database (`DEFAULT NOW()`), not the caller |
 | `reason` | conditional | Required when actor is `reviewer` or `admin`; optional for `exporter` and `system` |
-| `note` | optional | Free-text annotation; stored but not surfaced in UI by default |
+| `metadata` | optional | JSONB payload; extensible for future use (file references, external reviewer IDs) |
 
-Audit records are append-only. No audit record may be updated or deleted. Access to the audit log requires `admin` actor role.
+Audit records are append-only. No audit record may be updated or deleted. Access to the audit log is role-scoped: exporters and operators may read events for their own evidence items; reviewers may read all events within their assigned scope; admins may read all events. No actor may update or delete any event row. This is enforced by both a DB immutability trigger and withheld UPDATE/DELETE privileges on the `evidence_events` table.
 
 ## Current Snapshot vs Append-Only History
 
 **`evidence_items` (current state — exists)**
 Holds exactly one row per `(shipment_id, evidence_type)`. Updated in-place on every transition. This is the authoritative current state for all read paths, the compliance check, and the UI. Foreign key constraints and the `lifecycle_state` CHECK constraint enforce structural integrity.
 
-**`evidence_events` (immutable history — future table, not RC4)**
-Will hold one row per transition, in insertion order. Never updated or deleted. Provides the full audit trail for a given `evidence_item_id`. Schema, indexes, and RLS policy are deferred to the sprint that implements reviewer actions. The table name and column list defined here serve as the agreed interface contract.
+**`evidence_events` (immutable history — implemented in RC4)**
+Holds one row per transition, in insertion order. Never updated or deleted. Provides the full audit trail for a given `evidence_item_id`. Schema, indexes, RLS policy, and backfill migration are defined in RC4_DATABASE_DESIGN.md and applied as part of the RC4 migration sequence.
 
 These two tables together give a current-state-plus-history model identical in principle to the event sourcing pattern, without requiring full event sourcing of the rest of the schema.
 
@@ -93,8 +96,7 @@ The following are explicitly excluded from the RC4 implementation:
 - **External storage changes** — file storage integration is not part of ExportOS v0.2; this ADR governs metadata state only
 - **Notifications** — email or in-app alerts on state transitions are deferred
 - **Government / CBN integrations** — no submission to regulatory systems as part of this lifecycle
-- **Reviewer and admin role schema** — the actor model is defined here but the `reviewer_users` table and role-based middleware are deferred
-- **`evidence_events` table creation** — the schema is described above as a contract; the migration is deferred
+- **Reviewer and admin role schema** — reviewer role storage approach (extend `exporter_users.role` vs separate `reviewer_users` table) must be decided before migration RC4_005; the decision is in scope for RC4 but the storage approach is an open question (see RC4_DATABASE_DESIGN open question 2)
 
 ## Consequences
 

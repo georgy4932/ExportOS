@@ -69,7 +69,9 @@ All callers of `getEvidenceState()` that branch on `badgeClass` must be updated,
 
 ## User Actions by Role
 
-The action button rendered per checklist row depends on both `lifecycle_state` and `actorRole`. The two axes produce the following matrix:
+The action button rendered per checklist row depends on both `lifecycle_state` and `actorRole`. The two axes produce the following matrix.
+
+**Note on UI vs API scope:** The API permits `validate` and `reject` from both `uploaded` and `pending_review` states. The frontend intentionally shows Validate/Reject buttons only on `pending_review` rows for reviewers — `uploaded` rows show only "Submit for Review →". This is a workflow guardrail, not an API restriction. The API path `uploaded → validated` remains available for admin use and future automation; the UI simply does not surface it to reviewers to encourage consistent queue discipline.
 
 | State | exporter/operator | reviewer | admin |
 |---|---|---|---|

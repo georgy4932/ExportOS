@@ -15,7 +15,7 @@ The current source of truth for evidence state. One row per `(shipment_id, evide
 
 | Field | Current CHECK values | Required additions |
 |---|---|---|
-| `lifecycle_state` | `missing`, `uploaded`, `under_review`, `validated`, `rejected` | `superseded`; rename `under_review` → `pending_review` (naming mismatch with ADR-012 — see Open Questions) |
+| `lifecycle_state` | `missing`, `uploaded`, `under_review`, `validated`, `rejected` | rename `under_review` → `pending_review` (decided — see Open Questions #1); add `superseded` |
 | `validation_status` | `not_validated`, `pending`, `passed`, `failed`, `not_applicable` | No additions required; `passed`/`failed` map to post-validation states |
 
 **Existing constraints that interact with RC4:**
@@ -226,7 +226,7 @@ Migrations must be applied in this order. Each depends on the previous.
 
 | Order | Migration name (proposed) | Purpose |
 |---|---|---|
-| 1 | `RC4_001_evidence_items_extend_states` | Add `superseded` to `lifecycle_state` CHECK; resolve `under_review` / `pending_review` naming (see Open Questions) |
+| 1 | `RC4_001_evidence_items_extend_states` | Rename `under_review` → `pending_review` in `lifecycle_state` CHECK; add `superseded` to allowed values; update any rows with `under_review` (currently zero) |
 | 2 | `RC4_002_evidence_events_table` | Create `evidence_events` table, constraints, indexes, immutability trigger, RLS policy |
 | 3 | `RC4_003_evidence_events_grant` | `GRANT SELECT, INSERT ON evidence_events TO exportos_app` |
 | 4 | `RC4_004_backfill_evidence_events` | Insert `system_seed` events for all existing `evidence_items` rows |
@@ -268,7 +268,7 @@ Migrations 1–4 are independent of reviewer role storage and can proceed before
 
 ## Open Questions
 
-1. **`under_review` vs `pending_review` naming mismatch.** The current `evidence_items.lifecycle_state` CHECK already contains `under_review`. ADR-012 defines this state as `pending_review`. These must be reconciled before migration 1 is written. Options: (a) rename `under_review` to `pending_review` in the CHECK constraint and in any existing rows (zero rows currently use `under_review`); (b) adopt `under_review` in ADR-012. Recommendation: rename to `pending_review` — no rows to migrate, and `pending_review` is more precise.
+1. ~~**`under_review` vs `pending_review` naming mismatch.**~~ **RESOLVED.** Decision: rename `under_review` → `pending_review` in the `lifecycle_state` CHECK constraint. Zero existing rows use `under_review`, so no data migration is needed. All RC4 documents and code must use `pending_review`. Migration RC4_001 encodes this rename.
 
 2. **Reviewer role storage.** Unresolved from ADR-012 open question 1. If `exporter_users.role` is extended, migration 5 is a simple CHECK constraint change. If a separate `reviewer_users` table is created, migration 5 is more involved. This decision gates API middleware design.
 
@@ -276,4 +276,4 @@ Migrations 1–4 are independent of reviewer role storage and can proceed before
 
 4. **`metadata` JSONB schema.** The column is intentionally open-ended for now. Define a minimal required shape (e.g. `{ "file_id": "...", "reviewer_notes": "..." }`) before the first non-system actor writes an event, to avoid uncontrolled structure accumulation.
 
-5. **Cascading compliance sync.** Currently `compliance_records` booleans sync on `uploaded`. RC4 Scope specifies syncing on `validated`. The migration that changes this sync point must audit all compliance read paths first. Design the sync change as its own migration (not bundled with the state machine changes) to reduce rollback blast radius.
+5. **Cascading compliance sync.** Currently `compliance_records` booleans sync on `uploaded`. The compliance sync change from `uploaded` to `validated` is **deferred out of RC4** — it requires auditing all compliance read paths first and carries medium rollback risk. Design the sync change as its own migration post-RC4, not bundled with the state machine changes.

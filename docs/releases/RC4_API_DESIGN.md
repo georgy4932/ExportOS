@@ -133,9 +133,11 @@ Marks an evidence item as validated. The document has been reviewed and confirme
 
 **Allowed from states:** `uploaded`, `pending_review`. All other current states return `409 CONFLICT`.
 
+**Note on `uploaded → validated`:** The API intentionally permits direct validation from `uploaded` (bypassing `pending_review`). This supports reviewer workflows where a document is reviewed immediately on upload without entering a formal queue. The frontend restricts the Validate button to `pending_review` rows only as a workflow guardrail; the API does not enforce this UI restriction.
+
 **Audit event written:** `event_type = validate`, `actor_role = reviewer | admin`.
 
-**Side effect:** If this validation causes all `required_for_compliance` evidence items for the shipment to reach `validated`, the corresponding `compliance_records` booleans are updated in the same transaction (pending resolution of RC4_DATABASE_DESIGN open question 5 — compliance sync point change from `uploaded` to `validated`).
+**Side effect:** Compliance boolean sync on `validated` is **deferred out of RC4** (see RC4_DATABASE_DESIGN open question 5). The validate endpoint does not touch `compliance_records` in RC4. The sync logic must be designed as an isolated step within the transaction so it can be enabled in a follow-on migration without restructuring the query.
 
 ---
 
@@ -218,7 +220,7 @@ Marks a validated item as superseded when a newer version of the same document r
 | `PATCH .../reject` | ✗ 403 | ✓ | ✓ |
 | `PATCH .../supersede` | ✗ 403 | ✗ 403 | ✓ |
 
-Actor role is resolved by new `requireRole` middleware added to the request pipeline. Role is derived from the JWT `sub` → `exporter_users.role` lookup performed in `requireAuth`. The resolved role is attached to `res.locals.actorRole`. Endpoints with role restrictions pass `requireRole('reviewer', 'admin')` (or `requireRole('admin')`) as a middleware before the handler.
+Actor role is resolved by `requireRole` middleware added to the request pipeline. Role is derived from the JWT `sub` → role table lookup performed in `requireAuth` (or a second call in `requireRole` — see open question 1). The resolved role is attached to `res.locals.actorRole`. Endpoints with role restrictions pass `requireRole('reviewer', 'admin')` (or `requireRole('admin')`) as middleware before the handler. The field is consistently named `actorRole` in `res.locals`, response bodies, and the frontend variable `_actorRole`.
 
 `/auth/me` response is extended to include `actorRole` so the frontend can gate UI elements without a separate request.
 
