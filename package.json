@@ -25,6 +25,7 @@
     "verify-evidence-packs-api": "tsx scripts/verify-evidence-packs-api.ts",
     "verify-export-cases-api": "tsx scripts/verify-export-cases-api.ts",
     "verify-mark-uploaded-api": "tsx scripts/verify-mark-uploaded-api.ts",
+    "verify-evidence-events-api": "tsx scripts/verify-evidence-events-api.ts",
     "pilot:create-exporter": "tsx scripts/pilot-create-exporter.ts",
     "typecheck": "tsc --noEmit"
   },

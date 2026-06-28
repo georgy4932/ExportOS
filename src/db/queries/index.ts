@@ -12,6 +12,8 @@ export { createPaymentEvidenceWithAudit, getPaymentEvidence, listPaymentEvidence
 export { createInvoiceWithAudit, getInvoice, listInvoices } from './invoices'
 export { listEvidenceItems, getEvidenceItem, markEvidenceUploaded } from './evidence-items'
 export type { MarkUploadedResult, MarkUploadedError } from './evidence-items'
+export { listEvidenceEvents } from './evidence-events'
+export type { ListEvidenceEventsResult, ListEvidenceEventsError, ListEvidenceEventsOptions } from './evidence-events'
 
 export type { ListContractSummariesOptions, CreateContractInput } from './contracts'
 export type { ListShipmentReconciliationOptions, CreateShipmentInput } from './shipments'
