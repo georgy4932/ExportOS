@@ -825,7 +825,7 @@
       display: inline-flex; align-items: center; gap: 5px;
       padding: 7px 16px; font-size: 12px; font-weight: 600;
       color: #b91c1c; background: #fff; border: 1.5px solid #fca5a5;
-      border-radius: 5px; cursor: default; white-space: nowrap;
+      border-radius: 5px; cursor: pointer; white-space: nowrap;
       font-family: inherit; flex-shrink: 0; line-height: 1;
     }
     .nra-btn:hover { background: #fff1f1; }
@@ -917,7 +917,7 @@
     .ec-fu-ok-icon { font-size: 14px; color: #16a34a; flex-shrink: 0; line-height: 1.4; }
     .ec-fu-ok-label { font-size: 12.5px; font-weight: 600; color: #15803d; }
     .ec-fu-ok-hint { font-size: 11.5px; color: #94a3b8; margin-top: 2px; }
-    .ec-fu-btn { display: inline-flex; align-items: center; gap: 5px; margin: 4px 14px 12px; padding: 7px 14px; font-size: 12px; font-weight: 600; color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; cursor: default; white-space: nowrap; font-family: inherit; }
+    .ec-fu-btn { display: inline-flex; align-items: center; gap: 5px; margin: 4px 14px 12px; padding: 7px 14px; font-size: 12px; font-weight: 600; color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; cursor: pointer; white-space: nowrap; font-family: inherit; }
     .ec-fu-btn:hover { background: #f1f5f9; }
     /* Proceeds integrity warning */
     .ec-warn { background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px; margin: 8px 14px 10px; padding: 7px 10px; }
@@ -3123,6 +3123,19 @@
   });
 
 
+  // ── Export case follow-up button delegation ──────────────────────────────────
+  document.getElementById('view-export-case').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    if (btn.dataset.action === 'scroll-follow-up') {
+      var fuCard = document.querySelector('#ec-content .ec-fu-btn');
+      fuCard = fuCard && fuCard.closest('.ec-card');
+      if (fuCard) fuCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else if (btn.dataset.action === 'schedule-follow-up') {
+      ecViewDoc('Follow-up scheduling is not available yet.');
+    }
+  });
+
   // ── RFC-011: Global data (populated by loadOverview) ─────────────────────────
   let _cases = [];
   let _allShipments = [];
@@ -4031,7 +4044,7 @@
       +     '<div class="nra-text">' + h(nra.actionLabel) + '</div>'
       +     '<div class="nra-detail">' + h(nra.actionDetail) + '</div>'
       +   '</div>'
-      +   (nraOk ? '' : '<button class="nra-btn">' + h(nra.buttonLabel) + '</button>')
+      +   (nraOk ? '' : '<button class="nra-btn" data-action="scroll-follow-up">' + h(nra.buttonLabel) + '</button>')
       + '</div>';
 
     // ── Content: lower sections only ─────────────────────────────────────────
@@ -4103,7 +4116,7 @@
               + '<div class="ec-row"><span class="ec-rl">Reason</span><span class="ec-rv">' + h(fu.reason) + '</span></div>'
               + '<div class="ec-row"><span class="ec-rl">Next Follow-Up</span><span class="ec-rv">' + h(fu.nextDate) + '</span></div>'
               + '<div class="ec-row"><span class="ec-rl">Owner</span><span class="ec-rv muted">' + h(fu.owner) + '</span></div>'
-              + '<button class="ec-fu-btn">' + h(fu.buttonLabel) + '</button>'
+              + '<button class="ec-fu-btn" data-action="schedule-follow-up">' + h(fu.buttonLabel) + '</button>'
               : '<div class="ec-fu-ok">'
               + '<div class="ec-fu-ok-icon">✓</div>'
               + '<div><div class="ec-fu-ok-label">No follow-up required.</div>'
