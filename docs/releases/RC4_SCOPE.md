@@ -109,7 +109,7 @@ Reviewer and admin role infrastructure (role storage, middleware) must be scoped
 - [ ] `verify-evidence-validation-api.ts` passes 100%
 - [ ] `verify-mark-uploaded-api.ts` passes without modification
 - [ ] No frontend scope expansion beyond items listed above
-- [ ] Reviewer role storage approach decided before migration RC4_005 is written
+- [x] Reviewer role storage approach decided: extend `exporter_users.role` (migration RC4_005)
 - [ ] ADR-012 open questions 3 and 4 answered before migration is written
 
 ## Risks and Constraints

@@ -230,7 +230,7 @@ Migrations must be applied in this order. Each depends on the previous.
 | 2 | `RC4_002_evidence_events_table` | Create `evidence_events` table, constraints, indexes, immutability trigger, RLS policy |
 | 3 | `RC4_003_evidence_events_grant` | `GRANT SELECT, INSERT ON evidence_events TO exportos_app` |
 | 4 | `RC4_004_backfill_evidence_events` | Insert `system_seed` events for all existing `evidence_items` rows |
-| 5 | `RC4_005_exporter_users_reviewer_role` | Add `REVIEWER` and `ADMIN` to permitted `role` values in `exporter_users` (if CHECK constraint exists); or create `reviewer_users` table (per open question resolution) |
+| 5 | `RC4_005_exporter_users_reviewer_role` | Add CHECK constraint `role IN ('MEMBER', 'ADMIN', 'REVIEWER')` to `exporter_users`; no existing constraint to drop (none present in schema); existing `ADMIN` row is valid under the new constraint |
 
 Migrations 1–4 are independent of reviewer role storage and can proceed before open question 1 (ADR-012) is resolved. Migration 5 depends on that decision.
 
@@ -270,7 +270,7 @@ Migrations 1–4 are independent of reviewer role storage and can proceed before
 
 1. ~~**`under_review` vs `pending_review` naming mismatch.**~~ **RESOLVED.** Decision: rename `under_review` → `pending_review` in the `lifecycle_state` CHECK constraint. Zero existing rows use `under_review`, so no data migration is needed. All RC4 documents and code must use `pending_review`. Migration RC4_001 encodes this rename.
 
-2. **Reviewer role storage.** Unresolved from ADR-012 open question 1. If `exporter_users.role` is extended, migration 5 is a simple CHECK constraint change. If a separate `reviewer_users` table is created, migration 5 is more involved. This decision gates API middleware design.
+2. ~~**Reviewer role storage.**~~ **RESOLVED.** Decision: extend `exporter_users.role` to include `REVIEWER` (and confirm `ADMIN` is already in use). No separate `reviewer_users` table. Rationale: simpler migration, reuses existing auth/user model, sufficient for RC4 role-gated validation, avoids premature institutional reviewer model; can be refactored if ExportOS later introduces regulator/bank/government reviewer organizations. Note: the existing `role` column has no CHECK constraint in the current schema (confirmed 2026-06-28) — migration RC4_005 adds one: `CHECK (role IN ('MEMBER', 'ADMIN', 'REVIEWER'))`. Existing `ADMIN` row is unaffected.
 
 3. **`validation_status` alignment.** The current CHECK uses `passed` / `failed`; ADR-012 does not define `validation_status` values explicitly. Confirm whether `passed` maps to the `validated` lifecycle state and `failed` maps to `rejected`, or whether both fields evolve independently.
 

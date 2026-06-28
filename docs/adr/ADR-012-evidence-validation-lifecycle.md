@@ -112,7 +112,7 @@ The following are explicitly excluded from the RC4 implementation:
 
 ## Open Questions
 
-1. **Reviewer role storage:** Should reviewer identity live in `exporter_users` with a `role` discriminator, or in a separate `reviewer_users` table? The latter is cleaner but adds schema complexity.
+1. ~~**Reviewer role storage.**~~ **RESOLVED.** Decision: extend `exporter_users.role` with value `REVIEWER` (alongside existing `MEMBER` and `ADMIN`). No separate `reviewer_users` table for RC4. Rationale: simpler migration, reuses existing auth model, sufficient for RC4 role-gated validation workflow; can be refactored if ExportOS later introduces regulator/bank/government reviewer organizations. Implemented in migration RC4_005.
 
 2. **Multi-reviewer consensus:** Does validation require a single reviewer sign-off or a quorum? Not defined here; deferred to reviewer workflow design.
 
