@@ -69,7 +69,18 @@ export type EvidenceItemType =
   | 'shipment_record'
   | 'compliance_summary'
 
-export type EvidenceLifecycleState = 'missing' | 'uploaded' | 'under_review' | 'validated' | 'rejected'
+export type EvidenceLifecycleState = 'missing' | 'uploaded' | 'pending_review' | 'validated' | 'rejected' | 'superseded'
+
+export type EvidenceActorRole = 'exporter' | 'reviewer' | 'admin' | 'system'
+
+export type EvidenceEventType =
+  | 'mark_uploaded'
+  | 'resubmit'
+  | 'enter_review'
+  | 'validate'
+  | 'reject'
+  | 'supersede'
+  | 'system_seed'
 
 export type EvidenceValidationStatus = 'not_validated' | 'pending' | 'passed' | 'failed' | 'not_applicable'
 
@@ -371,6 +382,25 @@ export interface EvidenceItemRow {
   updated_at: string
 }
 
+export interface EvidenceEventRow {
+  id: string
+  evidence_item_id: string
+  shipment_id: string
+  exporter_id: string
+  nxp_reference: string
+  evidence_type: EvidenceItemType
+  previous_lifecycle_state: EvidenceLifecycleState
+  new_lifecycle_state: EvidenceLifecycleState
+  previous_validation_status: EvidenceValidationStatus
+  new_validation_status: EvidenceValidationStatus
+  actor_user_id: string | null
+  actor_role: EvidenceActorRole
+  event_type: EvidenceEventType
+  reason: string | null
+  metadata: Json | null
+  created_at: string
+}
+
 export interface AuditEventRow {
   id: string
   exporter_id: string
@@ -431,6 +461,7 @@ export interface Database {
       bank_evidence_packs:        T<BankEvidencePackRow>
       audit_events:               T<AuditEventRow>
       evidence_items:             T<EvidenceItemRow>
+      evidence_events:            T<EvidenceEventRow>
     }
     Views: {
       v_export_contracts_summary: V<ContractSummaryRow>

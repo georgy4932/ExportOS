@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import type { DbClient } from '../../db/client'
 import type { EvidenceItemType } from '../../db/types'
-import { listEvidenceItems, getEvidenceItem, markEvidenceUploaded } from '../../db/queries/index'
+import { listEvidenceItems, getEvidenceItem, markEvidenceUploaded, listEvidenceEvents } from '../../db/queries/index'
 import { sendQueryError } from '../middleware/query-error'
 
 // Mirrors the CHECK constraint on evidence_items.evidence_type.
@@ -159,6 +159,53 @@ export function exportCasesRouter(client: DbClient): Router {
     }
 
     res.json({ data: result.data, error: null })
+  })
+
+  // GET /export-cases/:nxp_reference/evidence/:evidence_type/events
+  // Returns all evidence_events for a single evidence item, ordered created_at ASC.
+  router.get('/:nxp_reference/evidence/:evidence_type/events', async (req, res) => {
+    const exporterId   = res.locals.exporterId
+    const nxpReference = req.params['nxp_reference'] as string
+    const evidenceType = req.params['evidence_type'] as string
+
+    if (!VALID_EVIDENCE_TYPES.has(evidenceType)) {
+      res.status(400).json({
+        data:  null,
+        error: `Invalid evidence_type: '${evidenceType}'`,
+        valid: Array.from(VALID_EVIDENCE_TYPES),
+      })
+      return
+    }
+
+    let shipmentId: string | null
+    try {
+      shipmentId = await resolveShipmentId(nxpReference, exporterId)
+    } catch (err) {
+      console.error('[EXPORT-CASES] GET /:nxp/evidence/:type/events — shipment lookup error:', err instanceof Error ? err.message : String(err))
+      res.status(500).json({ data: null, error: 'Internal server error' })
+      return
+    }
+
+    if (!shipmentId) {
+      res.status(404).json({ data: null, error: 'Export case not found' })
+      return
+    }
+
+    const { data, error } = await listEvidenceEvents(client, {
+      shipmentId,
+      exporterId,
+      evidenceType: evidenceType as EvidenceItemType,
+    })
+
+    if (error) {
+      if (error.code === 'NOT_FOUND') {
+        res.status(404).json({ data: null, error: 'Evidence item not found' })
+        return
+      }
+      return sendQueryError(req, res, (error as { code: 'DB_ERROR'; cause: unknown }).cause)
+    }
+
+    res.json({ data: data ?? [], error: null })
   })
 
   return router
