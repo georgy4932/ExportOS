@@ -832,6 +832,8 @@
 
     /* Lower section cards */
     .ec-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 7px; margin-bottom: 12px; }
+    @keyframes ec-fu-pulse { 0%,100% { background:#fff; border-color:#e2e8f0; } 40% { background:#fffbeb; border-color:#fbbf24; } }
+    .ec-card.ec-fu-highlight { animation: ec-fu-pulse 1.4s ease; }
     .ec-card-h { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid #f1f5f9; }
     .ec-card-t { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #0f172a; }
     .ec-card-s { font-size: 9.5px; color: #94a3b8; font-style: italic; }
@@ -3130,7 +3132,21 @@
     if (btn.dataset.action === 'scroll-follow-up') {
       var fuCard = document.querySelector('#ec-content .ec-fu-btn');
       fuCard = fuCard && fuCard.closest('.ec-card');
-      if (fuCard) fuCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (fuCard) {
+        var rect = fuCard.getBoundingClientRect();
+        var alreadyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+        if (alreadyVisible) {
+          ecViewDoc('Follow-up details shown below.');
+        } else {
+          fuCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        var delay = alreadyVisible ? 0 : 320;
+        setTimeout(function() {
+          fuCard.classList.remove('ec-fu-highlight');
+          void fuCard.offsetWidth;
+          fuCard.classList.add('ec-fu-highlight');
+        }, delay);
+      }
     } else if (btn.dataset.action === 'schedule-follow-up') {
       ecViewDoc('Follow-up scheduling is not available yet.');
     }
