@@ -22,13 +22,19 @@
  *
  * Checks:
  *   1.  PATCH without auth → 401
- *   2.  PATCH invalid evidence_type → 400
- *   3.  PATCH unknown nxp_reference → 404
- *   4.  PATCH on missing evidence (lifecycle_state = missing) → 409 INVALID_TRANSITION
- *   5.  PATCH after mark_uploaded (lifecycle_state = uploaded) → 200, pending_review
- *   6.  Response fields: id, evidence_type, lifecycle_state, validation_status, updated_at
- *   7.  enter_review event row created (GET events confirms count increased by 1)
- *   8.  Repeat submit-review → 409 INVALID_TRANSITION (not idempotent)
+ *   2.  PATCH with exporter-role token → 403 FORBIDDEN (reviewer/admin only)
+ *   3.  PATCH invalid evidence_type → 400
+ *   4.  PATCH unknown nxp_reference → 404
+ *   5.  PATCH on missing evidence (lifecycle_state = missing) → 409 INVALID_TRANSITION
+ *   6.  PATCH after mark_uploaded (lifecycle_state = uploaded) → 200, pending_review
+ *   7.  Response fields: id, evidence_type, lifecycle_state, validation_status, updated_at
+ *   8.  enter_review event row created (GET events confirms count increased by 1)
+ *   9.  Repeat submit-review → 409 INVALID_TRANSITION (not idempotent)
+ *
+ * Note on check 2: The seeded user (operator@akoboexports.ng) is role=ADMIN and therefore
+ * passes the requireRole('reviewer', 'admin') guard. A separate MEMBER-role user would be
+ * needed to exercise the 403 path at runtime. The check below documents this requirement
+ * and skips with a warning if no MEMBER_EMAIL/MEMBER_PASSWORD env vars are set.
  */
 
 import { config } from 'dotenv'
@@ -38,9 +44,11 @@ const BASE     = (process.env.API_URL      ?? 'http://localhost:3000').replace(/
 const EMAIL    = process.env.VERIFY_EMAIL    ?? 'operator@akoboexports.ng'
 const PASSWORD = process.env.VERIFY_PASSWORD ?? 'dev-seed-password'
 
-const NXP_1       = 'NXP-2026-SES-001'
-const NXP_UNKNOWN = 'NXP-DOES-NOT-EXIST'
-const EV_TYPE     = 'nxp_approval'
+const NXP_1          = 'NXP-2026-SES-001'
+const NXP_UNKNOWN    = 'NXP-DOES-NOT-EXIST'
+const EV_TYPE        = 'nxp_approval'
+const MEMBER_EMAIL   = process.env.MEMBER_EMAIL
+const MEMBER_PASSWORD = process.env.MEMBER_PASSWORD
 
 let passed = 0
 let failed = 0
@@ -74,7 +82,7 @@ const eventsPath = (nxp: string, type: string) =>
   `/export-cases/${encodeURIComponent(nxp)}/evidence/${type}/events`
 
 async function main() {
-  console.log('=== ExportOS RC4 — PATCH submit-review Verification ===')
+  console.log('=== ExportOS RC4 — PATCH submit-review Verification (reviewer/admin-only) ===')
   console.log(`  server: ${BASE}\n`)
 
   // Authenticate
@@ -98,23 +106,54 @@ async function main() {
     else ok('PATCH without auth — 401')
   }
 
-  // ── Check 2: PATCH invalid evidence_type → 400 ───────────────────────────────
+  // ── Check 2: PATCH with exporter-role token → 403 FORBIDDEN ─────────────────
+  // This check runs only when MEMBER_EMAIL + MEMBER_PASSWORD are set in env.
+  // The seeded user is ADMIN and therefore passes the role guard; a MEMBER-role
+  // user is required to exercise the 403 path.
+  {
+    if (!MEMBER_EMAIL || !MEMBER_PASSWORD) {
+      console.log('  ~ PATCH exporter-role → 403: SKIPPED (set MEMBER_EMAIL + MEMBER_PASSWORD to enable)')
+    } else {
+      const memberLoginFetch = await fetch(`${BASE}/auth/login`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email: MEMBER_EMAIL, password: MEMBER_PASSWORD }),
+      })
+      const memberLoginBody = await memberLoginFetch.json() as Record<string, unknown>
+      if (memberLoginFetch.status !== 200 || typeof memberLoginBody.token !== 'string') {
+        fail('PATCH exporter-role → 403', `member login failed (${memberLoginFetch.status}): ${JSON.stringify(memberLoginBody).slice(0, 80)}`)
+      } else {
+        const memberToken = memberLoginBody.token as string
+        const { status, body } = await request('PATCH', submitPath(NXP_1, EV_TYPE), memberToken)
+        const b = body as Record<string, unknown>
+        if (status !== 403) {
+          fail('PATCH exporter-role → 403 FORBIDDEN', `expected 403, got ${status}: ${JSON.stringify(body).slice(0, 80)}`)
+        } else if (b['code'] !== 'FORBIDDEN') {
+          fail('PATCH exporter-role → FORBIDDEN code', `code: ${b['code']}`)
+        } else {
+          ok(`PATCH exporter-role → 403 FORBIDDEN (actorRole: ${b['actorRole']})`)
+        }
+      }
+    }
+  }
+
+  // ── Check 3: PATCH invalid evidence_type → 400 ───────────────────────────────
   {
     const { status, body } = await request('PATCH', submitPath(NXP_1, 'tax_clearance'), token)
     if (status !== 400) fail('PATCH invalid evidence_type', `expected 400, got ${status}: ${JSON.stringify(body).slice(0, 80)}`)
     else ok('PATCH invalid evidence_type (tax_clearance) — 400')
   }
 
-  // ── Check 3: PATCH unknown nxp_reference → 404 ───────────────────────────────
+  // ── Check 4: PATCH unknown nxp_reference → 404 ───────────────────────────────
   {
     const { status } = await request('PATCH', submitPath(NXP_UNKNOWN, EV_TYPE), token)
     if (status !== 404) fail('PATCH unknown nxp_reference', `expected 404, got ${status}`)
     else ok('PATCH unknown nxp_reference — 404')
   }
 
-  // ── Check 4: PATCH on missing evidence → 409 INVALID_TRANSITION ─────────────
+  // ── Check 5: PATCH on missing evidence → 409 INVALID_TRANSITION ─────────────
   // The seeded nxp_approval item starts as 'missing'.
-  // Before any mark_uploaded call, submit-review must be rejected.
+  // Before any mark_uploaded call, submit-review must be rejected even for admin.
   {
     const { status, body } = await request('PATCH', submitPath(NXP_1, EV_TYPE), token)
     const b = body as Record<string, unknown>
@@ -137,7 +176,7 @@ async function main() {
     console.log('  (mark_uploaded OK — nxp_approval is now uploaded)')
   }
 
-  // ── Check 5: PATCH after mark_uploaded → 200, pending_review ────────────────
+  // ── Check 6: PATCH after mark_uploaded → 200, pending_review ────────────────
   let updatedItem: Record<string, unknown> = {}
   {
     const { status, body } = await request('PATCH', submitPath(NXP_1, EV_TYPE), token, { reason: 'Submitted for review via verify script' })
@@ -154,7 +193,7 @@ async function main() {
     }
   }
 
-  // ── Check 6: Response fields present ────────────────────────────────────────
+  // ── Check 7: Response fields present ────────────────────────────────────────
   {
     const required = ['id', 'evidence_type', 'lifecycle_state', 'validation_status', 'updated_at']
     const missing  = required.filter(f => !(f in updatedItem))
@@ -168,7 +207,7 @@ async function main() {
     }
   }
 
-  // ── Check 7: enter_review event row created ──────────────────────────────────
+  // ── Check 8: enter_review event row created ──────────────────────────────────
   {
     const { status, body } = await request('GET', eventsPath(NXP_1, EV_TYPE), token)
     const b = body as Record<string, unknown>
@@ -197,7 +236,7 @@ async function main() {
     }
   }
 
-  // ── Check 8: Repeat submit-review → 409 INVALID_TRANSITION ──────────────────
+  // ── Check 9: Repeat submit-review → 409 INVALID_TRANSITION ──────────────────
   {
     const { status, body } = await request('PATCH', submitPath(NXP_1, EV_TYPE), token)
     const b = body as Record<string, unknown>

@@ -1,12 +1,14 @@
 import jwt from 'jsonwebtoken'
 import type { RequestHandler } from 'express'
 import type { DbClient } from '../../db/client'
+import type { EvidenceActorRole } from '../../db/types'
 
 declare global {
   namespace Express {
     interface Locals {
-      userId: string
+      userId:     string
       exporterId: string
+      actorRole:  EvidenceActorRole
     }
   }
 }
@@ -41,8 +43,8 @@ export function requireAuth(pool: DbClient): RequestHandler {
     }
 
     try {
-      const { rows } = await pool.query<{ exporter_id: string }>(
-        'SELECT exporter_id FROM exporter_users WHERE user_id = $1',
+      const { rows } = await pool.query<{ exporter_id: string; role: string }>(
+        'SELECT exporter_id, role FROM exporter_users WHERE user_id = $1',
         [userId],
       )
       if (!rows.length) {
@@ -58,8 +60,14 @@ export function requireAuth(pool: DbClient): RequestHandler {
         })
         return
       }
-      res.locals.userId = userId
+      const dbRole = rows[0].role
+      const actorRole: EvidenceActorRole =
+        dbRole === 'ADMIN'    ? 'admin'    :
+        dbRole === 'REVIEWER' ? 'reviewer' : 'exporter'
+
+      res.locals.userId     = userId
       res.locals.exporterId = rows[0].exporter_id
+      res.locals.actorRole  = actorRole
       next()
     } catch (err) {
       console.error('[AUTH] requireAuth error:', err instanceof Error ? err.message : String(err))

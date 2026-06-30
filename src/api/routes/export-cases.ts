@@ -1,8 +1,9 @@
 import { Router } from 'express'
 import type { DbClient } from '../../db/client'
-import type { EvidenceActorRole, EvidenceItemType } from '../../db/types'
+import type { EvidenceItemType } from '../../db/types'
 import { listEvidenceItems, getEvidenceItem, markEvidenceUploaded, listEvidenceEvents, submitForReview } from '../../db/queries/index'
 import { sendQueryError } from '../middleware/query-error'
+import { requireRole } from '../middleware/require-role'
 
 // Mirrors the CHECK constraint on evidence_items.evidence_type.
 const VALID_EVIDENCE_TYPES = new Set<string>([
@@ -162,15 +163,15 @@ export function exportCasesRouter(client: DbClient): Router {
   })
 
   // PATCH /export-cases/:nxp_reference/evidence/:evidence_type/submit-review
-  // Moves an evidence item from uploaded → pending_review.
+  // Moves an evidence item from uploaded → pending_review. reviewer/admin only.
   // Body: { "reason": "string (optional)" }
   // Writes one enter_review event row in the same transaction.
-  // actor_role is derived from exporter_users.role for the authenticated user.
-  router.patch('/:nxp_reference/evidence/:evidence_type/submit-review', async (req, res) => {
-    const userId        = res.locals.userId
-    const exporterId    = res.locals.exporterId
-    const nxpReference  = req.params['nxp_reference'] as string
-    const evidenceType  = req.params['evidence_type'] as string
+  router.patch('/:nxp_reference/evidence/:evidence_type/submit-review', requireRole('reviewer', 'admin'), async (req, res) => {
+    const userId       = res.locals.userId
+    const exporterId   = res.locals.exporterId
+    const actorRole    = res.locals.actorRole
+    const nxpReference = req.params['nxp_reference'] as string
+    const evidenceType = req.params['evidence_type'] as string
 
     if (!VALID_EVIDENCE_TYPES.has(evidenceType)) {
       res.status(400).json({
@@ -189,31 +190,15 @@ export function exportCasesRouter(client: DbClient): Router {
       return
     }
 
-    // Resolve actorRole from exporter_users.role for the event record.
-    // Defaults to 'exporter' if the row is missing or role is unrecognised.
-    let actorRole: EvidenceActorRole = 'exporter'
-    try {
-      const { rows: roleRows } = await client.query<{ role: string }>(
-        'SELECT role FROM exporter_users WHERE user_id = $1 AND exporter_id = $2 LIMIT 1',
-        [userId, exporterId],
-      )
-      const dbRole = roleRows[0]?.role ?? 'MEMBER'
-      if (dbRole === 'ADMIN')     actorRole = 'admin'
-      else if (dbRole === 'REVIEWER') actorRole = 'reviewer'
-    } catch (err) {
-      console.error('[EXPORT-CASES] PATCH submit-review — role lookup error:', err instanceof Error ? err.message : String(err))
-      // Non-fatal: fall through with actorRole = 'exporter'
-    }
-
     const { reason } = req.body as Record<string, unknown>
 
     const result = await submitForReview(client, {
       nxpReference,
-      evidenceType:  evidenceType as EvidenceItemType,
+      evidenceType: evidenceType as EvidenceItemType,
       exporterId,
-      actorUserId:   userId,
+      actorUserId:  userId,
       actorRole,
-      reason:        typeof reason === 'string' ? reason : null,
+      reason:       typeof reason === 'string' ? reason : null,
     })
 
     if (result.error) {
