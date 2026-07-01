@@ -29,6 +29,7 @@
     "verify-submit-review-api": "tsx scripts/verify-submit-review-api.ts",
     "verify-validate-api": "tsx scripts/verify-validate-api.ts",
     "verify-reject-api": "tsx scripts/verify-reject-api.ts",
+    "verify-supersede-api": "tsx scripts/verify-supersede-api.ts",
     "pilot:create-exporter": "tsx scripts/pilot-create-exporter.ts",
     "typecheck": "tsc --noEmit"
   },
