@@ -1,8 +1,9 @@
 import { Router } from 'express'
 import type { DbClient } from '../../db/client'
 import type { EvidenceItemType } from '../../db/types'
-import { listEvidenceItems, getEvidenceItem, markEvidenceUploaded, listEvidenceEvents } from '../../db/queries/index'
+import { listEvidenceItems, getEvidenceItem, markEvidenceUploaded, listEvidenceEvents, submitForReview } from '../../db/queries/index'
 import { sendQueryError } from '../middleware/query-error'
+import { requireRole } from '../middleware/require-role'
 
 // Mirrors the CHECK constraint on evidence_items.evidence_type.
 const VALID_EVIDENCE_TYPES = new Set<string>([
@@ -156,6 +157,67 @@ export function exportCasesRouter(client: DbClient): Router {
       }
       // DB_ERROR
       return sendQueryError(req, res, e.cause)
+    }
+
+    res.json({ data: result.data, error: null })
+  })
+
+  // PATCH /export-cases/:nxp_reference/evidence/:evidence_type/submit-review
+  // Moves an evidence item from uploaded → pending_review. reviewer/admin only.
+  // Body: { "reason": "string (optional)" }
+  // Writes one enter_review event row in the same transaction.
+  router.patch('/:nxp_reference/evidence/:evidence_type/submit-review', requireRole('reviewer', 'admin'), async (req, res) => {
+    const userId       = res.locals.userId
+    const exporterId   = res.locals.exporterId
+    const actorRole    = res.locals.actorRole
+    const nxpReference = req.params['nxp_reference'] as string
+    const evidenceType = req.params['evidence_type'] as string
+
+    if (!VALID_EVIDENCE_TYPES.has(evidenceType)) {
+      res.status(400).json({
+        data:  null,
+        error: `Invalid evidence_type: '${evidenceType}'`,
+        valid: Array.from(VALID_EVIDENCE_TYPES),
+      })
+      return
+    }
+
+    if (SYSTEM_EVIDENCE_TYPES.has(evidenceType)) {
+      res.status(400).json({
+        data:  null,
+        error: `evidence_type '${evidenceType}' is system-derived and cannot be updated via this endpoint`,
+      })
+      return
+    }
+
+    const { reason } = req.body as Record<string, unknown>
+
+    const result = await submitForReview(client, {
+      nxpReference,
+      evidenceType: evidenceType as EvidenceItemType,
+      exporterId,
+      actorUserId:  userId,
+      actorRole,
+      reason:       typeof reason === 'string' ? reason : null,
+    })
+
+    if (result.error) {
+      const e = result.error
+      if (e.code === 'NOT_FOUND') {
+        res.status(404).json({ data: null, error: 'Export case or evidence item not found' })
+        return
+      }
+      if (e.code === 'INVALID_TRANSITION') {
+        res.status(409).json({
+          data:         null,
+          error:        `Transition not permitted: evidence_type '${evidenceType}' is currently '${e.currentState}'`,
+          code:         'INVALID_TRANSITION',
+          currentState: e.currentState,
+          allowedFrom:  e.allowedFrom,
+        })
+        return
+      }
+      return sendQueryError(req, res, (e as { code: 'DB_ERROR'; cause: unknown }).cause)
     }
 
     res.json({ data: result.data, error: null })
