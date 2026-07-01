@@ -18,6 +18,8 @@ export { submitForReview } from './evidence-submit-review'
 export type { SubmitReviewResult, SubmitReviewError, SubmitReviewParams, SubmitReviewData } from './evidence-submit-review'
 export { validateEvidence } from './evidence-validate'
 export type { ValidateEvidenceResult, ValidateEvidenceError, ValidateEvidenceParams, ValidateEvidenceData } from './evidence-validate'
+export { rejectEvidence } from './evidence-reject'
+export type { RejectEvidenceResult, RejectEvidenceError, RejectEvidenceParams, RejectEvidenceData } from './evidence-reject'
 
 export type { ListContractSummariesOptions, CreateContractInput } from './contracts'
 export type { ListShipmentReconciliationOptions, CreateShipmentInput } from './shipments'
