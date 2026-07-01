@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import type { DbClient } from '../../db/client'
 import type { EvidenceItemType } from '../../db/types'
-import { listEvidenceItems, getEvidenceItem, markEvidenceUploaded, listEvidenceEvents, submitForReview, validateEvidence } from '../../db/queries/index'
+import { listEvidenceItems, getEvidenceItem, markEvidenceUploaded, listEvidenceEvents, submitForReview, validateEvidence, rejectEvidence } from '../../db/queries/index'
 import { sendQueryError } from '../middleware/query-error'
 import { requireRole } from '../middleware/require-role'
 
@@ -263,6 +263,76 @@ export function exportCasesRouter(client: DbClient): Router {
     }
 
     const result = await validateEvidence(client, {
+      nxpReference,
+      evidenceType: evidenceType as EvidenceItemType,
+      exporterId,
+      actorUserId:  userId,
+      actorRole,
+      reason,
+    })
+
+    if (result.error) {
+      const e = result.error
+      if (e.code === 'NOT_FOUND') {
+        res.status(404).json({ data: null, error: 'Export case or evidence item not found' })
+        return
+      }
+      if (e.code === 'INVALID_TRANSITION') {
+        res.status(409).json({
+          data:         null,
+          error:        `Transition not permitted: evidence_type '${evidenceType}' is currently '${e.currentState}'`,
+          code:         'INVALID_TRANSITION',
+          currentState: e.currentState,
+          allowedFrom:  e.allowedFrom,
+        })
+        return
+      }
+      return sendQueryError(req, res, (e as { code: 'DB_ERROR'; cause: unknown }).cause)
+    }
+
+    res.json({ data: result.data, error: null })
+  })
+
+  // PATCH /export-cases/:nxp_reference/evidence/:evidence_type/reject
+  // Moves an evidence item to rejected. reviewer/admin only.
+  // Allowed from: uploaded or pending_review, per RC4_API_DESIGN.md.
+  // Body: { "reason": "string (required)" }
+  // Writes one reject event row in the same transaction.
+  router.patch('/:nxp_reference/evidence/:evidence_type/reject', requireRole('reviewer', 'admin'), async (req, res) => {
+    const userId       = res.locals.userId
+    const exporterId   = res.locals.exporterId
+    const actorRole    = res.locals.actorRole
+    const nxpReference = req.params['nxp_reference'] as string
+    const evidenceType = req.params['evidence_type'] as string
+
+    if (!VALID_EVIDENCE_TYPES.has(evidenceType)) {
+      res.status(400).json({
+        data:  null,
+        error: `Invalid evidence_type: '${evidenceType}'`,
+        valid: Array.from(VALID_EVIDENCE_TYPES),
+      })
+      return
+    }
+
+    if (SYSTEM_EVIDENCE_TYPES.has(evidenceType)) {
+      res.status(400).json({
+        data:  null,
+        error: `evidence_type '${evidenceType}' is system-derived and cannot be updated via this endpoint`,
+      })
+      return
+    }
+
+    const { reason } = req.body as Record<string, unknown>
+    if (typeof reason !== 'string' || reason.trim() === '') {
+      res.status(400).json({
+        data:  null,
+        error: 'reason is required for reject',
+        code:  'VALIDATION_REQUIRED',
+      })
+      return
+    }
+
+    const result = await rejectEvidence(client, {
       nxpReference,
       evidenceType: evidenceType as EvidenceItemType,
       exporterId,
