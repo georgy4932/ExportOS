@@ -16,6 +16,8 @@ export { listEvidenceEvents } from './evidence-events'
 export type { ListEvidenceEventsResult, ListEvidenceEventsError, ListEvidenceEventsOptions } from './evidence-events'
 export { submitForReview } from './evidence-submit-review'
 export type { SubmitReviewResult, SubmitReviewError, SubmitReviewParams, SubmitReviewData } from './evidence-submit-review'
+export { validateEvidence } from './evidence-validate'
+export type { ValidateEvidenceResult, ValidateEvidenceError, ValidateEvidenceParams, ValidateEvidenceData } from './evidence-validate'
 
 export type { ListContractSummariesOptions, CreateContractInput } from './contracts'
 export type { ListShipmentReconciliationOptions, CreateShipmentInput } from './shipments'

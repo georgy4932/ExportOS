@@ -27,6 +27,7 @@
     "verify-mark-uploaded-api": "tsx scripts/verify-mark-uploaded-api.ts",
     "verify-evidence-events-api": "tsx scripts/verify-evidence-events-api.ts",
     "verify-submit-review-api": "tsx scripts/verify-submit-review-api.ts",
+    "verify-validate-api": "tsx scripts/verify-validate-api.ts",
     "pilot:create-exporter": "tsx scripts/pilot-create-exporter.ts",
     "typecheck": "tsc --noEmit"
   },
