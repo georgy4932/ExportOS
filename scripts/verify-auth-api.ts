@@ -8,7 +8,7 @@
  *
  * Checks:
  *   1. POST /auth/login with valid credentials → 200 + token
- *   2. GET /auth/me with token → correct exporterId
+ *   2. GET /auth/me with token → correct exporterId and actorRole
  *   3. GET /contracts with valid token → 200, AKOBO data present
  *   4. GET /contracts without token → 401
  *   5. GET /contracts with a bad/tampered token → 401
@@ -71,7 +71,9 @@ async function main() {
     process.exit(1)
   }
 
-  // ── Check 2: /auth/me returns correct exporterId ───────────────────────────
+  // ── Check 2: /auth/me returns correct exporterId and actorRole ─────────────
+  // Seeded operator@akoboexports.ng is exporter_users.role = 'ADMIN' (RC4_005
+  // migration), so actorRole must resolve to 'admin'.
   {
     const { status, body } = await get('/auth/me', token)
     const b = body as Record<string, unknown>
@@ -79,8 +81,10 @@ async function main() {
       fail('GET /auth/me', `expected 200, got ${status}`)
     } else if (b.exporterId !== EXPECTED_EXPORTER) {
       fail('GET /auth/me exporterId', `expected ${EXPECTED_EXPORTER}, got ${b.exporterId}`)
+    } else if (b.actorRole !== 'admin') {
+      fail('GET /auth/me actorRole', `expected 'admin', got '${b.actorRole}'`)
     } else {
-      ok(`GET /auth/me — userId=${b.userId}, exporterId=${b.exporterId}`)
+      ok(`GET /auth/me — userId=${b.userId}, exporterId=${b.exporterId}, actorRole=${b.actorRole}`)
     }
   }
 
