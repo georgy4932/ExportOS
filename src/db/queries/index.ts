@@ -20,6 +20,8 @@ export { validateEvidence } from './evidence-validate'
 export type { ValidateEvidenceResult, ValidateEvidenceError, ValidateEvidenceParams, ValidateEvidenceData } from './evidence-validate'
 export { rejectEvidence } from './evidence-reject'
 export type { RejectEvidenceResult, RejectEvidenceError, RejectEvidenceParams, RejectEvidenceData } from './evidence-reject'
+export { supersedeEvidence } from './evidence-supersede'
+export type { SupersedeEvidenceResult, SupersedeEvidenceError, SupersedeEvidenceParams, SupersedeEvidenceData } from './evidence-supersede'
 
 export type { ListContractSummariesOptions, CreateContractInput } from './contracts'
 export type { ListShipmentReconciliationOptions, CreateShipmentInput } from './shipments'
