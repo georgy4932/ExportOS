@@ -3799,6 +3799,18 @@
     const statusLabel = evState.label;      // 'Uploaded' | 'Missing' (canonical)
     const statusCls   = evState.badgeClass; // 'on-file'  | 'missing'
 
+    // reviewer/admin only, and only while the item is in 'uploaded' state
+    // (matches submit-review's ALLOWED_FROM on the backend).
+    const canSubmitReview = (_actorRole === 'reviewer' || _actorRole === 'admin') && evState.state === 'uploaded';
+    const actionsCard = canSubmitReview
+      ? '<div class="ec-card">'
+        +   '<div class="ec-card-h"><span class="ec-card-t">Actions</span></div>'
+        +   '<button class="ec-chk-btn view" type="button" id="ev-item-submit-review-btn"'
+        +     ' onclick="submitForReviewAction(\'' + h(nxpRef) + '\',\'' + h(type) + '\')"'
+        +     ' aria-label="Submit for Review">Submit for Review →</button>'
+        + '</div>'
+      : '';
+
     document.getElementById('ev-item-content').innerHTML =
       // Back navigation
       '<div style="padding:12px 4px 4px">'
@@ -3814,6 +3826,8 @@
       +   '</div>'
       +   '<div class="ec-row"><span class="ec-rl">Status</span><span class="ec-rv"><span class="ev-item-status ' + statusCls + '">' + statusLabel + '</span></span></div>'
       + '</div>'
+      // Actions card — reviewer/admin only; omitted entirely otherwise
+      + actionsCard
       // Case context card
       + '<div class="ec-card">'
       +   '<div class="ec-card-h"><span class="ec-card-t">Record Details</span></div>'
@@ -3913,6 +3927,30 @@
       ecViewDoc('Document marked as uploaded.');
     } catch (err) {
       ecViewDoc((err && err.message) ? err.message : 'Upload failed. Please try again.');
+    }
+  }
+
+  // Calls PATCH /export-cases/:nxp/evidence/:type/submit-review. reviewer/admin only
+  // (button is not rendered otherwise; the backend enforces this regardless).
+  // Disables the button immediately to guard against duplicate submissions.
+  // On success: refreshes the evidence item cache and re-renders the detail view,
+  // which also re-fetches the event timeline (openEvidenceItem() always does this).
+  // On failure: re-enables the button and shows the error in the doc-toast.
+  async function submitForReviewAction(nxpRef, evidenceType) {
+    var btn = document.getElementById('ev-item-submit-review-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+    try {
+      await apiFetch('/export-cases/' + encodeURIComponent(nxpRef) + '/evidence/' + evidenceType + '/submit-review', {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({}),
+      });
+      await fetchEvidenceItems(nxpRef);
+      openEvidenceItem(evidenceType, nxpRef);
+      ecViewDoc('Submitted for review.');
+    } catch (err) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Submit for Review →'; }
+      ecViewDoc((err && err.message) ? err.message : 'Submit for review failed. Please try again.');
     }
   }
 
