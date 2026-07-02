@@ -3983,6 +3983,13 @@
     }
   }
 
+  // TEMPORARY: uses the native window.prompt() as a stopgap reason-input UI.
+  // This is a deliberate placeholder, not a final design choice — replace with a
+  // proper inline reason field (e.g. a small modal reusing the existing
+  // openCard()/closeModal() pattern already used for New Contract/New Evidence)
+  // in a follow-up pass. window.prompt() cannot be styled, has no multi-line
+  // support, and may be unavailable in some embedded/automated browser contexts.
+  //
   // Prompts for a non-empty reason, used by validate/reject (both require one).
   // Returns the trimmed reason string, or null if the user cancelled or left it
   // blank — callers must not call the API in the null case. Blank (as opposed to
