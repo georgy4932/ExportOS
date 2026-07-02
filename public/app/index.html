@@ -2470,8 +2470,11 @@
   function loadAll() {
     fetch('/auth/me', { headers: authHeaders() })
       .then(r => r.json())
-      .then(b => { document.getElementById('header-exporter').textContent = b.exporterName ?? b.exporterId ?? ''; })
-      .catch(() => {});
+      .then(b => {
+        document.getElementById('header-exporter').textContent = b.exporterName ?? b.exporterId ?? '';
+        _actorRole = b.actorRole ?? null;
+      })
+      .catch(() => { _actorRole = null; });
 
     loadOverview();
     loadContracts();
@@ -3157,6 +3160,7 @@
   let _allShipments = [];
   let _currentNxpRef = null; // tracks the active case for evidence navigation
   let _evidenceCache = {}; // { [nxpRef]: { [evidenceType]: EvidenceItemRow } } — populated on case open
+  let _actorRole = null; // 'exporter' | 'reviewer' | 'admin' — populated by loadAll() from /auth/me; used for RC4 evidence-lifecycle UI gating (not yet consumed)
 
   // ── View switching ────────────────────────────────────────────────────────────
   const VIEW_TITLES = {
