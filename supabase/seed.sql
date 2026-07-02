@@ -295,6 +295,83 @@ INSERT INTO local_users (id, email, password_hash) VALUES (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
+-- §9c  QA TEST USERS (RC4_006) — role-based E2E testing fixtures
+-- Mirrors migration 20260702000001_rc4_006_qa_test_users.sql for local-dev
+-- parity. qa- prefix is deliberate: these are test fixtures, not real staff.
+-- Both use password: dev-seed-password
+-- =============================================================================
+
+INSERT INTO auth.users (
+  id, instance_id, aud, role, email,
+  encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data,
+  created_at, updated_at,
+  confirmation_token, recovery_token,
+  email_change_token_new, email_change
+) VALUES (
+  'a0b00000-0000-0000-0000-000000000002',
+  '00000000-0000-0000-0000-000000000000',
+  'authenticated',
+  'authenticated',
+  'qa-member@akoboexports.ng',
+  crypt('dev-seed-password', gen_salt('bf')),
+  NOW(),
+  '{"provider":"email","providers":["email"]}',
+  '{}',
+  NOW(), NOW(),
+  '', '', '', ''
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO local_users (id, email, password_hash) VALUES (
+  'a0b00000-0000-0000-0000-000000000002',
+  'qa-member@akoboexports.ng',
+  '$2a$10$UmcD5HqyRunUbh9rPCKMu.MlrbTWQ0l9H1rDmlbNODKikuFP1dVXK'
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO exporter_users (
+  exporter_id, user_id, role
+) VALUES (
+  'b0b00001-0000-0000-0000-000000000001',
+  'a0b00000-0000-0000-0000-000000000002',
+  'MEMBER'
+) ON CONFLICT (exporter_id, user_id) DO NOTHING;
+
+INSERT INTO auth.users (
+  id, instance_id, aud, role, email,
+  encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data,
+  created_at, updated_at,
+  confirmation_token, recovery_token,
+  email_change_token_new, email_change
+) VALUES (
+  'a0b00000-0000-0000-0000-000000000003',
+  '00000000-0000-0000-0000-000000000000',
+  'authenticated',
+  'authenticated',
+  'qa-reviewer@akoboexports.ng',
+  crypt('dev-seed-password', gen_salt('bf')),
+  NOW(),
+  '{"provider":"email","providers":["email"]}',
+  '{}',
+  NOW(), NOW(),
+  '', '', '', ''
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO local_users (id, email, password_hash) VALUES (
+  'a0b00000-0000-0000-0000-000000000003',
+  'qa-reviewer@akoboexports.ng',
+  '$2a$10$cL6bkpunPE7TJhiAhgoqregqOgBG0y3oJDaWB/Qzxbhsh5xTeOwxS'
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO exporter_users (
+  exporter_id, user_id, role
+) VALUES (
+  'b0b00001-0000-0000-0000-000000000001',
+  'a0b00000-0000-0000-0000-000000000003',
+  'REVIEWER'
+) ON CONFLICT (exporter_id, user_id) DO NOTHING;
+
+-- =============================================================================
 -- §10  INVOICES
 -- invoice_number (not invoice_reference). currency column (not contract_currency).
 -- =============================================================================
