@@ -3805,6 +3805,9 @@
     const canSubmitReview    = isReviewerOrAdmin && evState.state === 'uploaded';
     // validate/reject share the same allowed-from set on the backend: uploaded or pending_review.
     const canValidateOrReject = isReviewerOrAdmin && (evState.state === 'uploaded' || evState.state === 'pending_review');
+    // supersede is admin-only (not reviewer) and allowed only from 'validated' —
+    // both narrower than validate/reject, per RC4_API_DESIGN.md §5.
+    const canSupersede = _actorRole === 'admin' && evState.state === 'validated';
     const actionButtons =
       (canSubmitReview
         ? '<button class="ec-chk-btn view" type="button" id="ev-item-submit-review-btn"'
@@ -3818,6 +3821,11 @@
           + '<button class="ec-chk-btn upload" type="button" id="ev-item-reject-btn"'
           + ' onclick="rejectEvidenceAction(\'' + h(nxpRef) + '\',\'' + h(type) + '\')"'
           + ' aria-label="Reject">Reject →</button>'
+        : '')
+      + (canSupersede
+        ? '<button class="ec-chk-btn upload" type="button" id="ev-item-supersede-btn"'
+          + ' onclick="supersedeEvidenceAction(\'' + h(nxpRef) + '\',\'' + h(type) + '\')"'
+          + ' aria-label="Supersede">Supersede →</button>'
         : '');
     const actionsCard = actionButtons
       ? '<div class="ec-card">'
@@ -3948,7 +3956,9 @@
   // Evidence action buttons that can appear together on the same item (e.g. all
   // three when state = 'uploaded'). Disabling every present button while any one
   // action is in flight prevents racing two lifecycle transitions on the same item.
-  var EV_ACTION_BUTTON_IDS = ['ev-item-submit-review-btn', 'ev-item-validate-btn', 'ev-item-reject-btn'];
+  // supersede never coexists with the other three (mutually exclusive states),
+  // but is included here for a single, uniform disable mechanism.
+  var EV_ACTION_BUTTON_IDS = ['ev-item-submit-review-btn', 'ev-item-validate-btn', 'ev-item-reject-btn', 'ev-item-supersede-btn'];
   function setEvidenceActionButtonsDisabled(disabled) {
     EV_ACTION_BUTTON_IDS.forEach(function(id) {
       var el = document.getElementById(id);
@@ -4054,6 +4064,34 @@
       setEvidenceActionButtonsDisabled(false);
       if (btn) btn.textContent = 'Reject →';
       ecViewDoc((err && err.message) ? err.message : 'Reject failed. Please try again.');
+    }
+  }
+
+  // Calls PATCH /export-cases/:nxp/evidence/:type/supersede. admin only,
+  // validated only (button is not rendered otherwise; the backend enforces both
+  // regardless). reason is required and collected via promptForReason() before
+  // any network call is made — same pattern as validateEvidenceAction/
+  // rejectEvidenceAction.
+  async function supersedeEvidenceAction(nxpRef, evidenceType) {
+    var reason = promptForReason('Supersede');
+    if (reason === null) return;
+
+    var btn = document.getElementById('ev-item-supersede-btn');
+    setEvidenceActionButtonsDisabled(true);
+    if (btn) btn.textContent = 'Superseding…';
+    try {
+      await apiFetch('/export-cases/' + encodeURIComponent(nxpRef) + '/evidence/' + evidenceType + '/supersede', {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ reason: reason }),
+      });
+      await fetchEvidenceItems(nxpRef);
+      openEvidenceItem(evidenceType, nxpRef);
+      ecViewDoc('Evidence superseded.');
+    } catch (err) {
+      setEvidenceActionButtonsDisabled(false);
+      if (btn) btn.textContent = 'Supersede →';
+      ecViewDoc((err && err.message) ? err.message : 'Supersede failed. Please try again.');
     }
   }
 
