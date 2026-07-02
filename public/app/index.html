@@ -878,8 +878,12 @@
     .ep-ws-rdy.not-ready { color: #b91c1c; border-color: #fca5a5; background: #fff1f1; }
     /* Evidence Item view — reusable for all evidence types */
     .ev-item-status { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 10px; border-radius: 12px; border: 1px solid; }
-    .ev-item-status.on-file { color: #15803d; border-color: #86efac; background: #f0fdf4; }
-    .ev-item-status.missing { color: #b91c1c; border-color: #fca5a5; background: #fff1f1; }
+    .ev-item-status.on-file        { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    .ev-item-status.missing        { color: #b91c1c; border-color: #fca5a5; background: #fff1f1; }
+    .ev-item-status.pending-review { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
+    .ev-item-status.validated      { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    .ev-item-status.rejected       { color: #b91c1c; border-color: #fca5a5; background: #fff1f1; }
+    .ev-item-status.superseded     { color: #94a3b8; border-color: #f1f5f9; background: #fafafa; }
     .ev-item-code { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 2px; }
     .ev-item-ph { margin: 0 14px 14px; padding: 32px 20px; text-align: center; font-size: 12px; color: #94a3b8; background: #f8fafc; border: 1px dashed #e2e8f0; border-radius: 6px; }
     .ev-item-notice { margin: 0 14px 12px; padding: 9px 12px; font-size: 11px; line-height: 1.5; border-radius: 4px; border: 1px solid; }
@@ -3579,8 +3583,21 @@
   // ── Shared Frontend Evidence State Model ────────────────────────────────────
   // Single source of truth for evidence presence and state across all screens.
   // Screens must not invent their own evidence state logic — always call getEvidenceState().
-  // Future backend validation states (under_review, validated, rejected) plug in here;
-  // callers that already use this helper will pick them up automatically.
+  // Maps a raw lifecycle_state to the CSS modifier class used with .ev-item-status.
+  // 'missing' and 'uploaded' keep their original class names ('missing'/'on-file')
+  // so existing display continues to work unchanged; RC4 states get their own classes.
+  function evidenceBadgeClass(lifecycleState) {
+    switch (lifecycleState) {
+      case 'missing':        return 'missing';
+      case 'uploaded':       return 'on-file';
+      case 'pending_review': return 'pending-review';
+      case 'validated':      return 'validated';
+      case 'rejected':       return 'rejected';
+      case 'superseded':     return 'superseded';
+      default:               return 'missing';
+    }
+  }
+
   function getEvidenceState(caseRecord, evidenceType, shipRecord) {
     shipRecord = shipRecord || {};
 
@@ -3601,7 +3618,7 @@
       return {
         state:            lcState,
         label:            lcLabel,
-        badgeClass:       isPresent ? 'on-file' : 'missing',
+        badgeClass:       evidenceBadgeClass(lcState),
         required:         cached.required_for_compliance !== false,
         validationStatus: valLabel,
         lastChecked:      lastChk,
@@ -3625,7 +3642,7 @@
     }
     var state      = present ? 'uploaded' : 'missing';
     var label      = present ? 'Uploaded' : 'Missing';
-    var badgeClass = present ? 'on-file'  : 'missing';
+    var badgeClass = evidenceBadgeClass(state);
     return {
       state:            state,
       label:            label,
