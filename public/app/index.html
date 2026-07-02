@@ -3165,6 +3165,7 @@
   let _currentNxpRef = null; // tracks the active case for evidence navigation
   let _evidenceCache = {}; // { [nxpRef]: { [evidenceType]: EvidenceItemRow } } — populated on case open
   let _actorRole = null; // 'exporter' | 'reviewer' | 'admin' — populated by loadAll() from /auth/me; used for RC4 evidence-lifecycle UI gating (not yet consumed)
+  let _eventsCache = {}; // { [nxpRef]: { [evidenceType]: EvidenceEventRow[] } } — populated by fetchEvidenceEvents() on evidence item open
 
   // ── View switching ────────────────────────────────────────────────────────────
   const VIEW_TITLES = {
@@ -3684,6 +3685,58 @@
       });
   }
 
+  // Human-readable label for each evidence_events.event_type value.
+  var EVENT_TYPE_LABELS = {
+    mark_uploaded: 'Marked as Uploaded',
+    resubmit:      'Resubmitted',
+    enter_review:  'Submitted for Review',
+    validate:      'Validated',
+    reject:        'Rejected',
+    supersede:     'Superseded',
+    system_seed:   'System Seed',
+  };
+
+  // Maps event_type to an existing .ev-st-badge color class — no new CSS needed.
+  function eventBadgeClass(eventType) {
+    switch (eventType) {
+      case 'validate':  return 'pass';
+      case 'reject':    return 'fail';
+      case 'supersede': return 'na';
+      default:          return 'recorded'; // mark_uploaded, resubmit, enter_review, system_seed
+    }
+  }
+
+  // Fetches the ordered event log for one evidence item and stores it in
+  // _eventsCache keyed by [nxpRef][evidenceType]. Rejects on failure so the
+  // caller can render an explicit error state (unlike fetchEvidenceItems,
+  // which has a boolean fallback to fall back to instead).
+  function fetchEvidenceEvents(nxpRef, evidenceType) {
+    return apiFetch('/export-cases/' + encodeURIComponent(nxpRef) + '/evidence/' + evidenceType + '/events')
+      .then(function(body) {
+        var events = (body && Array.isArray(body.data)) ? body.data : [];
+        _eventsCache[nxpRef] = _eventsCache[nxpRef] || {};
+        _eventsCache[nxpRef][evidenceType] = events;
+        return events;
+      });
+  }
+
+  // Renders the inner HTML for the Evidence History card body from an events array.
+  function renderEvidenceHistoryBody(events) {
+    if (!events.length) {
+      return '<div class="state">No lifecycle events recorded yet.</div>';
+    }
+    return events.map(function(ev) {
+      var label = EVENT_TYPE_LABELS[ev.event_type] || ev.event_type;
+      var cls   = eventBadgeClass(ev.event_type);
+      var when  = ev.created_at ? date(ev.created_at) : 'Date unavailable';
+      return '<div class="ec-row"><span class="ec-rl">' + h(label) + '</span><span class="ec-rv">'
+        + '<span class="ev-st-badge ' + cls + '">' + h(ev.actor_role || 'system') + '</span>'
+        + '<span class="ev-row-date">' + h(when) + '</span>'
+        + (ev.reason ? '<br><span class="muted" style="font-size:10px">' + h(ev.reason) + '</span>' : '')
+        + '</span></div>';
+    }).join('');
+  }
+
   // Derives the human-readable case display name from available shipment fields.
   // Single source of truth — do not inline this ternary elsewhere.
   function getCaseName(caseRecord, shipRecord) {
@@ -3785,20 +3838,12 @@
           : '<div class="ev-item-notice amber">Evidence has not been uploaded yet.<br>Upload flow will be added in a future phase.</div>')
       + '</div>'
 
-      // Evidence History card — read-only lifecycle events; dates added when backend supplies them
+      // Evidence History card — real evidence_events audit trail, fetched async below.
       + '<div class="ec-card">'
       +   '<div class="ec-card-h"><span class="ec-card-t">Evidence History</span></div>'
-      +   '<div class="ec-row"><span class="ec-rl">Created</span><span class="ec-rv">'
-      +     (present ? '<span class="ev-st-badge recorded">Recorded</span><span class="ev-row-date">' + (evState.uploadedAt ? date(evState.uploadedAt) : 'Date unavailable') + '</span>'
-                     : '<span class="ev-st-badge pending">Pending</span>')
-      +   '</span></div>'
-      +   '<div class="ec-row"><span class="ec-rl">Uploaded</span><span class="ec-rv">'
-      +     (present ? '<span class="ev-st-badge recorded">Recorded</span><span class="ev-row-date">' + (evState.uploadedAt ? date(evState.uploadedAt) : 'Date unavailable') + '</span>'
-                     : '<span class="ev-st-badge pending">Pending</span>')
-      +   '</span></div>'
-      +   '<div class="ec-row"><span class="ec-rl">Replaced</span><span class="ec-rv"><span class="ev-st-badge na">N/A</span></span></div>'
-      +   '<div class="ec-row"><span class="ec-rl">Validated</span><span class="ec-rv"><span class="ev-st-badge pending">Pending</span></span></div>'
-      +   '<div class="ec-row"><span class="ec-rl">Rejected</span><span class="ec-rv"><span class="ev-st-badge na">N/A</span></span></div>'
+      +   '<div id="ev-item-history-body" data-nxp="' + h(nxpRef) + '" data-type="' + h(type) + '">'
+      +     '<div class="state">Loading history…</div>'
+      +   '</div>'
       + '</div>'
 
       // Validation Checks card — automated checks will replace placeholders in a future phase
@@ -3821,6 +3866,22 @@
       + '</div>';
 
     showView('view-ev-item', h(meta.title), 'view-exports');
+
+    // Fetch the real event log asynchronously; the card shows "Loading history…"
+    // until this resolves. Guarded against stale writes if the user navigates to
+    // a different evidence item (or a different case) before the fetch completes.
+    fetchEvidenceEvents(nxpRef, type)
+      .then(function(events) {
+        var body = document.getElementById('ev-item-history-body');
+        if (!body || body.dataset.nxp !== nxpRef || body.dataset.type !== type) return;
+        body.innerHTML = renderEvidenceHistoryBody(events);
+      })
+      .catch(function(err) {
+        var body = document.getElementById('ev-item-history-body');
+        if (!body || body.dataset.nxp !== nxpRef || body.dataset.type !== type) return;
+        body.innerHTML = '<div class="state err">Could not load event history.</div>';
+        console.warn('[evidence] events fetch failed for ' + nxpRef + '/' + type + ':', err && err.message || String(err));
+      });
   }
 
   function ecUploadNav(hasPack) {
