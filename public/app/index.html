@@ -3801,13 +3801,28 @@
 
     // reviewer/admin only, and only while the item is in 'uploaded' state
     // (matches submit-review's ALLOWED_FROM on the backend).
-    const canSubmitReview = (_actorRole === 'reviewer' || _actorRole === 'admin') && evState.state === 'uploaded';
-    const actionsCard = canSubmitReview
+    const isReviewerOrAdmin  = _actorRole === 'reviewer' || _actorRole === 'admin';
+    const canSubmitReview    = isReviewerOrAdmin && evState.state === 'uploaded';
+    // validate/reject share the same allowed-from set on the backend: uploaded or pending_review.
+    const canValidateOrReject = isReviewerOrAdmin && (evState.state === 'uploaded' || evState.state === 'pending_review');
+    const actionButtons =
+      (canSubmitReview
+        ? '<button class="ec-chk-btn view" type="button" id="ev-item-submit-review-btn"'
+          + ' onclick="submitForReviewAction(\'' + h(nxpRef) + '\',\'' + h(type) + '\')"'
+          + ' aria-label="Submit for Review">Submit for Review →</button>'
+        : '')
+      + (canValidateOrReject
+        ? '<button class="ec-chk-btn view" type="button" id="ev-item-validate-btn"'
+          + ' onclick="validateEvidenceAction(\'' + h(nxpRef) + '\',\'' + h(type) + '\')"'
+          + ' aria-label="Validate">Validate →</button>'
+          + '<button class="ec-chk-btn upload" type="button" id="ev-item-reject-btn"'
+          + ' onclick="rejectEvidenceAction(\'' + h(nxpRef) + '\',\'' + h(type) + '\')"'
+          + ' aria-label="Reject">Reject →</button>'
+        : '');
+    const actionsCard = actionButtons
       ? '<div class="ec-card">'
         +   '<div class="ec-card-h"><span class="ec-card-t">Actions</span></div>'
-        +   '<button class="ec-chk-btn view" type="button" id="ev-item-submit-review-btn"'
-        +     ' onclick="submitForReviewAction(\'' + h(nxpRef) + '\',\'' + h(type) + '\')"'
-        +     ' aria-label="Submit for Review">Submit for Review →</button>'
+        +   actionButtons
         + '</div>'
       : '';
 
@@ -3930,15 +3945,28 @@
     }
   }
 
+  // Evidence action buttons that can appear together on the same item (e.g. all
+  // three when state = 'uploaded'). Disabling every present button while any one
+  // action is in flight prevents racing two lifecycle transitions on the same item.
+  var EV_ACTION_BUTTON_IDS = ['ev-item-submit-review-btn', 'ev-item-validate-btn', 'ev-item-reject-btn'];
+  function setEvidenceActionButtonsDisabled(disabled) {
+    EV_ACTION_BUTTON_IDS.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.disabled = disabled;
+    });
+  }
+
   // Calls PATCH /export-cases/:nxp/evidence/:type/submit-review. reviewer/admin only
   // (button is not rendered otherwise; the backend enforces this regardless).
-  // Disables the button immediately to guard against duplicate submissions.
+  // Disables all evidence action buttons immediately to guard against duplicate
+  // or racing submissions.
   // On success: refreshes the evidence item cache and re-renders the detail view,
   // which also re-fetches the event timeline (openEvidenceItem() always does this).
-  // On failure: re-enables the button and shows the error in the doc-toast.
+  // On failure: re-enables the buttons and shows the error in the doc-toast.
   async function submitForReviewAction(nxpRef, evidenceType) {
     var btn = document.getElementById('ev-item-submit-review-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+    setEvidenceActionButtonsDisabled(true);
+    if (btn) btn.textContent = 'Submitting…';
     try {
       await apiFetch('/export-cases/' + encodeURIComponent(nxpRef) + '/evidence/' + evidenceType + '/submit-review', {
         method:  'PATCH',
@@ -3949,8 +3977,76 @@
       openEvidenceItem(evidenceType, nxpRef);
       ecViewDoc('Submitted for review.');
     } catch (err) {
-      if (btn) { btn.disabled = false; btn.textContent = 'Submit for Review →'; }
+      setEvidenceActionButtonsDisabled(false);
+      if (btn) btn.textContent = 'Submit for Review →';
       ecViewDoc((err && err.message) ? err.message : 'Submit for review failed. Please try again.');
+    }
+  }
+
+  // Prompts for a non-empty reason, used by validate/reject (both require one).
+  // Returns the trimmed reason string, or null if the user cancelled or left it
+  // blank — callers must not call the API in the null case. Blank (as opposed to
+  // cancelled) shows an explicit toast so the user knows why nothing happened.
+  function promptForReason(actionLabel) {
+    var reason = window.prompt('Reason for ' + actionLabel + ' (required):');
+    if (reason === null) return null; // user cancelled
+    var trimmed = reason.trim();
+    if (!trimmed) {
+      ecViewDoc('Reason is required for ' + actionLabel.toLowerCase() + '.');
+      return null;
+    }
+    return trimmed;
+  }
+
+  // Calls PATCH /export-cases/:nxp/evidence/:type/validate. reviewer/admin only,
+  // uploaded or pending_review only (button is not rendered otherwise; the
+  // backend enforces both regardless). reason is required and collected via
+  // promptForReason() before any network call is made.
+  async function validateEvidenceAction(nxpRef, evidenceType) {
+    var reason = promptForReason('Validate');
+    if (reason === null) return;
+
+    var btn = document.getElementById('ev-item-validate-btn');
+    setEvidenceActionButtonsDisabled(true);
+    if (btn) btn.textContent = 'Validating…';
+    try {
+      await apiFetch('/export-cases/' + encodeURIComponent(nxpRef) + '/evidence/' + evidenceType + '/validate', {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ reason: reason }),
+      });
+      await fetchEvidenceItems(nxpRef);
+      openEvidenceItem(evidenceType, nxpRef);
+      ecViewDoc('Evidence validated.');
+    } catch (err) {
+      setEvidenceActionButtonsDisabled(false);
+      if (btn) btn.textContent = 'Validate →';
+      ecViewDoc((err && err.message) ? err.message : 'Validate failed. Please try again.');
+    }
+  }
+
+  // Calls PATCH /export-cases/:nxp/evidence/:type/reject. Same role/state gating
+  // and reason requirement as validateEvidenceAction — see comments there.
+  async function rejectEvidenceAction(nxpRef, evidenceType) {
+    var reason = promptForReason('Reject');
+    if (reason === null) return;
+
+    var btn = document.getElementById('ev-item-reject-btn');
+    setEvidenceActionButtonsDisabled(true);
+    if (btn) btn.textContent = 'Rejecting…';
+    try {
+      await apiFetch('/export-cases/' + encodeURIComponent(nxpRef) + '/evidence/' + evidenceType + '/reject', {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ reason: reason }),
+      });
+      await fetchEvidenceItems(nxpRef);
+      openEvidenceItem(evidenceType, nxpRef);
+      ecViewDoc('Evidence rejected.');
+    } catch (err) {
+      setEvidenceActionButtonsDisabled(false);
+      if (btn) btn.textContent = 'Reject →';
+      ecViewDoc((err && err.message) ? err.message : 'Reject failed. Please try again.');
     }
   }
 
